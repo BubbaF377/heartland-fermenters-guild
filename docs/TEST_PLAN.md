@@ -126,13 +126,14 @@ Manual test plan for clicking through the live landing page, its outbound links,
 
 ## Repository & Project Setup
 
-**TC-14 — Repo is private on GitHub**
+**TC-14 — Repo is public but locked down to a sole collaborator**
 - Requirement(s): 4
-- Preconditions: Access to GitHub, viewer is not a repo collaborator (for a true negative check) and separately as a collaborator
+- Preconditions: Access to GitHub, viewer is not a repo collaborator (for a true negative check) and separately as the owner
 - Steps:
-  1. As a logged-out or unaffiliated GitHub user, attempt to navigate to `github.com/<org-or-user>/heartland-fermenters-guild`.
-  2. As an authorized collaborator, navigate to the repo and check its visibility badge/settings.
-- Expected result: Unaffiliated users get a 404 (repo not visible/accessible). Authorized collaborators see the repo marked "Private" in GitHub's UI.
+  1. As a logged-out or unaffiliated GitHub user, navigate to `github.com/BubbaF377/heartland-fermenters-guild`.
+  2. Attempt to push a branch or open Settings → Collaborators as that unaffiliated user.
+  3. As the owner, check Settings → Collaborators, Settings → Branches (protection rules on `main`), and Settings → Rules (rulesets) for the `v*` tag pattern.
+- Expected result: Unaffiliated users can view/clone/fork the repo (it's public) but cannot push to it or see themselves listed with access. The owner (`BubbaF377`) is the only collaborator. `main` has branch protection blocking force-pushes and deletion. A ruleset blocks creation/update/deletion of `v*` tags for anyone without the admin role.
 
 **TC-15 — Project correctly linked in Devlore**
 - Requirement(s): 4
@@ -171,5 +172,6 @@ Manual test plan for clicking through the live landing page, its outbound links,
 - **Auth provider behavior (roll-your-own vs. hosted)** — decision not yet made, nothing to test.
 - **About/History, Events, Recipes/Resources pages** — roadmap only, not yet built (Requirement 6).
 - **Content accuracy for future info pages** — content not yet drafted (Open questions).
-- **DNS provider choice (Porkbun vs. migrating to Cloudflare)** — open architectural question, no user-facing behavior change to verify; current DNS records are covered by TC-10/TC-11.
+- **Porkbun's Cloudflare-backed DNS resolution infrastructure** — settled as a non-issue (see Requirement 3): it's DNS-answering only, not a traffic proxy, and isn't user-visible; current DNS records are covered by TC-10/TC-11.
 - **Hosting model for future members-only server-side pieces** — undecided, purely architectural, nothing shippable to click through yet.
+- **Devlore auto-doc-sync automation** (`devlore.yml`'s `sync-test-plan`/`sync-user-manual`/`sync-visualizer`/`draft-log-entry` jobs) — currently broken because this repo is public and its reusable workflows live in the private `devlore` repo (GitHub disallows public repos calling reusable workflows in a private repo). Not a site behavior to test; tracked as a known limitation in `docs/PRODUCT.md`.
