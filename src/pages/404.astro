@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Page Not Found — Heartland Fermenters Guild" description="This page could not be found.">
+  <main class="not-found">
+    <img src="/assets/logo.png" alt="Heartland Fermenters Guild crest" width="120" height="120" />
+    <h1>404</h1>
+    <p>This page has fermented a little too long and is no longer here.</p>
+    <a href="/">Back to the guild hall</a>
+  </main>
+</Layout>
+
+<style>
+  .not-found {
+    max-width: 480px;
+    margin: 5rem auto;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+
+  .not-found img {
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+  }
+
+  .not-found h1 {
+    font-size: 3rem;
+  }
+
+  .not-found a {
+    display: inline-block;
+    margin-top: 1.5rem;
+    color: var(--green-deep);
+    font-weight: 600;
+  }
+</style>
