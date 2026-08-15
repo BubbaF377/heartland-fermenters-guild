@@ -1,87 +1,76 @@
-<!-- devlore:visualizer source-hash:926d22579dfb7a99c819f13b5bf0df1576d380720acb271f7695e7092a5fb207 -->
+<!-- devlore:visualizer source-hash:195a9cdbd632ce91774abfc81be0b88c222d9eb40bfacdaaf82e528ad6731343 -->
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this diagram automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's diagrammed, update `docs/PRODUCT.md` itself.
 
-> **Note:** This file was updated manually, not by Devlore's automation, because `devlore.yml`'s `sync-visualizer` job currently fails — this repo is public and its reusable workflow lives in the private `devlore` repo, which GitHub disallows. See `docs/PRODUCT.md` requirement 4 and `docs/TEST_PLAN.md`'s Out of scope section. Devlore will resync (and may overwrite this) once that's resolved.
+The codebase snapshot shows only a fresh scaffold (three GitHub Actions workflow files, a placeholder README, and the templated `docs/PRODUCT.md`) — no Astro source, pages, or components exist yet. The diagrams below are therefore drawn from what the product doc describes as built/decided (the workflow files, the planned landing-page content, and the hosting/DNS setup), not from actual application code.
 
-The repo now contains a working Astro static site (v1 landing page, built and deployed), not just the Devlore scaffold. The diagrams below reflect the actual current structure, distinguishing what's built from what's only planned.
-
-Caption: Internal structure of the repo — the built Astro site, its content sections, the CI/deploy and Devlore workflows, and what's still roadmap-only.
+Internal structure — the repo's current files plus the planned v1 landing-page content and roadmap pages described in the requirements (nothing here is implemented in code yet, only specified):
 
 ```mermaid
-flowchart TB
-    subgraph Repo["heartland-fermenters-guild (repo root)"]
-        PDOC["docs/PRODUCT.md<br/>(living product doc)"]
+graph TD
+    subgraph Repo["heartland-fermenters-guild (public repo)"]
+        PRODUCT["docs/PRODUCT.md<br/>(source-of-truth product doc)"]
+        README["README.md<br/>(placeholder stub)"]
+        TESTPLAN["docs/TEST_PLAN.md<br/>(manually patched 2026-08-15)"]
+        VIZ["docs/VISUALIZER.md<br/>(manually patched 2026-08-15)"]
 
         subgraph Workflows[".github/workflows/"]
-            WFDeploy["deploy.yml<br/>(withastro/action → GitHub Pages)"]
-            WF1["devlore.yml"]
-            WF2["devlore-analyze.yml"]
-            WF3["devlore-release.yml"]
+            DEVLORE["devlore.yml<br/>(sync-test-plan, sync-user-manual,<br/>sync-visualizer, draft-log-entry)"]
+            ANALYZE["devlore-analyze.yml"]
+            RELEASE["devlore-release.yml<br/>(release-notes job)"]
         end
 
-        subgraph Site["src/ + public/ (built)"]
-            Layout["src/layouts/Layout.astro<br/>(head, fonts, global styles)"]
-            Index["src/pages/index.astro<br/>(landing page)"]
-            NotFound["src/pages/404.astro"]
-            Assets["public/assets/<br/>(banner, crest, favicons)"]
-            CNAME["public/CNAME"]
-
-            Index --> Layout
-            NotFound --> Layout
-            Index --> Header["Header banner image"]
-            Index --> Crest["Circular crest logo"]
-            Index --> Welcome["Welcome paragraph"]
-            Index --> Join["'Join the Conversation' section"]
-            Header --> Assets
-            Crest --> Assets
-        end
-
-        subgraph Future["Roadmap — not yet built"]
-            About["About/History page"]
-            Events["Events page"]
-            Recipes["Recipes/Resources page"]
-            Members["Members-only section<br/>(auth-gated)"]
+        subgraph PlannedSite["Astro site (planned, not yet built)"]
+            LANDING["Landing page (v1)"]
+            HEADER["Header banner image"]
+            CREST["Circular crest logo"]
+            WELCOME["Welcome paragraph"]
+            JOIN["Join the Conversation section"]
+            FUTURE["Future pages:<br/>About/History, Events, Recipes/Resources"]
+            MEMBERS["Future: auth-gated members-only section"]
         end
     end
 
-    Index -.grows into.-> About
-    Index -.grows into.-> Events
-    Index -.grows into.-> Recipes
-    Site -.eventually adds.-> Members
-
-    PDOC -. informs/read by .-> WF1
-    PDOC -. informs/read by .-> WFDeploy
+    PRODUCT -.->|drives docs sync| DEVLORE
+    PRODUCT -.->|drives release notes| RELEASE
+    LANDING --> HEADER
+    LANDING --> CREST
+    LANDING --> WELCOME
+    LANDING --> JOIN
+    LANDING -.->|roadmap expansion| FUTURE
+    FUTURE -.->|roadmap expansion| MEMBERS
 ```
 
-Caption: External services and destinations the site depends on or links out to — the build/hosting/DNS chain that gets the site live (now verified working end-to-end), and the social platforms the "Join the Conversation" section points to.
+External dependencies — the hosting, DNS, and outbound social links the site relies on, as described in the requirements:
 
 ```mermaid
-flowchart LR
-    Repo["heartland-fermenters-guild repo<br/>(public, sole collaborator BubbaF377,<br/>branch-protected main, v* tag ruleset)"]
-    Action["GitHub Actions:<br/>withastro/action"]
-    Pages["GitHub Pages<br/>(static hosting, custom domain configured)"]
-    Cert["Let's Encrypt cert<br/>(approved, HTTPS enforced)"]
-    Domain["heartlandfermentersguild.org<br/>+ www (live, verified)"]
-    Porkbun["Porkbun DNS<br/>(A records + www CNAME →<br/>Cloudflare-backed resolution, no proxying)"]
+graph LR
+    ACTIONS["GitHub Actions<br/>(withastro/action build)"] -->|deploys on push to main| PAGES["GitHub Pages<br/>(static hosting)"]
+    DOMAIN["heartlandfermentersguild.org"] -->|A records| PAGES
+    WWW["www subdomain"] -->|CNAME| PAGES
+    PORKBUN["Porkbun<br/>(domain registrar + DNS mgmt,<br/>nameservers *.ns.porkbun.com)"] -->|manages| DOMAIN
+    PORKBUN -->|manages| WWW
+    CLOUDFLARE["Cloudflare<br/>(Porkbun's DNS-answering backend only,<br/>not a traffic proxy)"] -.->|resolves queries for| PORKBUN
 
-    Repo -->|on push to main| Action
-    Action -->|build & deploy| Pages
-    Pages -->|issues/renews| Cert
-    Pages -->|served at| Domain
-    Porkbun -->|A/CNAME records point at| Pages
-
-    subgraph SocialLinks["'Join the Conversation' outbound links"]
-        Email["Email"]
-        FBPage["Facebook Page"]
-        FBGroup["Facebook Group"]
-        Instagram["Instagram"]
-        Meetup["Meetup"]
-    end
-
-    Domain --> SocialLinks
-
-    AuthTBD["Future auth provider<br/>(hosted vs. roll-your-own — undecided)"]
-    Domain -.future, unresolved.-> AuthTBD
+    JOIN["Join the Conversation section"] --> EMAIL["Email"]
+    JOIN --> FBPAGE["Facebook Page"]
+    JOIN --> FBGROUP["Facebook Group"]
+    JOIN --> INSTA["Instagram"]
+    JOIN --> MEETUP["Meetup"]
 ```
 
-No separate "other linked repos" diagram is included: the docs mention Devlore as a tool/service integration (currently unable to sync docs back to this repo — see note above) and Porkbun/GitHub Pages as external infrastructure, but no other actual sibling repository or project connection is described.
+Other linked repos/projects — the documented (currently broken) connection between this repo's workflows and the private `devlore` repo's reusable workflows:
+
+```mermaid
+graph TD
+    subgraph ThisRepo["heartland-fermenters-guild (public)"]
+        DEVLORE_YML["devlore.yml<br/>(sync-test-plan, sync-user-manual,<br/>sync-visualizer, draft-log-entry)"]
+        RELEASE_YML["devlore-release.yml<br/>(release-notes job)"]
+    end
+
+    subgraph DevloreRepo["devlore (private repo)"]
+        REUSABLE["Reusable workflows"]
+    end
+
+    DEVLORE_YML -.->|"calls (currently broken:\npublic repo can't call\nreusable workflow in private repo)"| REUSABLE
+    RELEASE_YML -.->|"calls (currently broken, same reason)"| REUSABLE
+```
