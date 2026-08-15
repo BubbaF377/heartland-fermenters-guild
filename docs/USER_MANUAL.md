@@ -1,72 +1,48 @@
-<!-- devlore:user-manual source-hash:926d22579dfb7a99c819f13b5bf0df1576d380720acb271f7695e7092a5fb207 -->
+<!-- devlore:user-manual source-hash:195a9cdbd632ce91774abfc81be0b88c222d9eb40bfacdaaf82e528ad6731343 -->
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this user manual automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's documented, update `docs/PRODUCT.md` itself.
 
 # Heartland Fermenters Guild Website — User Manual
 
-The Heartland Fermenters Guild website is the public online home for a real-world community of home brewers, bakers, picklers, and cheesemakers. It's a place to point friends, curious neighbors, or people you meet at events so they can learn what the guild is about and find their way into the community's social spaces. This manual covers the site as it exists today: a single landing page at `heartlandfermentersguild.org`.
+The Heartland Fermenters Guild website is the public home on the web for a real-world community of home brewers, bakers, picklers, and cheesemakers. It's a simple landing page at `heartlandfermentersguild.org` designed to welcome newcomers, explain what the guild is, and point people toward the guild's active social spaces so they can connect with the community. This manual covers what's on the site today and how to use it.
 
 ## Table of Contents
 
-- [Visiting the Website](#visiting-the-website)
+- [Visiting the Site](#visiting-the-site)
 - [Reading the Landing Page](#reading-the-landing-page)
-- [Recognizing the Guild's Branding](#recognizing-the-guilds-branding)
 - [Joining the Conversation](#joining-the-conversation)
-- [Emailing the Guild](#emailing-the-guild)
-- [Following on Facebook](#following-on-facebook)
-- [Joining the Facebook Group](#joining-the-facebook-group)
-- [Following on Instagram](#following-on-instagram)
-- [Finding Events on Meetup](#finding-events-on-meetup)
 
-## Visiting the Website
+## Visiting the Site
 
-To visit the guild's website, go to `heartlandfermentersguild.org` in any web browser. This is the guild's official custom domain, so it's the address to share on social media, printed flyers, or in conversation — you don't need to remember any other URL or subdomain. The page loads as a simple, fast landing page; there's no login required to view it.
+To visit the guild's website, go to `heartlandfermentersguild.org` in any web browser. The site loads as a single, fast-loading landing page — there's no login or account needed to view it. This is the address you'd share on social media, put on a flyer, or give someone in person if you want to point them to the guild's online home.
+
+The site works the same whether you type the address with or without `www.` in front of it.
 
 [↑ Back to table of contents](#table-of-contents)
 
 ## Reading the Landing Page
 
-When the page loads, you'll see a header banner image at the top, followed by a short welcome paragraph. That paragraph explains what the Heartland Fermenters Guild is and who it's for — a quick introduction meant for someone who has never heard of the guild before. This is the best place to send someone who's asking "what is this group, exactly?"
+When you arrive at the site, you'll see:
 
-[↑ Back to table of contents](#table-of-contents)
+- **A header banner image** at the top of the page, setting the visual tone for the guild.
+- **The guild's circular crest logo**, the guild's identifying emblem.
+- **A short welcome paragraph** that explains, in plain language, what the Heartland Fermenters Guild is and who it's for — a good place to start if you're new and want a quick sense of the community before exploring further.
 
-## Recognizing the Guild's Branding
-
-The page displays the guild's circular crest logo alongside the header banner image. This crest is the guild's visual identity — look for it as a quick way to confirm you're on the official site (versus, say, a social media post referencing the guild) and to recognize the guild's branding elsewhere, like on the Facebook Page or Instagram profile.
+Below that is the "Join the Conversation" section, covered next.
 
 [↑ Back to table of contents](#table-of-contents)
 
 ## Joining the Conversation
 
-Below the welcome paragraph, the page has a "Join the Conversation" section. This is the hub for connecting with the guild beyond the website itself — it links out to the guild's email, Facebook Page, Facebook Group, Instagram, and Meetup. If you want to actually talk to guild members, ask questions, or find out about in-person happenings, this section is where to click through. Each channel serves a different purpose, covered in the sections below.
+Near the bottom of the landing page is a "Join the Conversation" section. This is how you connect with the actual guild community beyond the website itself. It links out to the following:
 
-[↑ Back to table of contents](#table-of-contents)
+- **Email** — a direct email link/address you can use to reach the guild.
+- **Facebook Page** — the guild's official Facebook Page, useful for following public announcements and updates.
+- **Facebook Group** — the guild's Facebook Group, the more interactive/discussion-oriented space for members and prospective members to talk with each other.
+- **Instagram** — the guild's Instagram account, for following photos and updates.
+- **Meetup** — the guild's Meetup presence, where in-person gatherings and events are likely to be listed.
 
-## Emailing the Guild
+To use this section, simply click the link for whichever platform you already use or want to try. Each one opens the guild's presence on that platform in a new destination (your email client for the email link, or the respective app/website for the social links). There's no sign-up step on the guild's own site for any of this — the links just take you to where the guild is already active.
 
-The "Join the Conversation" section includes an email link. Click it to open your default email application with the guild's address already filled in, ready for you to write a direct message — useful for questions that don't fit neatly into a public social media post.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Following on Facebook
-
-The section links to the guild's Facebook Page. A Facebook Page works like a public profile for the guild — follow it to see announcements and updates in your Facebook feed without needing to be an approved member of anything. This is the lower-commitment way to keep up with the guild on Facebook.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Joining the Facebook Group
-
-Separately, the section links to the guild's Facebook Group, which is distinct from the Facebook Page. The Group is where members post and discuss more actively — think tips, questions, and back-and-forth conversation rather than one-way announcements. Click the Group link and use Facebook's normal "Join Group" request flow to ask to become a member.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Following on Instagram
-
-The section also links to the guild's Instagram account. Follow it there for photo and video updates — a good option if you prefer a visual feed over Facebook's text-heavy format.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Finding Events on Meetup
-
-Finally, the section links to the guild's Meetup page. Meetup is the place to look for scheduled in-person gatherings — check it when you want to find an upcoming brewing, baking, pickling, or cheesemaking event to RSVP to and attend.
+If you're deciding which to use: email is best for a direct, private question; the Facebook Group is best if you want to ask questions and get responses from other guild members; the Facebook Page and Instagram are best for following along passively; and Meetup is the place to check for in-person events.
 
 [↑ Back to table of contents](#table-of-contents)
