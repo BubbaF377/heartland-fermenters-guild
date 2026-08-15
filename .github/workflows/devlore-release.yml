@@ -11,7 +11,7 @@ on:
 
 jobs:
   consolidate:
-    uses: BubbaF377/devlore/.github/workflows/consolidate-release.yml@main
+    uses: BubbaF377/devlore-workflows/.github/workflows/consolidate-release.yml@main
     with:
       project-name: heartland-fermenters-guild
       tag: ${{ github.ref_name }}
@@ -20,7 +20,7 @@ jobs:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devlore-github-token: ${{ secrets.DEVLORE_GITHUB_TOKEN }}
   draft-release-notes:
-    uses: BubbaF377/devlore/.github/workflows/draft-release-notes.yml@main
+    uses: BubbaF377/devlore-workflows/.github/workflows/draft-release-notes.yml@main
     with:
       project-name: heartland-fermenters-guild
       tag: ${{ github.ref_name }}
