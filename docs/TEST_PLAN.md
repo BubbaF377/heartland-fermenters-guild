@@ -2,10 +2,10 @@
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this test plan automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's tested, update `docs/PRODUCT.md` itself.
 <!-- devlore:test-plan requirement-hashes
 1=8c6a5f4fb077
-2=1df8dc66bebe
+2=74ba323e0a07
 3=c1a27b1ede7c
 4=d62dbc43a89f
-5=93b096f790ce
+5=3864ccd4c599
 6=9dfd0e0e55c8
 -->
 
@@ -19,13 +19,13 @@
 2. Scroll to the top of the page.
 **Expected Result:** A header banner image is visible, loads without a broken-image icon, and renders above the fold.
 
-### TC-LAND-02 — Circular crest logo displays
+### TC-LAND-02 — Circular crest logo is not displayed
 **Requirement(s):** #5
 **Preconditions:** Landing page is deployed and reachable.
 **Steps:**
 1. Navigate to the landing page.
-2. Locate the guild's crest logo.
-**Expected Result:** The crest logo is visible, renders with a circular shape, and loads without a broken-image icon.
+2. Inspect the area between the header banner image and the page title.
+**Expected Result:** No circular crest logo is present between the banner and the page title; the logo has been removed and does not appear anywhere else on the landing page.
 
 ### TC-LAND-03 — Welcome paragraph is present and readable
 **Requirement(s):** #5
@@ -105,14 +105,15 @@
 
 ## Deployment Pipeline
 
-### TC-DEPLOY-01 — Push to main triggers automatic build and deploy
+### TC-DEPLOY-01 — Pushing a release tag triggers automatic build and deploy
 **Requirement(s):** #2
-**Preconditions:** Push access to `main` (or a merged, approved PR); GitHub Actions enabled on the repo.
+**Preconditions:** Push access to the repo (or a merged, approved PR); GitHub Actions enabled on the repo.
 **Steps:**
 1. Merge a small, visible content change (e.g. edit welcome paragraph text) into `main`.
-2. Open the repo's Actions tab and watch for a new workflow run using `withastro/action`.
-3. Wait for the workflow run to complete.
-**Expected Result:** A workflow run starts automatically without any manual build/upload step, completes successfully, and the deployed site reflects the change.
+2. Cut a release by running `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. Open the repo's Actions tab and watch for a new workflow run using `withastro/action`.
+4. Wait for the workflow run to complete.
+**Expected Result:** No workflow run starts merely from the `main` push in step 1; a workflow run starts automatically upon pushing the `vX.Y.Z` tag in step 2, completes successfully, and the deployed site reflects the content change.
 
 ### TC-DEPLOY-02 — Live site reflects latest deployed content
 **Requirement(s):** #2
@@ -120,7 +121,7 @@
 **Steps:**
 1. Navigate to `https://heartlandfermentersguild.org` after the deploy workflow finishes.
 2. Hard-refresh the page to bypass cache.
-**Expected Result:** The live page shows the newly deployed content change, confirming the deploy actually published.
+**Expected Result:** The live page shows the newly deployed content change, confirming the tag-triggered deploy actually published.
 
 ## Repository Access Controls
 
