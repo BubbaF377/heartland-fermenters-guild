@@ -61,16 +61,6 @@ const icons: Record<string, string> = {
   </header>
 
   <main>
-    <div class="crest-wrap">
-      <img
-        src="/assets/logo.png"
-        alt="Heartland Fermenters Guild crest"
-        width="168"
-        height="168"
-        class="crest"
-      />
-    </div>
-
     <h1>Heartland Fermenters Guild</h1>
     <p class="tagline">Preserving Culture Since 2026</p>
 
@@ -113,7 +103,16 @@ const icons: Record<string, string> = {
   </main>
 
   <footer>
-    <p>&copy; {new Date().getFullYear()} Heartland Fermenters Guild &middot; Made with care in the Heartland</p>
+    <div class="footer-inner">
+      <p>&copy; {new Date().getFullYear()} Heartland Fermenters Guild &middot; Made with care in the Heartland</p>
+      <a href="https://www.starterculturestudio.com" target="_blank" rel="noopener noreferrer" class="starter-culture-link">
+        <img
+          src="/assets/starter-culture-logo.svg"
+          alt="Starter Culture Studio"
+          class="starter-culture-logo"
+        />
+      </a>
+    </div>
   </footer>
 </Layout>
 
@@ -136,23 +135,8 @@ const icons: Record<string, string> = {
     text-align: center;
   }
 
-  .crest-wrap {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.75rem;
-  }
-
-  .crest {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: var(--cream-light);
-    box-shadow: 0 4px 18px rgba(44, 30, 18, 0.35);
-    border: 3px solid var(--cream-light);
-  }
-
   h1 {
-    margin-top: 1.5rem;
+    margin-top: 2.5rem;
     font-size: clamp(2.2rem, 5vw, 3rem);
   }
 
@@ -234,11 +218,35 @@ const icons: Record<string, string> = {
   }
 
   footer {
-    text-align: center;
-    padding: 1.5rem 1rem 2.5rem;
+    padding: 1.5rem 1.5rem 2.5rem;
     color: var(--brown);
     font-size: 0.9rem;
     background: var(--cream);
     border-top: 1px solid rgba(44, 30, 18, 0.15);
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+
+  footer p {
+    margin: 0;
+    text-align: left;
+  }
+
+  .starter-culture-link {
+    flex: none;
+    line-height: 0;
+  }
+
+  .starter-culture-logo {
+    height: 32px;
+    width: auto;
+    display: block;
   }
 </style>

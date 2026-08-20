@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140" role="img">
+  <title>Starter Culture</title>
+  <defs>
+    <clipPath id="jarClip">
+      <rect x="38" y="34" width="64" height="78" rx="14"/>
+    </clipPath>
+  </defs>
+  <style>
+    .word { fill: #2B2320; }
+  </style>
+  <rect x="0" y="0" width="140" height="140" rx="24" fill="#F5EFE1"/>
+  <rect x="54" y="10" width="32" height="12" rx="3" fill="#B5482B"/>
+  <rect x="58" y="20" width="24" height="14" rx="4" fill="none" stroke="#B5482B" stroke-width="4"/>
+  <rect x="38" y="34" width="64" height="78" rx="14" fill="none" stroke="#B5482B" stroke-width="4"/>
+  <rect x="38" y="70" width="64" height="42" fill="#B5482B" clip-path="url(#jarClip)"/>
+  <circle cx="58" cy="95" r="5" fill="#F5EFE1"/>
+  <circle cx="75" cy="100" r="4" fill="#F5EFE1"/>
+  <circle cx="68" cy="82" r="3" fill="#F5EFE1"/>
+  <circle cx="70" cy="55" r="4" fill="#F5EFE1"/>
+  <circle cx="63" cy="42" r="2.5" fill="#F5EFE1"/>
+  <text class="word" x="170" y="88" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="38" font-weight="600">starter culture</text>
+</svg>
