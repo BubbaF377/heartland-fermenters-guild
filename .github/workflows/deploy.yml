@@ -2,8 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -12,17 +11,23 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout your repository using git
+        uses: actions/checkout@v7
       - name: Install, build, and upload your site
-        uses: withastro/action@v3
+        uses: withastro/action@v6
+        env:
+          # Repo *variables*, not secrets — Supabase's publishable key is designed to
+          # be public (protected by Row Level Security, not secrecy). Set these under
+          # Settings → Secrets and variables → Actions → Variables. See README.md.
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
   deploy:
     needs: build
@@ -33,4 +38,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
