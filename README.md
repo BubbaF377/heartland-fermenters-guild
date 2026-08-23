@@ -46,25 +46,69 @@ redirect to the apex domain as well.
 
 DNS propagation can take anywhere from a few minutes to 24 hours.
 
+## Recipes & admin (Supabase) setup
+
+Recipes live in a [Supabase](https://supabase.com) Postgres database, read directly by
+the browser (no server of our own to run) and written to through a password-gated admin
+page. One-time setup:
+
+1. **Create a Supabase project** (free tier is plenty) at [supabase.com](https://supabase.com).
+2. **Create the table and its access rules**: open the project's SQL Editor and run
+   `supabase/schema.sql` from this repo. It creates the `recipes` table, turns on Row
+   Level Security, and adds two policies — public read access, and insert access only
+   for a signed-in session.
+3. **Create the one shared admin login**: there's no per-person account system — anyone
+   who knows the password can add a recipe, per the requirement. In the dashboard, go to
+   **Authentication → Users → Add user**, set the email to `admin@heartlandfermentersguild.org`
+   (this exact address — it's hardcoded as the login identifier in `src/lib/constants.js`,
+   not a secret itself), pick a password, and share that password with whoever should
+   have admin access. Changing who can log in later just means changing this one
+   password (**Authentication → Users → \[the user\] → Reset password**).
+4. **Get your API keys**: **Settings → API Keys**. Copy the **Project URL** and the
+   **Publishable key** (`sb_publishable_...` — safe to expose in client-side code; real
+   protection comes from the RLS policies above, not from keeping this key secret).
+5. **Set them for local development**: copy `.env.example` to `.env` and fill in both
+   values.
+6. **Set them for the GitHub Actions build**: repo **Settings → Secrets and variables →
+   Actions → Variables tab** (variables, not secrets — these values aren't sensitive),
+   add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `deploy.yml` already
+   reads them from there.
+
+Once that's done: `/recipes/` lists everything in the table, `/recipes/view?slug=...`
+renders one recipe from a shared template (a query-string slug rather than a path
+segment like `/recipes/my-recipe/`, since GitHub Pages can only serve pre-built static
+files — there's no way to pre-build a page per database row that updates without a
+redeploy, and recipes are meant to appear instantly when added), and `/admin/` is the
+password-gated form that adds a row. No update/delete admin actions yet — schema and UI
+both leave room to add those later.
+
 ## Project structure
 
 ```
 src/
-  layouts/Layout.astro   shared <head>, fonts, global styles
-  pages/index.astro      the landing page
-  pages/404.astro        not-found page
+  layouts/Layout.astro     shared <head>, nav, footer, fonts, global styles
+  lib/constants.js         admin email, recipe categories, slugify/list helpers (no Supabase import)
+  lib/supabase.js          Supabase client (client-side only — needs env vars set)
+  pages/index.astro        the landing page
+  pages/recipes/index.astro  recipe list (fetches from Supabase client-side)
+  pages/recipes/view.astro   single-recipe template (?slug=... from Supabase)
+  pages/admin/index.astro  password login + add-recipe form
+  pages/404.astro          not-found page
 public/
-  assets/                logo, header banner, favicons
-  CNAME                  custom domain for GitHub Pages
+  assets/                 logo, header banner, favicons
+  CNAME                   custom domain for GitHub Pages
   robots.txt
+supabase/schema.sql       recipes table + Row Level Security policies
 .github/workflows/deploy.yml   CI build + deploy
 ```
 
 ## Roadmap
 
 - [x] Landing page: header image, welcome text, guild links
-- [ ] Full info site (About, Events, Recipes/Resources)
-- [ ] Auth-protected members-only section
+- [x] Recipes section (Supabase-backed, template-driven) + password-gated admin add-recipe form
+- [ ] Other admin actions (edit/delete a recipe)
+- [ ] Full info site (About, Events)
+- [ ] Auth-protected members-only section (separate from the single-password admin area above)
 
 ## Devlore
 

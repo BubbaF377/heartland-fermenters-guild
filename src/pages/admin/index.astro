@@ -1,0 +1,286 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { RECIPE_CATEGORIES } from '../../lib/constants.js';
+---
+
+<Layout
+  title="Admin — Heartland Fermenters Guild"
+  description="Guild admin: add a recipe."
+>
+  <main class="admin-page">
+    <h1>Admin</h1>
+
+    <section id="login-section">
+      <p>Enter the guild admin password to add a recipe.</p>
+      <form id="login-form">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" />
+        <button type="submit">Log in</button>
+      </form>
+      <p id="login-error" class="error" hidden></p>
+    </section>
+
+    <section id="admin-section" hidden>
+      <div class="admin-bar">
+        <p>Logged in.</p>
+        <button id="logout-button" type="button" class="secondary">Log out</button>
+      </div>
+
+      <h2>Add a Recipe</h2>
+      <form id="recipe-form">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required />
+
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          {RECIPE_CATEGORIES.map((category) => <option value={category}>{category}</option>)}
+        </select>
+
+        <label for="summary">Short summary</label>
+        <textarea id="summary" name="summary" rows="2"></textarea>
+
+        <label for="ingredients">Ingredients <span class="hint">(one per line)</span></label>
+        <textarea id="ingredients" name="ingredients" rows="6" required></textarea>
+
+        <label for="instructions">Instructions <span class="hint">(one step per line)</span></label>
+        <textarea id="instructions" name="instructions" rows="8" required></textarea>
+
+        <label for="submitted_by">Your name <span class="hint">(optional)</span></label>
+        <input type="text" id="submitted_by" name="submitted_by" />
+
+        <button type="submit">Save Recipe</button>
+      </form>
+      <p id="recipe-status" class="status" hidden></p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { supabase } from '../../lib/supabase.js';
+    import { ADMIN_EMAIL, slugify } from '../../lib/constants.js';
+
+    const loginSection = document.getElementById('login-section');
+    const adminSection = document.getElementById('admin-section');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const logoutButton = document.getElementById('logout-button');
+    const recipeForm = document.getElementById('recipe-form');
+    const recipeStatus = document.getElementById('recipe-status');
+
+    function showLoggedIn(isLoggedIn) {
+      loginSection.hidden = isLoggedIn;
+      adminSection.hidden = !isLoggedIn;
+    }
+
+    // Reflect whatever the current session actually is (a returning admin stays
+    // logged in via Supabase's persisted session; signing out elsewhere reflects here).
+    supabase.auth.onAuthStateChange((_event, session) => {
+      showLoggedIn(Boolean(session));
+    });
+
+    const {
+      data: { session: initialSession },
+    } = await supabase.auth.getSession();
+    showLoggedIn(Boolean(initialSession));
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      loginError.hidden = true;
+
+      const password = new FormData(loginForm).get('password');
+      const { error } = await supabase.auth.signInWithPassword({
+        email: ADMIN_EMAIL,
+        password,
+      });
+
+      if (error) {
+        loginError.textContent = 'Incorrect password.';
+        loginError.hidden = false;
+        return;
+      }
+
+      loginForm.reset();
+    });
+
+    logoutButton.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    // A title's slug might collide with an existing recipe; try title, title-2,
+    // title-3, ... until a free one is found, rather than failing the whole submit.
+    async function findAvailableSlug(baseSlug) {
+      for (let attempt = 0; attempt < 25; attempt++) {
+        const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
+        const { data, error } = await supabase
+          .from('recipes')
+          .select('slug')
+          .eq('slug', candidate)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!data) return candidate;
+      }
+      throw new Error('Could not find an available slug — too many recipes with a similar title.');
+    }
+
+    recipeForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      recipeStatus.hidden = true;
+
+      const formData = new FormData(recipeForm);
+      const title = String(formData.get('title') || '').trim();
+      const category = String(formData.get('category') || '').trim();
+      const summary = String(formData.get('summary') || '').trim();
+      const ingredients = String(formData.get('ingredients') || '').trim();
+      const instructions = String(formData.get('instructions') || '').trim();
+      const submittedBy = String(formData.get('submitted_by') || '').trim();
+
+      const submitButton = recipeForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+
+      try {
+        const baseSlug = slugify(title) || 'recipe';
+        const slug = await findAvailableSlug(baseSlug);
+
+        const { error } = await supabase.from('recipes').insert({
+          slug,
+          title,
+          category,
+          summary,
+          ingredients,
+          instructions,
+          submitted_by: submittedBy || null,
+        });
+
+        if (error) throw error;
+
+        recipeStatus.className = 'status success';
+        recipeStatus.innerHTML = `Saved. <a href="/recipes/view?slug=${encodeURIComponent(slug)}">View the recipe</a>.`;
+        recipeStatus.hidden = false;
+        recipeForm.reset();
+      } catch (err) {
+        recipeStatus.className = 'status error';
+        recipeStatus.textContent =
+          'Could not save the recipe — please try again. If this keeps happening, the admin session may have expired; try logging out and back in.';
+        recipeStatus.hidden = false;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
+</Layout>
+
+<style>
+  .admin-page {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .admin-page h1 {
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-page h2 {
+    font-size: 1.5rem;
+    margin: 1.5rem 0 1rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  label {
+    font-weight: 600;
+    color: var(--brown-deep);
+    margin-top: 0.75rem;
+  }
+
+  .hint {
+    font-weight: 400;
+    color: var(--brown);
+    opacity: 0.8;
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid rgba(44, 30, 18, 0.3);
+    border-radius: 6px;
+    background: var(--cream-light);
+    color: var(--ink);
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  textarea {
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  button {
+    font: inherit;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    padding: 0.65rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--green-deep);
+    color: var(--cream-light);
+    cursor: pointer;
+    align-self: flex-start;
+  }
+
+  button:hover,
+  button:focus-visible {
+    background: var(--green);
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  button.secondary {
+    background: transparent;
+    color: var(--brown-deep);
+    border: 1px solid rgba(44, 30, 18, 0.3);
+    margin-top: 0;
+  }
+
+  .admin-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(44, 30, 18, 0.15);
+  }
+
+  .admin-bar p {
+    margin: 0;
+    color: var(--brown);
+  }
+
+  .status {
+    margin-top: 1rem;
+  }
+
+  .status.success {
+    color: var(--green-deep);
+    font-weight: 600;
+  }
+
+  .error {
+    color: var(--wine);
+    font-weight: 600;
+  }
+</style>

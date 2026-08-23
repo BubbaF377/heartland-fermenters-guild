@@ -1,0 +1,169 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Recipe — Heartland Fermenters Guild"
+  description="A recipe shared by a member of the Heartland Fermenters Guild."
+>
+  <main class="recipe-page">
+    <a class="back-link" href="/recipes/">&larr; All recipes</a>
+
+    <p id="recipe-status" class="status">Loading recipe&hellip;</p>
+
+    <article id="recipe-content" hidden>
+      <span id="recipe-category" class="category-badge"></span>
+      <h1 id="recipe-title"></h1>
+      <p id="recipe-meta" class="recipe-meta"></p>
+      <p id="recipe-summary" class="recipe-summary"></p>
+
+      <h2>Ingredients</h2>
+      <ul id="recipe-ingredients"></ul>
+
+      <h2>Instructions</h2>
+      <ol id="recipe-instructions"></ol>
+    </article>
+  </main>
+
+  <script type="module">
+    import { supabase } from '../../lib/supabase.js';
+    import { linesToList } from '../../lib/constants.js';
+
+    const statusEl = document.getElementById('recipe-status');
+    const contentEl = document.getElementById('recipe-content');
+    const categoryEl = document.getElementById('recipe-category');
+    const titleEl = document.getElementById('recipe-title');
+    const metaEl = document.getElementById('recipe-meta');
+    const summaryEl = document.getElementById('recipe-summary');
+    const ingredientsEl = document.getElementById('recipe-ingredients');
+    const instructionsEl = document.getElementById('recipe-instructions');
+
+    function fillList(el, items, ordered) {
+      el.innerHTML = '';
+      items.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        el.append(li);
+      });
+    }
+
+    async function loadRecipe() {
+      const slug = new URLSearchParams(window.location.search).get('slug');
+
+      if (!slug) {
+        statusEl.textContent = 'No recipe was specified.';
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) {
+        statusEl.textContent =
+          'Could not load this recipe right now. Please try again in a moment.';
+        return;
+      }
+
+      if (!data) {
+        statusEl.textContent = "This recipe couldn't be found.";
+        return;
+      }
+
+      document.title = `${data.title} — Heartland Fermenters Guild`;
+      categoryEl.textContent = data.category;
+      titleEl.textContent = data.title;
+
+      const submitted = data.submitted_by ? `Submitted by ${data.submitted_by} · ` : '';
+      const date = new Date(data.created_at).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      metaEl.textContent = `${submitted}${date}`;
+
+      summaryEl.textContent = data.summary || '';
+      summaryEl.hidden = !data.summary;
+
+      fillList(ingredientsEl, linesToList(data.ingredients));
+      fillList(instructionsEl, linesToList(data.instructions));
+
+      statusEl.hidden = true;
+      contentEl.hidden = false;
+    }
+
+    loadRecipe();
+  </script>
+</Layout>
+
+<style>
+  .recipe-page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: var(--green-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .back-link:hover,
+  .back-link:focus-visible {
+    text-decoration: underline;
+  }
+
+  .status {
+    color: var(--brown);
+    font-style: italic;
+  }
+
+  .category-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--green-deep);
+    color: var(--cream-light);
+    margin-bottom: 0.75rem;
+  }
+
+  #recipe-title {
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    margin-bottom: 0.4rem;
+  }
+
+  .recipe-meta {
+    color: var(--brown);
+    font-size: 0.92rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .recipe-summary {
+    font-size: 1.15rem;
+    color: var(--brown);
+    margin-bottom: 2rem;
+  }
+
+  #recipe-content h2 {
+    font-size: 1.4rem;
+    margin: 1.75rem 0 0.75rem;
+  }
+
+  #recipe-content ul,
+  #recipe-content ol {
+    padding-left: 1.4rem;
+  }
+
+  #recipe-content li {
+    margin-bottom: 0.5rem;
+  }
+</style>

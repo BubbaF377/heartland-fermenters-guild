@@ -101,19 +101,6 @@ const icons: Record<string, string> = {
       </ul>
     </section>
   </main>
-
-  <footer>
-    <div class="footer-inner">
-      <p>&copy; {new Date().getFullYear()} Heartland Fermenters Guild &middot; Made with care in the Heartland</p>
-      <a href="https://www.starterculturestudio.com" target="_blank" rel="noopener noreferrer" class="starter-culture-link">
-        <img
-          src="/assets/starter-culture-logo.svg"
-          alt="Starter Culture Studio"
-          class="starter-culture-logo"
-        />
-      </a>
-    </div>
-  </footer>
 </Layout>
 
 <style>
@@ -217,36 +204,4 @@ const icons: Record<string, string> = {
     word-break: break-word;
   }
 
-  footer {
-    padding: 1.5rem 1.5rem 2.5rem;
-    color: var(--brown);
-    font-size: 0.9rem;
-    background: var(--cream);
-    border-top: 1px solid rgba(44, 30, 18, 0.15);
-  }
-
-  .footer-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    max-width: var(--max-width);
-    margin: 0 auto;
-  }
-
-  footer p {
-    margin: 0;
-    text-align: left;
-  }
-
-  .starter-culture-link {
-    flex: none;
-    line-height: 0;
-  }
-
-  .starter-culture-logo {
-    height: 32px;
-    width: auto;
-    display: block;
-  }
 </style>
