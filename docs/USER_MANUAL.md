@@ -2,10 +2,10 @@
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this user manual automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's documented, update `docs/PRODUCT.md` itself.
 <!-- devlore:user-manual requirement-hashes
 1=8c6a5f4fb077
-2=1df8dc66bebe
+2=74ba323e0a07
 3=c1a27b1ede7c
 4=d62dbc43a89f
-5=93b096f790ce
+5=3864ccd4c599
 6=9dfd0e0e55c8
 -->
 
@@ -22,7 +22,7 @@ The Heartland Fermenters Guild website is the public home for a real-world commu
 ## Visiting the Landing Page
 <!-- requirements: #5 -->
 
-When you go to `heartlandfermentersguild.org`, you land on a single welcoming page designed to be shared on social media or given out in person. At the top is a header banner image, followed by the guild's circular crest logo. Below that is a short welcome paragraph explaining what the Heartland Fermenters Guild is and who it's for — home brewers, bakers, picklers, and cheesemakers looking for a community. There's nothing to log into or configure here; the page is meant to be read in a minute and used as a jumping-off point to the guild's other channels.
+When you go to `heartlandfermentersguild.org`, you land on a single welcoming page designed to be shared on social media or given out in person. At the top is a header banner image, followed directly by a short welcome paragraph explaining what the Heartland Fermenters Guild is and who it's for — home brewers, bakers, picklers, and cheesemakers looking for a community. (The guild's circular crest logo, which used to sit between the banner and the page title, has been removed.) At the very bottom of the page is a footer: the copyright notice appears on the left, and a Starter Culture Studio logo appears on the right, linking out to `starterculturestudio.com`. There's nothing to log into or configure here; the page is meant to be read in a minute and used as a jumping-off point to the guild's other channels.
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -51,7 +51,7 @@ The site lives at the custom domain `heartlandfermentersguild.org`, so that's th
 ## Publishing Updates to the Site
 <!-- requirements: #2 -->
 
-If you're the maintainer making changes to the site (editing page content, swapping images, etc.), publishing is automatic: every push to the `main` branch of the repository triggers a build and deploy of the site with no manual build or upload step required. In practice this means your workflow is simply to make your changes, commit them, and push (or merge a pull request) into `main` — within a short time, the live site at `heartlandfermentersguild.org` reflects the update. There's no separate "publish" button or manual file upload to remember.
+If you're the maintainer making changes to the site (editing page content, swapping images, etc.), publishing is no longer automatic on every push to `main`. Instead, the build and deploy only run when you push a `v*.*.*` release tag (the same tag pattern the Devlore release workflow listens for) or when you manually trigger the workflow via `workflow_dispatch`. In practice this means your day-to-day workflow is to make your changes, commit them, and push (or merge a pull request) into `main` as usual — but the live site at `heartlandfermentersguild.org` won't reflect those changes until you cut a release with `git tag vX.Y.Z && git push origin vX.Y.Z`, or start a manual deploy from the Actions tab. Merging to `main` alone will not publish anything.
 
 [↑ Back to table of contents](#table-of-contents)
 
