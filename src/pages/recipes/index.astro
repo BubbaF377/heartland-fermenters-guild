@@ -17,8 +17,9 @@ import Layout from '../../layouts/Layout.astro';
     <ul id="recipes-grid" class="recipe-grid" hidden></ul>
   </main>
 
-  <script type="module">
+  <script>
     import { supabase } from '../../lib/supabase.js';
+    import { RECIPE_PHOTOS_BUCKET } from '../../lib/constants.js';
 
     const statusEl = document.getElementById('recipes-status');
     const gridEl = document.getElementById('recipes-grid');
@@ -35,6 +36,22 @@ import Layout from '../../layouts/Layout.astro';
         a.className = 'recipe-card';
         a.href = `/recipes/view?slug=${encodeURIComponent(recipe.slug)}`;
 
+        if (recipe.photo_path) {
+          const { data: photoUrlData } = supabase.storage
+            .from(RECIPE_PHOTOS_BUCKET)
+            .getPublicUrl(recipe.photo_path);
+          const thumb = document.createElement('div');
+          thumb.className = 'card-thumb';
+          const img = document.createElement('img');
+          img.src = photoUrlData.publicUrl;
+          img.alt = '';
+          thumb.append(img);
+          a.append(thumb);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+
         const badge = document.createElement('span');
         badge.className = `category-badge ${categoryClass(recipe.category)}`;
         badge.textContent = recipe.category;
@@ -46,7 +63,16 @@ import Layout from '../../layouts/Layout.astro';
         summary.className = 'recipe-card-summary';
         summary.textContent = recipe.summary || '';
 
-        a.append(badge, title, summary);
+        const date = new Date(recipe.created_at).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+        });
+        const meta = document.createElement('p');
+        meta.className = 'card-meta';
+        meta.textContent = recipe.submitted_by ? `${recipe.submitted_by} · ${date}` : date;
+
+        body.append(badge, title, summary, meta);
+        a.append(body);
         li.append(a);
         gridEl.append(li);
       }
@@ -56,7 +82,7 @@ import Layout from '../../layouts/Layout.astro';
     async function loadRecipes() {
       const { data, error } = await supabase
         .from('recipes')
-        .select('slug, title, category, summary, created_at')
+        .select('slug, title, category, summary, photo_path, submitted_by, created_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -78,7 +104,12 @@ import Layout from '../../layouts/Layout.astro';
   </script>
 </Layout>
 
-<style>
+<!--
+  is:global: the recipe cards are built client-side with document.createElement.
+  Astro's scoped styles only match elements it renders itself, so a scoped style
+  here would silently fail to apply to any of them.
+-->
+<style is:global>
   .recipes-page {
     max-width: var(--max-width);
     margin: 0 auto;
@@ -111,10 +142,10 @@ import Layout from '../../layouts/Layout.astro';
 
   .recipe-card {
     display: block;
-    padding: 1.25rem;
     background: var(--cream);
     border: 1px solid rgba(44, 30, 18, 0.15);
     border-radius: 10px;
+    overflow: hidden;
     text-decoration: none;
     color: var(--ink);
     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
@@ -127,15 +158,36 @@ import Layout from '../../layouts/Layout.astro';
     border-color: var(--gold);
   }
 
+  .card-thumb {
+    aspect-ratio: 16 / 10;
+  }
+
+  .card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+
   .recipe-card h2 {
     font-size: 1.3rem;
     margin: 0.6rem 0 0.4rem;
   }
 
   .recipe-card-summary {
-    margin: 0;
+    margin: 0 0 0.5rem;
     font-size: 0.95rem;
     color: var(--brown);
+  }
+
+  .card-meta {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--brown);
+    opacity: 0.8;
   }
 
   .category-badge {

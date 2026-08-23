@@ -53,10 +53,13 @@ the browser (no server of our own to run) and written to through a password-gate
 page. One-time setup:
 
 1. **Create a Supabase project** (free tier is plenty) at [supabase.com](https://supabase.com).
-2. **Create the table and its access rules**: open the project's SQL Editor and run
-   `supabase/schema.sql` from this repo. It creates the `recipes` table, turns on Row
-   Level Security, and adds two policies — public read access, and insert access only
-   for a signed-in session.
+2. **Create the table, its columns, and its access rules**: open the project's SQL
+   Editor and run `supabase/schema.sql` from this repo. It creates the `recipes` table
+   (including the photo/video/yield/time-stages/notes columns), turns on Row Level
+   Security with public-read / signed-in-insert policies, and creates the public
+   `recipe-photos` Storage bucket with the matching public-read / signed-in-upload
+   policies. The whole file is safe to re-run against an already-set-up project — it
+   only adds what's missing.
 3. **Create the one shared admin login**: there's no per-person account system — anyone
    who knows the password can add a recipe, per the requirement. In the dashboard, go to
    **Authentication → Users → Add user**, set the email to `admin@heartlandfermentersguild.org`
@@ -87,7 +90,7 @@ both leave room to add those later.
 ```
 src/
   layouts/Layout.astro     shared <head>, nav, footer, fonts, global styles
-  lib/constants.js         admin email, recipe categories, slugify/list helpers (no Supabase import)
+  lib/constants.js         admin email, recipe categories, time-stage suggestions, slugify/list/YouTube-ID helpers (no Supabase import)
   lib/supabase.js          Supabase client (client-side only — needs env vars set)
   pages/index.astro        the landing page
   pages/recipes/index.astro  recipe list (fetches from Supabase client-side)
@@ -98,7 +101,7 @@ public/
   assets/                 logo, header banner, favicons
   CNAME                   custom domain for GitHub Pages
   robots.txt
-supabase/schema.sql       recipes table + Row Level Security policies
+supabase/schema.sql       recipes table, Row Level Security policies, recipe-photos Storage bucket + policies
 .github/workflows/deploy.yml   CI build + deploy
 ```
 

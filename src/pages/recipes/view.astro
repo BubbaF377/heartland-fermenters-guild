@@ -12,39 +12,99 @@ import Layout from '../../layouts/Layout.astro';
     <p id="recipe-status" class="status">Loading recipe&hellip;</p>
 
     <article id="recipe-content" hidden>
-      <span id="recipe-category" class="category-badge"></span>
-      <h1 id="recipe-title"></h1>
-      <p id="recipe-meta" class="recipe-meta"></p>
-      <p id="recipe-summary" class="recipe-summary"></p>
+      <div class="top-row">
+        <div class="top-row-text">
+          <span id="recipe-category" class="category-badge"></span>
+          <h1 id="recipe-title" class="recipe-title"></h1>
+          <p id="recipe-summary" class="recipe-summary"></p>
+        </div>
+        <div class="action-row">
+          <button id="print-button" class="btn primary" type="button">Print recipe</button>
+        </div>
+      </div>
 
-      <h2>Ingredients</h2>
-      <ul id="recipe-ingredients"></ul>
+      <div id="recipe-meta-strip" class="meta-strip" hidden></div>
 
-      <h2>Instructions</h2>
-      <ol id="recipe-instructions"></ol>
+      <div id="recipe-photo" class="photo-frame" hidden>
+        <img id="recipe-photo-img" alt="" />
+      </div>
+
+      <div id="recipe-video" class="video-frame" hidden>
+        <iframe
+          id="recipe-video-iframe"
+          title="Recipe how-to video"
+          frameborder="0"
+          allow="accelerated-video; encrypted-media; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+
+      <div class="recipe-body">
+        <div class="ingredients-col">
+          <h2>Ingredients</h2>
+          <p id="recipe-yield" class="yield-line" hidden></p>
+          <ul id="recipe-ingredients" class="ingredient-list"></ul>
+        </div>
+
+        <div class="instructions-col">
+          <h2>Instructions</h2>
+          <ol id="recipe-instructions" class="instruction-list"></ol>
+
+          <div id="recipe-notes" class="notes-box" hidden>
+            <h3>Notes &amp; tips</h3>
+            <p id="recipe-notes-text"></p>
+          </div>
+        </div>
+      </div>
     </article>
   </main>
 
-  <script type="module">
+  <script>
     import { supabase } from '../../lib/supabase.js';
-    import { linesToList } from '../../lib/constants.js';
+    import {
+      linesToList,
+      linesToPairs,
+      timeStageChipLabel,
+      extractYouTubeId,
+      RECIPE_PHOTOS_BUCKET,
+    } from '../../lib/constants.js';
 
     const statusEl = document.getElementById('recipe-status');
     const contentEl = document.getElementById('recipe-content');
     const categoryEl = document.getElementById('recipe-category');
     const titleEl = document.getElementById('recipe-title');
-    const metaEl = document.getElementById('recipe-meta');
     const summaryEl = document.getElementById('recipe-summary');
+    const printButton = document.getElementById('print-button');
+    const metaStripEl = document.getElementById('recipe-meta-strip');
+    const photoEl = document.getElementById('recipe-photo');
+    const photoImgEl = document.getElementById('recipe-photo-img');
+    const videoEl = document.getElementById('recipe-video');
+    const videoIframeEl = document.getElementById('recipe-video-iframe');
+    const yieldEl = document.getElementById('recipe-yield');
     const ingredientsEl = document.getElementById('recipe-ingredients');
     const instructionsEl = document.getElementById('recipe-instructions');
+    const notesEl = document.getElementById('recipe-notes');
+    const notesTextEl = document.getElementById('recipe-notes-text');
 
-    function fillList(el, items, ordered) {
+    printButton.addEventListener('click', () => window.print());
+
+    function fillList(el, items) {
       el.innerHTML = '';
       items.forEach((item) => {
         const li = document.createElement('li');
-        li.textContent = item;
+        li.innerHTML = el === ingredientsEl ? '<span class="chk"></span><span></span>' : '<span class="step-text"></span>';
+        li.querySelector('span:last-child').textContent = item;
         el.append(li);
       });
+    }
+
+    function addMetaItem(label, value) {
+      const item = document.createElement('div');
+      item.className = 'meta-item';
+      item.innerHTML = '<span class="meta-label"></span><span class="meta-value"></span>';
+      item.querySelector('.meta-label').textContent = label;
+      item.querySelector('.meta-value').textContent = value;
+      metaStripEl.append(item);
     }
 
     async function loadRecipe() {
@@ -76,19 +136,49 @@ import Layout from '../../layouts/Layout.astro';
       categoryEl.textContent = data.category;
       titleEl.textContent = data.title;
 
-      const submitted = data.submitted_by ? `Submitted by ${data.submitted_by} · ` : '';
+      summaryEl.textContent = data.summary || '';
+      summaryEl.hidden = !data.summary;
+
+      // Meta strip: time-stage chips, then yield, then submitted-by/date.
+      metaStripEl.innerHTML = '';
+      linesToPairs(data.time_stages).forEach(({ label, value }) => {
+        addMetaItem(timeStageChipLabel(label), value);
+      });
+      if (data.yield_text) addMetaItem('Yield', data.yield_text);
       const date = new Date(data.created_at).toLocaleDateString(undefined, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       });
-      metaEl.textContent = `${submitted}${date}`;
+      addMetaItem('Submitted by', data.submitted_by ? `${data.submitted_by} · ${date}` : date);
+      metaStripEl.hidden = false;
 
-      summaryEl.textContent = data.summary || '';
-      summaryEl.hidden = !data.summary;
+      // Photo and video are independent — a recipe can have either, both, or neither.
+      if (data.photo_path) {
+        const { data: photoUrlData } = supabase.storage
+          .from(RECIPE_PHOTOS_BUCKET)
+          .getPublicUrl(data.photo_path);
+        photoImgEl.src = photoUrlData.publicUrl;
+        photoImgEl.alt = data.title;
+        photoEl.hidden = false;
+      }
+
+      const videoId = extractYouTubeId(data.video_url);
+      if (videoId) {
+        videoIframeEl.src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+        videoEl.hidden = false;
+      }
+
+      yieldEl.textContent = data.yield_text ? `Makes ${data.yield_text}` : '';
+      yieldEl.hidden = !data.yield_text;
 
       fillList(ingredientsEl, linesToList(data.ingredients));
       fillList(instructionsEl, linesToList(data.instructions));
+
+      if (data.notes) {
+        notesTextEl.textContent = data.notes;
+        notesEl.hidden = false;
+      }
 
       statusEl.hidden = true;
       contentEl.hidden = false;
@@ -98,9 +188,15 @@ import Layout from '../../layouts/Layout.astro';
   </script>
 </Layout>
 
-<style>
+<!--
+  is:global: this page's content is rendered client-side into elements created
+  with document.createElement (there's no data at build time to render server-side).
+  Astro's scoped styles only match elements it renders itself, so a scoped style
+  here would silently fail to apply to any of it.
+-->
+<style is:global>
   .recipe-page {
-    max-width: 680px;
+    max-width: 940px;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 4rem;
   }
@@ -123,6 +219,18 @@ import Layout from '../../layouts/Layout.astro';
     font-style: italic;
   }
 
+  .top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .top-row-text {
+    flex: 1 1 420px;
+  }
+
   .category-badge {
     display: inline-block;
     font-size: 0.75rem;
@@ -136,34 +244,223 @@ import Layout from '../../layouts/Layout.astro';
     margin-bottom: 0.75rem;
   }
 
-  #recipe-title {
-    font-size: clamp(2rem, 4.5vw, 2.6rem);
+  .recipe-title {
+    font-size: clamp(2rem, 4.5vw, 2.7rem);
     margin-bottom: 0.4rem;
-  }
-
-  .recipe-meta {
-    color: var(--brown);
-    font-size: 0.92rem;
-    margin: 0 0 1.25rem;
   }
 
   .recipe-summary {
     font-size: 1.15rem;
     color: var(--brown);
-    margin-bottom: 2rem;
+    margin: 0.75rem 0 0;
+    max-width: 60ch;
   }
 
-  #recipe-content h2 {
+  .action-row {
+    display: flex;
+    gap: 0.75rem;
+    margin: 0.25rem 0 0;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--brown-deep);
+    background: transparent;
+    color: var(--brown-deep);
+    cursor: pointer;
+  }
+
+  .btn.primary {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    color: var(--cream-light);
+  }
+
+  .btn:hover,
+  .btn:focus-visible {
+    opacity: 0.9;
+  }
+
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+    margin: 1.75rem 0 0;
+    padding: 1rem 1.25rem;
+    background: var(--cream);
+    border: 1px solid rgba(44, 30, 18, 0.15);
+    border-radius: 10px;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .meta-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--brown);
+    opacity: 0.75;
+  }
+
+  .meta-value {
+    font-weight: 600;
+    color: var(--brown-deep);
+  }
+
+  .photo-frame,
+  .video-frame {
+    margin-top: 1.5rem;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: var(--cream);
+  }
+
+  .photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .recipe-body {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 3rem;
+    margin-top: 2.5rem;
+    align-items: start;
+  }
+
+  .ingredients-col {
+    background: var(--cream);
+    border: 1px solid rgba(44, 30, 18, 0.15);
+    border-radius: 10px;
+    padding: 1.5rem 1.5rem 1.75rem;
+    position: sticky;
+    top: 1.5rem;
+  }
+
+  .ingredients-col h2 {
     font-size: 1.4rem;
-    margin: 1.75rem 0 0.75rem;
+    margin-bottom: 0.25rem;
   }
 
-  #recipe-content ul,
-  #recipe-content ol {
-    padding-left: 1.4rem;
+  .yield-line {
+    font-size: 0.9rem;
+    color: var(--brown);
+    margin: 0 0 1rem;
   }
 
-  #recipe-content li {
-    margin-bottom: 0.5rem;
+  .ingredient-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ingredient-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(44, 30, 18, 0.1);
+  }
+
+  .ingredient-list li:last-child {
+    border-bottom: none;
+  }
+
+  .chk {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.2rem;
+    border: 2px solid var(--green-deep);
+    border-radius: 4px;
+  }
+
+  .instructions-col h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .instruction-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+  }
+
+  .instruction-list li {
+    counter-increment: step;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .instruction-list li::before {
+    content: counter(step);
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--green-deep);
+    color: var(--cream-light);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-text {
+    padding-top: 0.3rem;
+  }
+
+  .notes-box {
+    margin-top: 2.25rem;
+    padding: 1.25rem 1.5rem;
+    background: rgba(179, 134, 47, 0.12);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .notes-box h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .notes-box p {
+    margin: 0;
+    color: var(--brown);
+  }
+
+  @media (max-width: 720px) {
+    .photo-frame {
+      aspect-ratio: 4 / 3;
+    }
+
+    .recipe-body {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .ingredients-col {
+      position: static;
+    }
   }
 </style>
