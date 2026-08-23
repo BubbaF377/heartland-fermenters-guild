@@ -1,70 +1,99 @@
-<!-- devlore:user-manual source-hash:195a9cdbd632ce91774abfc81be0b88c222d9eb40bfacdaaf82e528ad6731343 -->
+<!-- devlore:user-manual source-hash:5633442e5406f0981136f58b9ad83fda94cc061088ed6f6d6fe3d8bc2002e921 -->
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this user manual automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's documented, update `docs/PRODUCT.md` itself.
 <!-- devlore:user-manual requirement-hashes
 1=8c6a5f4fb077
 2=74ba323e0a07
 3=c1a27b1ede7c
 4=d62dbc43a89f
-5=3864ccd4c599
-6=9dfd0e0e55c8
+5=6294ef378458
+6=773d44048551
+7=c5fb0daa7d8a
+8=6cf7ff87fbd8
+9=bc23fd892fad
 -->
 
-The Heartland Fermenters Guild website is the public home for a real-world community of home brewers, bakers, picklers, and cheesemakers, reachable at `heartlandfermentersguild.org`. Today it's a single landing page meant to welcome newcomers and point them toward the guild's social channels; over time it will grow into a fuller site. This manual is for two kinds of people: guild members and prospective members visiting the site to learn about the group and connect with it, and the site's maintainer(s) who push updates and manage the underlying GitHub repository.
+Heartland Fermenters Guild's website is the public home for a real-world community of home brewers, bakers, picklers, and cheesemakers. If you're a guild member, a prospective member, or just someone who got pointed here from social media or a flyer, this site is where you go to learn what the guild is about, find ways to connect with other members, and — if you're a home cook — browse recipes shared by the community. This manual walks through what's currently on the site and how to use each part of it.
 
 ## Table of Contents
 
 - [Visiting the Landing Page](#visiting-the-landing-page)
 - [Joining the Conversation](#joining-the-conversation)
-- [Finding the Site at Its Custom Domain](#finding-the-site-at-its-custom-domain)
-- [Publishing Updates to the Site](#publishing-updates-to-the-site)
-- [Repository Access and Contribution Rules](#repository-access-and-contribution-rules)
+- [Using the Site Footer](#using-the-site-footer)
+- [Browsing Recipes](#browsing-recipes)
+- [Viewing a Recipe](#viewing-a-recipe)
+- [Logging In as an Admin](#logging-in-as-an-admin)
+- [Adding a New Recipe](#adding-a-new-recipe)
 
 ## Visiting the Landing Page
+
 <!-- requirements: #5 -->
 
-When you go to `heartlandfermentersguild.org`, you land on a single welcoming page designed to be shared on social media or given out in person. At the top is a header banner image, followed directly by a short welcome paragraph explaining what the Heartland Fermenters Guild is and who it's for — home brewers, bakers, picklers, and cheesemakers looking for a community. (The guild's circular crest logo, which used to sit between the banner and the page title, has been removed.) At the very bottom of the page is a footer: the copyright notice appears on the left, and a Starter Culture Studio logo appears on the right, linking out to `starterculturestudio.com`. There's nothing to log into or configure here; the page is meant to be read in a minute and used as a jumping-off point to the guild's other channels.
+When you go to `heartlandfermentersguild.org`, you land on the guild's homepage. At the top is a header banner image, followed by a short welcome paragraph that explains what the Heartland Fermenters Guild is and who it's for — home brewers, bakers, picklers, and cheesemakers looking for a community. There's nothing to click or configure here; it's meant to be a quick, welcoming introduction you can point a friend to.
 
 [↑ Back to table of contents](#table-of-contents)
 
 ## Joining the Conversation
+
 <!-- requirements: #5 -->
 
-Further down the landing page is a "Join the Conversation" section, which is the main call to action for visitors. From here you can click through to:
+Below the welcome paragraph is a "Join the Conversation" section. This is where you'll find links to connect with the guild elsewhere:
 
-- An email link to contact the guild directly.
+- An email link to get in touch directly.
 - The guild's Facebook Page.
 - The guild's Facebook Group.
-- The guild's Instagram.
-- The guild's Meetup listing.
+- Instagram.
+- Meetup.
 
-If you're new to the guild, this is the fastest way to find where the community is actually active day-to-day and to introduce yourself. If you're an existing member, these are the same channels you'd already be using — the landing page just collects them in one place so they're easy to hand to someone new.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Finding the Site at Its Custom Domain
-<!-- requirements: #3 -->
-
-The site lives at the custom domain `heartlandfermentersguild.org`, so that's the address to share instead of a generic hosting URL. The domain is registered and managed through Porkbun. Visitors don't need to do anything special — typing or clicking the domain takes you straight to the current landing page — but if you're the one managing the site's DNS, be aware that Porkbun's DNS records point directly at GitHub Pages' hosting IPs (with a `www` record included as well), and nameserver management stays with Porkbun rather than a third party. This means visiting the plain domain or the `www` version both land you on the same site.
+Click any of these to open that platform in a new destination and follow, join, or message the guild from there. This section is the main way the site directs people toward the guild's actual community spaces.
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Publishing Updates to the Site
-<!-- requirements: #2 -->
+## Using the Site Footer
 
-If you're the maintainer making changes to the site (editing page content, swapping images, etc.), publishing is no longer automatic on every push to `main`. Instead, the build and deploy only run when you push a `v*.*.*` release tag (the same tag pattern the Devlore release workflow listens for) or when you manually trigger the workflow via `workflow_dispatch`. In practice this means your day-to-day workflow is to make your changes, commit them, and push (or merge a pull request) into `main` as usual — but the live site at `heartlandfermentersguild.org` won't reflect those changes until you cut a release with `git tag vX.Y.Z && git push origin vX.Y.Z`, or start a manual deploy from the Actions tab. Merging to `main` alone will not publish anything.
+<!-- requirements: #5 -->
+
+Every page on the site — the homepage, the recipes pages, and the admin page — shares the same footer at the bottom. On the left side you'll see the site's copyright notice and a link labeled "Admin," which takes you to the admin login page (see "Logging In as an Admin" below). On the right side is a Starter Culture Studio logo; clicking it takes you to `starterculturestudio.com`. Use the footer any time you need to jump to the admin page from wherever you are on the site.
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Repository Access and Contribution Rules
-<!-- requirements: #4 -->
+## Browsing Recipes
 
-The project's source code lives in a public GitHub repository named `heartland-fermenters-guild`. It's public so the site can be hosted on GitHub Pages without a paid plan, and since the repository contains no secrets, this is considered an acceptable tradeoff — but access to *changing* the site is still tightly controlled. If you're looking to contribute or check on the project's guardrails:
+<!-- requirements: #7 -->
 
-- Only one collaborator (BubbaF377) has write access to the repository.
-- The `main` branch is protected: changes can't be force-pushed or have the branch deleted, and any open review conversations on a pull request must be resolved before it can be merged.
-- A separate repository ruleset prevents anyone without the admin role from creating, updating, or deleting release tags (tags matching `v*`).
+The `/recipes/` page lists recipes shared by the guild. Recipes are loaded live from the guild's database each time you visit, so anything newly added by an admin shows up right away — no need to wait for a site update. Each recipe in the list is a fixed category from: Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, or Other, along with its title and short summary, so you can scan for something that fits what you're working on. Click a recipe to open its full detail page.
 
-For most visitors and guild members this is invisible — it simply means the live site can be trusted to reflect deliberate, reviewed changes rather than accidental or unauthorized ones.
+[↑ Back to table of contents](#table-of-contents)
+
+## Viewing a Recipe
+
+<!-- requirements: #7, #9 -->
+
+Clicking into a recipe takes you to its detail page, which shows the full recipe: the title, category, short summary, ingredients, instructions, and — if the person who submitted it chose to include one — a submitted-by name. Ingredients and instructions are shown as plain text lists rather than fancy structured steps, so they're easy to read straight through or copy into your own notes. Because each recipe's page is loaded by an ID in the page's URL rather than being a separate pre-built page, links to specific recipes will only work if you got them from the site itself (e.g., by clicking through from the recipe list) rather than guessing a URL.
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Logging In as an Admin
+
+<!-- requirements: #8 -->
+
+Recipe submission is limited to guild admins. To get to the login screen, visit `/admin/` directly or click the "Admin" link in the site footer. Enter the shared admin password when prompted — this isn't a personal account with your own username, it's a single password shared among whoever the guild has designated as able to add recipes. If you don't know the current password, ask whoever manages the guild's admin access. Once logged in, you'll be able to access the recipe submission form described below. A successful login only proves you know the current password — it doesn't identify you personally, so there's no per-person history of who added what.
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Adding a New Recipe
+
+<!-- requirements: #8, #9 -->
+
+After logging in at `/admin/`, you'll see a form for submitting a new recipe. Fill in:
+
+- **Title** — the name of the recipe.
+- **Category** — pick one from the fixed list: Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, or Other.
+- **Short summary** — a brief description shown in the recipe list.
+- **Ingredients** — type each ingredient on its own line.
+- **Instructions** — type each step on its own line.
+- **Submitted by** (optional) — a name to credit, if you want one shown on the recipe.
+
+Submit the form and the recipe is saved immediately to the guild's shared recipe database — it will appear on `/recipes/` and be viewable on its own detail page right away, with no need to rebuild or redeploy the site.
 
 [↑ Back to table of contents](#table-of-contents)
 
