@@ -82,8 +82,8 @@ renders one recipe from a shared template (a query-string slug rather than a pat
 segment like `/recipes/my-recipe/`, since GitHub Pages can only serve pre-built static
 files — there's no way to pre-build a page per database row that updates without a
 redeploy, and recipes are meant to appear instantly when added), and `/admin/` is the
-password-gated form that adds a row. No update/delete admin actions yet — schema and UI
-both leave room to add those later.
+password-gated form that lists every recipe with Edit/Delete actions alongside the
+form for adding a new one.
 
 ## Project structure
 

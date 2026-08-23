@@ -45,8 +45,19 @@ create policy "Authenticated insert"
   to authenticated
   with check ( (select auth.uid()) is not null );
 
--- No update/delete policies yet — Christian mentioned there may be other admin
--- actions later (edit/delete a recipe); add policies here when those are built.
+-- Edit and delete (Requirement #14): same shared-admin pattern as insert above —
+-- any authenticated session may update or delete any row, since there's only the
+-- one shared admin login, not per-row ownership.
+create policy "Authenticated update"
+  on recipes for update
+  to authenticated
+  using ( (select auth.uid()) is not null )
+  with check ( (select auth.uid()) is not null );
+
+create policy "Authenticated delete"
+  on recipes for delete
+  to authenticated
+  using ( (select auth.uid()) is not null );
 
 -- Recipe photos (Requirement #11): a public bucket, since anyone can view a
 -- recipe's photo without logging in — the same public-read / admin-write split
@@ -64,3 +75,10 @@ create policy "Authenticated upload of recipe photos"
   on storage.objects for insert
   to authenticated
   with check ( bucket_id = 'recipe-photos' and (select auth.uid()) is not null );
+
+-- Deleting a recipe (Requirement #14) best-effort removes its photo object too,
+-- so this needs a matching delete policy.
+create policy "Authenticated delete of recipe photos"
+  on storage.objects for delete
+  to authenticated
+  using ( bucket_id = 'recipe-photos' and (select auth.uid()) is not null );

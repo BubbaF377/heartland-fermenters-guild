@@ -26,7 +26,11 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
         <button id="logout-button" type="button" class="secondary">Log out</button>
       </div>
 
-      <h2>Add a Recipe</h2>
+      <h2>Your Recipes</h2>
+      <p id="recipe-list-status" class="status">Loading recipes&hellip;</p>
+      <ul id="recipe-list" class="recipe-list" hidden></ul>
+
+      <h2 id="recipe-form-heading">Add a Recipe</h2>
       <form id="recipe-form">
         <label for="title">Title</label>
         <input type="text" id="title" name="title" required />
@@ -64,7 +68,10 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
         <label for="submitted_by">Your name <span class="hint">(optional)</span></label>
         <input type="text" id="submitted_by" name="submitted_by" />
 
-        <button type="submit">Save Recipe</button>
+        <div class="form-actions">
+          <button type="submit" id="save-button">Save Recipe</button>
+          <button type="button" id="cancel-edit-button" class="secondary" hidden>Cancel</button>
+        </div>
       </form>
       <p id="recipe-status" class="status" hidden></p>
     </section>
@@ -77,6 +84,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       slugify,
       RECIPE_PHOTOS_BUCKET,
       TIME_STAGE_SUGGESTIONS,
+      linesToPairs,
       pairsToLines,
     } from '../../lib/constants.js';
 
@@ -91,6 +99,18 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     const stagesList = document.getElementById('time-stages-list');
     const addStageButton = document.getElementById('add-stage-button');
     const photoInput = document.getElementById('photo');
+    const recipeListStatus = document.getElementById('recipe-list-status');
+    const recipeList = document.getElementById('recipe-list');
+    const formHeading = document.getElementById('recipe-form-heading');
+    const saveButton = document.getElementById('save-button');
+    const cancelEditButton = document.getElementById('cancel-edit-button');
+
+    // null in create mode; while editing, these hold the recipe's id and its
+    // current slug/photo_path (the slug never changes on edit — see startEditing
+    // — and the photo_path is resubmitted unchanged unless a new file is chosen).
+    let editingId = null;
+    let editingSlug = null;
+    let editingPhotoPath = null;
 
     // --- Time-stage rows (Requirement #12): a repeatable label+duration list ---
 
@@ -124,9 +144,168 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       suggestions.forEach((label) => addStageRow(label));
     });
 
+    // --- Recipe list (Requirement #14): fetch + render, with edit/delete ---
+
+    // Supabase fires onAuthStateChange multiple times for a single page load with
+    // a persisted session (INITIAL_SESSION, then SIGNED_IN), and showLoggedIn also
+    // runs once more from the explicit getSession() check below — so this can be
+    // called several times in close succession. Each call clears the list before
+    // its await, so without a guard, overlapping calls each clear then later append
+    // their own copy, rendering the same rows multiple times. This id makes only
+    // the most recently started call allowed to render; a call superseded by a
+    // newer one discards its results instead of appending stale duplicates.
+    let recipeListRequestId = 0;
+
+    async function loadRecipeList() {
+      const requestId = ++recipeListRequestId;
+
+      recipeListStatus.hidden = false;
+      recipeListStatus.textContent = 'Loading recipes…';
+      recipeList.hidden = true;
+      recipeList.innerHTML = '';
+
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (requestId !== recipeListRequestId) return;
+
+      if (error) {
+        recipeListStatus.textContent = 'Could not load recipes right now. Please try again in a moment.';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        recipeListStatus.textContent = 'No recipes yet.';
+        return;
+      }
+
+      for (const recipe of data) {
+        recipeList.append(buildRecipeRow(recipe));
+      }
+      recipeListStatus.hidden = true;
+      recipeList.hidden = false;
+    }
+
+    function buildRecipeRow(recipe) {
+      const li = document.createElement('li');
+      li.className = 'recipe-row';
+      li.dataset.id = recipe.id;
+
+      if (recipe.photo_path) {
+        const { data: photoUrlData } = supabase.storage
+          .from(RECIPE_PHOTOS_BUCKET)
+          .getPublicUrl(recipe.photo_path);
+        const thumb = document.createElement('div');
+        thumb.className = 'recipe-row-thumb';
+        const img = document.createElement('img');
+        img.src = photoUrlData.publicUrl;
+        img.alt = '';
+        thumb.append(img);
+        li.append(thumb);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'recipe-row-info';
+      const title = document.createElement('div');
+      title.className = 'recipe-row-title';
+      title.textContent = recipe.title;
+      const meta = document.createElement('div');
+      meta.className = 'recipe-row-meta';
+      const badge = document.createElement('span');
+      badge.className = 'category-badge';
+      badge.textContent = recipe.category;
+      const date = document.createElement('span');
+      date.textContent = new Date(recipe.created_at).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      meta.append(badge, date);
+      info.append(title, meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'recipe-row-actions';
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'secondary';
+      editButton.textContent = 'Edit';
+      editButton.addEventListener('click', () => startEditing(recipe));
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'secondary';
+      deleteButton.textContent = 'Delete';
+      deleteButton.addEventListener('click', () => deleteRecipe(recipe));
+      actions.append(editButton, deleteButton);
+
+      li.append(info, actions);
+      return li;
+    }
+
+    function startEditing(recipe) {
+      editingId = recipe.id;
+      editingSlug = recipe.slug;
+      editingPhotoPath = recipe.photo_path;
+
+      recipeForm.elements.title.value = recipe.title;
+      recipeForm.elements.category.value = recipe.category;
+      recipeForm.elements.summary.value = recipe.summary || '';
+      recipeForm.elements.video_url.value = recipe.video_url || '';
+      recipeForm.elements.yield_text.value = recipe.yield_text || '';
+      recipeForm.elements.ingredients.value = recipe.ingredients || '';
+      recipeForm.elements.instructions.value = recipe.instructions || '';
+      recipeForm.elements.notes.value = recipe.notes || '';
+      recipeForm.elements.submitted_by.value = recipe.submitted_by || '';
+      photoInput.value = '';
+
+      stagesList.innerHTML = '';
+      linesToPairs(recipe.time_stages).forEach(({ label, value }) => addStageRow(label, value));
+
+      formHeading.textContent = 'Edit Recipe';
+      saveButton.textContent = 'Update Recipe';
+      cancelEditButton.hidden = false;
+      recipeStatus.hidden = true;
+      recipeForm.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function stopEditing() {
+      editingId = null;
+      editingSlug = null;
+      editingPhotoPath = null;
+      recipeForm.reset();
+      stagesList.innerHTML = '';
+      formHeading.textContent = 'Add a Recipe';
+      saveButton.textContent = 'Save Recipe';
+      cancelEditButton.hidden = true;
+    }
+
+    cancelEditButton.addEventListener('click', stopEditing);
+
+    async function deleteRecipe(recipe) {
+      if (!confirm(`Delete "${recipe.title}"? This can't be undone.`)) return;
+
+      // Best-effort: an orphaned photo left in Storage is a much smaller problem
+      // than a delete that silently fails, so a storage error here doesn't stop
+      // the row itself from being deleted.
+      if (recipe.photo_path) {
+        await supabase.storage.from(RECIPE_PHOTOS_BUCKET).remove([recipe.photo_path]);
+      }
+
+      const { error } = await supabase.from('recipes').delete().eq('id', recipe.id);
+      if (error) {
+        alert('Could not delete this recipe — please try again.');
+        return;
+      }
+
+      if (editingId === recipe.id) stopEditing();
+      loadRecipeList();
+    }
+
     function showLoggedIn(isLoggedIn) {
       loginSection.hidden = isLoggedIn;
       adminSection.hidden = !isLoggedIn;
+      if (isLoggedIn) loadRecipeList();
     }
 
     // Reflect whatever the current session actually is (a returning admin stays
@@ -196,18 +375,20 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       const submittedBy = String(formData.get('submitted_by') || '').trim();
       const timeStages = pairsToLines(currentStagePairs());
       const photoFile = photoInput.files[0] || null;
+      const isEditing = editingId !== null;
 
-      const submitButton = recipeForm.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
+      saveButton.disabled = true;
 
       try {
-        const baseSlug = slugify(title) || 'recipe';
-        const slug = await findAvailableSlug(baseSlug);
+        // The slug never changes on edit — it's baked into already-shared
+        // /recipes/view?slug=... links — so it's only (re)computed when creating.
+        const slug = isEditing ? editingSlug : await findAvailableSlug(slugify(title) || 'recipe');
 
-        // Upload happens before the database insert — if it fails, the form
-        // shows an error and the recipe is not saved, rather than saving a
-        // recipe with a broken photo reference.
-        let photoPath = null;
+        // Upload happens before the database write — if it fails, the form shows
+        // an error and nothing is saved, rather than saving a broken photo
+        // reference. If editing and no new file was chosen, the recipe's
+        // existing photo_path is resubmitted unchanged.
+        let photoPath = isEditing ? editingPhotoPath : null;
         if (photoFile) {
           const ext = photoFile.name.includes('.') ? photoFile.name.split('.').pop() : 'jpg';
           photoPath = `${slug}-${Date.now()}.${ext}`;
@@ -217,7 +398,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
           if (uploadError) throw uploadError;
         }
 
-        const { error } = await supabase.from('recipes').insert({
+        const payload = {
           slug,
           title,
           category,
@@ -230,22 +411,26 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
           instructions,
           notes: notes || null,
           submitted_by: submittedBy || null,
-        });
+        };
+
+        const { error } = isEditing
+          ? await supabase.from('recipes').update(payload).eq('id', editingId)
+          : await supabase.from('recipes').insert(payload);
 
         if (error) throw error;
 
         recipeStatus.className = 'status success';
-        recipeStatus.innerHTML = `Saved. <a href="/recipes/view?slug=${encodeURIComponent(slug)}">View the recipe</a>.`;
+        recipeStatus.innerHTML = `${isEditing ? 'Updated' : 'Saved'}. <a href="/recipes/view?slug=${encodeURIComponent(slug)}">View the recipe</a>.`;
         recipeStatus.hidden = false;
-        recipeForm.reset();
-        stagesList.innerHTML = '';
+        stopEditing();
+        loadRecipeList();
       } catch (err) {
         recipeStatus.className = 'status error';
         recipeStatus.textContent =
           'Could not save the recipe — please try again. If this keeps happening, the admin session may have expired; try logging out and back in.';
         recipeStatus.hidden = false;
       } finally {
-        submitButton.disabled = false;
+        saveButton.disabled = false;
       }
     });
   </script>
@@ -355,6 +540,97 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
   .admin-bar p {
     margin: 0;
     color: var(--brown);
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .form-actions button {
+    margin-top: 0;
+  }
+
+  .recipe-list {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .recipe-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--cream);
+    border: 1px solid rgba(44, 30, 18, 0.15);
+    border-radius: 8px;
+  }
+
+  .recipe-row-thumb {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .recipe-row-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recipe-row-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .recipe-row-title {
+    font-weight: 600;
+    color: var(--brown-deep);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .recipe-row-meta {
+    font-size: 0.82rem;
+    color: var(--brown);
+    opacity: 0.85;
+  }
+
+  .recipe-row .category-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--green-deep);
+    color: var(--cream-light);
+    margin-right: 0.4rem;
+  }
+
+  .recipe-row-actions {
+    flex: none;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .recipe-row-actions button {
+    margin-top: 0;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
   }
 
   #time-stages-list {
