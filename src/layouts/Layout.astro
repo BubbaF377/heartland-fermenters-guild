@@ -91,6 +91,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
   body {
     margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: var(--cream-light);
     color: var(--ink);
     font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
@@ -155,6 +158,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   }
 
   .site-footer {
+    margin-top: auto;
     padding: 1.5rem 1.5rem 2.5rem;
     color: var(--brown);
     font-size: 0.9rem;

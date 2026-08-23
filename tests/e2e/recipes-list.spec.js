@@ -34,6 +34,17 @@ test.describe('Recipes list page', () => {
     await expect(page.locator('.recipe-card')).toHaveCount(0);
   });
 
+  test('footer stays pinned to the bottom of the viewport when the page is short', async ({ page }) => {
+    // A short page (e.g. the empty-recipes state) shouldn't leave the footer
+    // stranded right under the content — it should sit at the viewport bottom.
+    await mockRecipesTable(page, { list: [] });
+    await page.goto('/recipes/');
+
+    const viewport = page.viewportSize();
+    const footerBox = await page.locator('.site-footer').boundingBox();
+    expect(footerBox.y + footerBox.height).toBeGreaterThanOrEqual(viewport.height - 1);
+  });
+
   test('shows an error message when the recipes fetch fails', async ({ page }) => {
     await page.route('https://test-project.supabase.co/rest/v1/recipes**', (route) =>
       route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'boom' }) }),
