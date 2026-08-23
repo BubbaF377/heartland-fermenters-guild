@@ -16,3 +16,8 @@ node_modules/
 
 # logs
 npm-debug.log*
+
+# test output
+test-results/
+playwright-report/
+blob-report/
