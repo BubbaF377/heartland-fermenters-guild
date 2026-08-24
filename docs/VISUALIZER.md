@@ -1,19 +1,19 @@
-<!-- devlore:visualizer source-hash:59f165593a70a9e1188fcd4ca6188c253e6bf1d8dac39c806f28c8c5075098bc -->
+<!-- devlore:visualizer source-hash:b0a4293e3476ff1d2cd052d851cf191ff34e61ac08105d967f201fe544c46ffd -->
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this diagram automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's diagrammed, update `docs/PRODUCT.md` itself.
 
-Since PRODUCT.md describes the recipes/admin database-backed section in the present tense (Requirements #7–13) even though the codebase snapshot text predates it, I've grounded the internal-structure and external-dependency diagrams in what PRODUCT.md describes as shipped, while noting via the snapshot which pieces (Layout, index, 404) are independently confirmed on disk.
+Two caveats before the diagrams: the codebase snapshot only shows the pre-recipes landing-page skeleton (`Layout.astro`, `index.astro`, `404.astro`, deploy/Devlore workflows) — the recipes/admin/Supabase pieces from PRODUCT.md Requirements #7–14 aren't reflected in any file listing I have, so the internal-structure diagram below is reconstructed from PRODUCT.md's description of routes and behavior, not from verified source files.
 
-This first diagram shows how the site's own pages and the shared layout relate, including the client-side calls the recipes and admin pages make out to Supabase (no server code runs in this repo itself — GitHub Pages can't run it).
+This first diagram shows how the site's own pages relate: the shared layout wrapping every page, the static landing page, and the recipes/admin pages that PRODUCT.md describes as browser-driven Supabase clients.
 
 ```mermaid
 graph TD
-    Layout["src/layouts/Layout.astro<br/>(shared head/fonts/styles + site-wide footer)"]
-
-    Index["src/pages/index.astro<br/>Landing page: banner, welcome text,<br/>'Join the Conversation' links"]
+    Layout["src/layouts/Layout.astro<br/>(shared head/fonts/footer)"]
+    Index["src/pages/index.astro<br/>(landing page)"]
     NotFound["src/pages/404.astro"]
-    RecipesList["/recipes/<br/>list page"]
-    RecipeView["/recipes/view?slug=...<br/>single template, driven by query string"]
-    Admin["/admin/<br/>login + recipe creation form"]
+    RecipesList["/recipes/<br/>(recipe list page)"]
+    RecipeView["/recipes/view?slug=...<br/>(single template, slug-driven)"]
+    Admin["/admin/<br/>(login + add/edit recipe form + recipe list w/ Edit-Delete)"]
+    Schema["supabase/schema.sql<br/>(RLS policies for recipes table + recipe-photos bucket)"]
 
     Layout --> Index
     Layout --> NotFound
@@ -21,79 +21,65 @@ graph TD
     Layout --> RecipeView
     Layout --> Admin
 
-    Layout -. "footer: Admin link" .-> Admin
-    Layout -. "footer: Starter Culture Studio logo" .-> SCS["starterculturestudio.com (external)"]
-
-    RecipesList -- "fetch recipes (publishable key,<br/>RLS-protected)" --> SupaDB[(Supabase Postgres:<br/>recipes table)]
-    RecipeView -- "fetch single recipe by slug" --> SupaDB
-    RecipeView -- "getPublicUrl(photo_path)" --> SupaStorage[(Supabase Storage:<br/>recipe-photos bucket)]
-    RecipeView -- "extract video ID, build embed" --> YouTube["YouTube (video_url)"]
-
-    Admin -- "password check via Supabase Auth<br/>(admin@heartlandfermentersguild.org)" --> SupaAuth[(Supabase Auth)]
-    Admin -- "upload photo before insert" --> SupaStorage
-    Admin -- "insert recipe row incl. time_stages,<br/>yield, notes, photo_path, video_url" --> SupaDB
-
-    Schema["supabase/schema.sql<br/>(RLS policies)"] -. "defines access rules for" .-> SupaDB
-    Schema -. "defines write policy for" .-> SupaStorage
+    RecipesList -->|"link to detail via ?slug="| RecipeView
+    Admin -->|"defines allowed access patterns for"| Schema
+    RecipesList -.->|"reads under"| Schema
+    RecipeView -.->|"reads under"| Schema
 ```
 
-This second diagram shows the outside services and third-party destinations the static site talks to at runtime or deploy time — everything here is called directly from the browser or from CI, since there's no backend server in this project.
+This second diagram shows the outside services and destinations the site talks to directly from the browser (no backend of its own), plus the deploy and DNS chain.
 
 ```mermaid
 graph LR
-    subgraph Browser["Static pages served from GitHub Pages"]
-        Land["Landing page"]
-        RecList["/recipes/"]
-        RecView["/recipes/view"]
-        AdminPg["/admin/"]
+    Browser["Site pages (client-side JS)"]
+
+    subgraph Supabase["Supabase (managed Postgres)"]
+        AuthSvc["Supabase Auth<br/>(single shared admin@... user)"]
+        DB["Postgres: recipes table<br/>(publishable key + RLS)"]
+        Storage["Supabase Storage:<br/>recipe-photos bucket"]
     end
 
-    RecList -- "REST calls (publishable key)" --> Supa[(Supabase project)]
-    RecView -- "REST calls" --> Supa
-    AdminPg -- "Auth + insert + upload" --> Supa
-    Supa --- SupaDB["Postgres: recipes table"]
-    Supa --- SupaAuthSvc["Auth: single admin user"]
-    Supa --- SupaStore["Storage: recipe-photos bucket"]
+    YouTube["YouTube<br/>(video_url embed, ID extracted client-side)"]
 
-    RecView -- "embed by video ID" --> YT["YouTube"]
+    Browser -->|"login (server-side password check)"| AuthSvc
+    Browser -->|"select/insert/update/delete recipes"| DB
+    Browser -->|"admin-only upload / public read / admin-only delete"| Storage
+    Browser -->|"embed how-to video"| YouTube
 
-    Land -- "outbound links" --> Email["Email"]
-    Land -- "outbound links" --> FBPage["Facebook Page"]
-    Land -- "outbound links" --> FBGroup["Facebook Group"]
-    Land -- "outbound links" --> IG["Instagram"]
-    Land -- "outbound links" --> Meetup["Meetup"]
+    Index2["Landing page 'Join the Conversation'"]
+    Index2 -->|"mailto link"| Email["Email"]
+    Index2 -->|"link out"| FBPage["Facebook Page"]
+    Index2 -->|"link out"| FBGroup["Facebook Group"]
+    Index2 -->|"link out"| Instagram["Instagram"]
+    Index2 -->|"link out"| Meetup["Meetup"]
 
-    Footer["Site-wide footer (all pages)"] -- "logo link" --> SCS2["starterculturestudio.com"]
+    Footer["Shared footer (Layout.astro)"] -->|"logo link"| SCS["starterculturestudio.com"]
 
-    subgraph CI["GitHub Actions"]
-        DeployWF["deploy.yml (withastro/action)<br/>triggers on v*.*.* tag or manual dispatch"]
-    end
-    DeployWF -- "build + deploy" --> Pages["GitHub Pages"]
-    Pages -- "custom domain resolution" --> Porkbun["Porkbun DNS<br/>(A records + www CNAME,<br/>Cloudflare-backed resolution only)"]
-    Porkbun -- "resolves to" --> Pages
+    GHActions["GitHub Actions<br/>(withastro/action, on v*.*.* tag or manual dispatch)"] -->|"build & deploy"| GHPages["GitHub Pages"]
+    Porkbun["Porkbun DNS<br/>(nameservers + A/CNAME records)"] -->|"resolves to"| GHPages
+    Porkbun -.->|"DNS-answering backend only, not a proxy"| Cloudflare["Cloudflare (DNS resolution infra)"]
 ```
 
-This third diagram shows the repo's real, documented connection to Devlore, the separate cross-project documentation tool this project's own docs are generated for/by — omitting anything about Starter Culture Studio or other outbound links since those are just outbound URLs, not linked repos/projects.
+This third diagram covers the one other real cross-project connection described in the docs: the Devlore tooling that reads this repo's `docs/PRODUCT.md` and drives its own generated docs and release workflow.
 
 ```mermaid
 graph TD
     ProductDoc["docs/PRODUCT.md<br/>(hand-edited source of truth)"]
-    TestPlan["docs/TEST_PLAN.md<br/>(auto-generated)"]
-    UserManual["docs/USER_MANUAL.md<br/>(auto-generated)"]
-    Visualizer["docs/VISUALIZER.md<br/>(auto-generated)"]
+    Devlore["Devlore<br/>(separate documentation/automation tool)"]
 
-    DevloreWF[".github/workflows/devlore.yml"]
-    DevloreAnalyzeWF[".github/workflows/devlore-analyze.yml"]
-    DevloreReleaseWF[".github/workflows/devlore-release.yml<br/>(triggers on v*.*.* tag, same pattern as deploy.yml)"]
+    TestPlan["docs/TEST_PLAN.md (generated)"]
+    UserManual["docs/USER_MANUAL.md (generated)"]
+    Visualizer["docs/VISUALIZER.md (generated)"]
 
-    Devlore["Devlore (external, cross-project tool)"]
+    WfSync[".github/workflows/devlore.yml"]
+    WfAnalyze[".github/workflows/devlore-analyze.yml"]
+    WfRelease[".github/workflows/devlore-release.yml"]
 
-    ProductDoc -- "read as source-of-truth" --> Devlore
-    Devlore -- "generates" --> TestPlan
-    Devlore -- "generates" --> UserManual
-    Devlore -- "generates" --> Visualizer
-
-    DevloreWF -- "sync/logging" --> Devlore
-    DevloreAnalyzeWF -- "analysis" --> Devlore
-    DevloreReleaseWF -- "release automation" --> Devlore
+    ProductDoc -->|"read as source of truth"| Devlore
+    Devlore -->|"generates"| TestPlan
+    Devlore -->|"generates"| UserManual
+    Devlore -->|"generates"| Visualizer
+    WfSync -->|"syncs/logs to"| Devlore
+    WfAnalyze -->|"triggers analysis in"| Devlore
+    WfRelease -->|"listens for same v*.*.* tag pattern as site deploy"| Devlore
 ```
