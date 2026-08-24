@@ -3,45 +3,39 @@
 
 # heartland-fermenters-guild — Onboarding Guide
 
-# Onboarding Guide
-
 ## Where the important logic lives
 
-This is a small, static Astro site, so "logic" is mostly layout, content, and deployment config rather than application code.
+This is a small, mostly-static Astro site, so there isn't much surface area — but a few places matter more than the rest:
 
-- **`src/layouts/Layout.astro`** — the shared shell (head, fonts, global styles). Any site-wide visual or metadata change goes through here first.
-- **`src/pages/index.astro`** — the landing page. As of this snapshot, this *is* the site — there's only one real content page.
-- **`src/pages/404.astro`** — not-found page, minor but worth knowing exists.
-- **`public/`** — static assets (logo, banner images, favicons), plus two files that matter more than they look: `CNAME` (custom domain binding for GitHub Pages) and `robots.txt`.
-- **`.github/workflows/deploy.yml`** — the actual build/deploy pipeline. This is arguably the highest-leverage file in the repo right now, since it controls *when* anything goes live (see decisions below).
-- **`docs/PRODUCT.md`** — not code, but treated as the authoritative product/architecture doc. Read this before making structural changes; it's hand-maintained and is the source of truth the other docs are (supposed to be) generated from.
-- **`astro.config.mjs` / `tsconfig.json`** — presumably near-default config; contents weren't available in this snapshot, so verify current state directly rather than assuming.
-
-There is no server-rendered code, no auth, and no members-only section yet — those are explicitly future work, not something to go looking for in the current tree.
+- **`src/pages/index.astro`** and **`src/layouts/Layout.astro`** — the entire current front-end. Layout holds shared head/fonts/styles; index is the one real page. Start here to understand how markup and styling are organized before touching anything else.
+- **`docs/PRODUCT.md`** — not code, but functionally the spec. It's described as the authoritative source-of-truth doc that drives this project's workflow (and auto-generates `TEST_PLAN.md`, `USER_MANUAL.md`, `VISUALIZER.md` via Devlore). If you're planning a change, check here first — and don't hand-edit the generated docs.
+- **`.github/workflows/deploy.yml`** — this is where "does my merge actually go live" gets decided, and per the decision history below, that answer has changed more than once. Read this file directly rather than trusting any prose description of it.
+- **Any future recipes/admin code** — per the recorded decision on Supabase, recipe data and admin auth are meant to live in Supabase, queried directly from client-side JS with Postgres RLS doing the enforcement (public read, admin write). There's no server of this project's own and there isn't meant to be one. If you see (or are asked to write) server-side logic for recipes, that's a red flag against the recorded architecture.
+- **`.github/workflows/devlore*.yml`** — separate from the site deploy; these sync docs to the external Devlore tool. Don't confuse a failure here with a site deploy failure, they're independent pipelines.
 
 ## Why past decisions were made
 
-Three recorded decisions, all converging on one theme: **deploys are now gated behind release tags, not automatic on merge.**
+Several architectural choices are recorded and worth internalizing before you second-guess them:
 
-- The site originally deployed on every push to `main`. This was changed so that deploys only trigger on `v*.*.*` tag pushes (or manual `workflow_dispatch`), matching the tagging convention already used by the separate Devlore tooling. The rationale given: continuous deploy on every push gave no way to stage, batch, or deliberately control what went live (e.g., batching content/image changes before publishing).
-- **Practical consequence for you:** merging to `main` is now safe and inert — it does *not* publish anything. Publishing requires an explicit `git tag vX.Y.Z && git push origin vX.Y.Z` or a manual Actions run. Don't assume a merged PR is live; check for a tag.
-- Separately, the Devlore auto-doc-sync integration (unrelated to the site itself) was broken because a public repo can't call reusable workflows in a private repo. This was resolved by making the Devlore workflows repo public, rather than restructuring the sync jobs to avoid cross-repo calls. This preserved the existing shared-workflow structure, but it means the doc-sync pipeline now has a standing dependency on `devlore` staying public — a future decision to make it private again would re-break sync and need to be revisited deliberately.
+- **Supabase for recipes/admin** (decision `1562a9c`): chosen because the site is static with no server, but recipes need to be addable without a rebuild and gated behind a shared admin password. Supabase (managed Postgres + Auth) is queried directly from the browser using a publishable key, with RLS enforcing public-read/admin-write. A single shared admin account (`admin@heartlandfermentersguild.org`) stands in for per-member auth for now. The recipe detail page uses `?slug=` query-string routing rather than per-recipe static pages, specifically because GitHub Pages can only serve pages that existed at the last build — this query-string pattern is meant to be the template for any future per-item page as long as the site stays on Pages. Client-side-only password checks were explicitly rejected as insecure (readable in page source).
+- **Deploy trigger history** (decisions `1c58078`, `70bac2c`, then `ed7d42f`): the project moved *from* deploy-on-every-push-to-`main` *to* deploy-only-on-`v*.*.*`-tag (to align with Devlore's tagging convention and add a deliberate release gate), and then a later decision (`ed7d42f`) moved it *back* to deploy-on-every-push-to-`main`, specifically tied to needing Supabase config wired into the build, with in-progress deploys cancelled in favor of the latest. This reversal is real and recorded, not a mistake in the docs — see gotcha below.
+- **Making the `devlore` reusable-workflows repo public** (decision `2b36777`): GitHub disallows a public repo from calling reusable workflows in a private repo. Rather than vendor/duplicate the sync workflow logic locally, the `devlore` repo itself was made public. Future auto-doc-sync depends on it staying public.
 
-No decisions are recorded yet about the members-only section's auth approach, hosting model, or future page content — these are open per `PRODUCT.md`, not resolved.
+No decisions are recorded yet about auth strategy for a members-only area, or where members-only server logic would run — both are explicitly still open per PRODUCT.md.
 
 ## Common gotchas
 
-- **Merging ≠ deploying.** This is the single biggest trap for a new contributor coming from a more conventional CI/CD setup: pushing to `main` used to deploy automatically, but no longer does. You must cut a `v*.*.*` tag (or trigger manually) to actually publish.
-- **`docs/TEST_PLAN.md` and `docs/VISUALIZER.md` may be stale.** They're supposed to auto-generate from `PRODUCT.md`, but that sync is currently broken/was last fixed manually on 2026-08-15. Don't treat them as ground truth without checking dates/content against `PRODUCT.md` directly.
-- **`docs/PRODUCT.md` says not to move or rename it.** It has a header comment to that effect; respect it since tooling (however currently broken) depends on its path.
-- **DNS/nameservers are deliberately *not* on Cloudflare**, despite that being a common default move — nameservers stay on Porkbun per a documented rationale in `PRODUCT.md`. Don't "fix" this without reading why first.
-- **The repo is public but has compensating controls** (single collaborator, branch protection on `main`, a ruleset restricting `v*` tag creation to admins) — per `PRODUCT.md`. If you're not an admin, expect that you can't cut release tags yourself even after a merge is approved.
-- **Devlore tooling is not part of the site** — don't confuse `.github/workflows/devlore*.yml` with the actual deploy pipeline (`deploy.yml`); they're unrelated and independent.
+- **The deploy trigger is genuinely in flux, and sources disagree.** The baseline snapshot's own README is described as stale (claims every push to `main` deploys). PRODUCT.md apparently claims tag-only deploys are authoritative. But the *most recent recorded decision* (`ed7d42f`) says the trigger was switched back to deploy-on-push-to-`main`. Don't trust any of these secondhand — **read `.github/workflows/deploy.yml` directly** before assuming how a merge will behave, and be aware the trigger has flip-flopped at least twice already.
+- **Merging to `main` may or may not be safe to do casually**, depending on which deploy trigger is currently live. If it's tag-based, accumulating merges on `main` is fine; if it's push-based (per the latest decision), every merge goes live immediately. Confirm current behavior before treating `main` as a staging area.
+- **Devlore docs (`TEST_PLAN.md`, `USER_MANUAL.md`, `VISUALIZER.md`) are generated, not hand-edited.** Only `PRODUCT.md` is meant to be edited directly; changes to the others will presumably be overwritten by the sync workflow.
+- **There is no server for this project, on purpose.** Any recipe/admin feature work should route through Supabase's client-safe API + RLS, not a bolted-on backend — that was explicitly rejected as an option given GitHub Pages hosting.
+- **New "pages" for dynamic content should follow the `?slug=` query-string convention**, not new static routes, as long as GitHub Pages remains the host — this was a deliberate workaround for Pages only serving what existed at last build, not an accidental pattern.
+- **The `devlore` public/private status is load-bearing.** If someone later decides to make `devlore` private again for any reason, the doc-sync workflows in this repo will break, per the recorded decision — that's a known tripwire, not a mystery failure if it happens.
 
 ## Where to start
 
-1. Read `docs/PRODUCT.md` in full — it's short-ish and is the authoritative context for everything else, including the DNS/hosting rationale and the open decisions still on the table.
-2. Skim `src/layouts/Layout.astro` and `src/pages/index.astro` — together they're basically the entire current site.
-3. Look at `.github/workflows/deploy.yml` to understand the tag-triggered deploy flow described in the decisions above, and confirm current trigger config matches what's documented.
-4. Check the dates/content of `docs/TEST_PLAN.md` and `docs/VISUALIZER.md` against `PRODUCT.md` before relying on them for anything — they're known to potentially drift.
-5. If your task touches deploy behavior, DNS, or the tagging convention, re-read the three recorded decisions above first — they represent deliberate, discussed tradeoffs, not defaults.
+1. Read `docs/PRODUCT.md` first — it's the actual spec/source of truth this whole project is built against.
+2. Skim `src/layouts/Layout.astro` and `src/pages/index.astro` to see the entire current site in about five minutes.
+3. Open `.github/workflows/deploy.yml` and resolve for yourself, right now, which trigger is actually live — don't inherit the ambiguity described above.
+4. If you're touching anything recipe- or admin-related, re-read decision `1562a9c` in full before writing code; it sets the pattern (Supabase, RLS, `?slug=` routing, no project-owned server) that any related work is expected to follow.
+5. Leave the auto-generated docs (`TEST_PLAN.md`, `USER_MANUAL.md`, `VISUALIZER.md`) alone and check the `devlore*.yml` workflows only if doc-sync itself seems broken.

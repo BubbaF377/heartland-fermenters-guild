@@ -1,4 +1,4 @@
-<!-- devlore:test-plan source-hash:59f165593a70a9e1188fcd4ca6188c253e6bf1d8dac39c806f28c8c5075098bc -->
+<!-- devlore:test-plan source-hash:b0a4293e3476ff1d2cd052d851cf191ff34e61ac08105d967f201fe544c46ffd -->
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this test plan automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's tested, update `docs/PRODUCT.md` itself.
 <!-- devlore:test-plan requirement-hashes
 1=8c6a5f4fb077
@@ -6,7 +6,7 @@
 3=c1a27b1ede7c
 4=d62dbc43a89f
 5=6294ef378458
-6=99d0e478982f
+6=dbcec06c817c
 7=c5fb0daa7d8a
 8=6cf7ff87fbd8
 9=13d25ef62915
@@ -14,467 +14,441 @@
 11=3309ad72e833
 12=e54aaeada7dc
 13=2255b0761d84
+14=4a26a4be6d0f
 -->
 
 ## Landing Page
 
 ### TC-LAND-01 — Header banner image displays
 **Requirement(s):** #5
-**Preconditions:** None; site is live or running locally.
+**Preconditions:** None.
 **Steps:**
-1. Load the landing page (`/`).
-2. Observe the top of the page.
-**Expected Result:** A header banner image is displayed at the top of the page.
+1. Open the site's root URL.
+2. Look at the top of the page.
+**Expected Result:** A header banner image is displayed at the top of the landing page.
 
-### TC-LAND-02 — Welcome paragraph present
+### TC-LAND-02 — Welcome paragraph text present
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Load the landing page.
-2. Scroll to the area below the banner.
-**Expected Result:** A short welcome paragraph is shown explaining what the guild is and who it's for.
+1. Open the landing page.
+2. Locate the paragraph beneath the banner.
+**Expected Result:** A short welcome paragraph explaining what the guild is and who it's for is displayed.
 
-### TC-LAND-03 — Crest logo is not present
+### TC-LAND-03 — Crest logo no longer present
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Load the landing page.
+1. Open the landing page.
 2. Inspect the area between the banner image and the page title.
-**Expected Result:** No circular crest logo is shown; the removed logo does not reappear.
+**Expected Result:** No circular crest logo appears there (it was removed and should not reappear).
 
-### TC-LAND-04 — "Join the Conversation" email link
+### TC-LAND-04 — "Join the Conversation" section present
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Load the landing page and locate the "Join the Conversation" section.
-2. Click the email link.
-**Expected Result:** The link opens a mail composer (or shows a `mailto:` address) addressed to the guild's contact email.
+1. Open the landing page.
+2. Scroll to the "Join the Conversation" section.
+**Expected Result:** The section is present and lists links for email, Facebook Page, Facebook Group, Instagram, and Meetup.
 
-### TC-LAND-05 — "Join the Conversation" Facebook Page link
+### TC-LAND-05 — Email link
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. In the "Join the Conversation" section, click the Facebook Page link.
-**Expected Result:** The link navigates to the guild's Facebook Page.
+1. In "Join the Conversation", click the email link.
+**Expected Result:** A mailto: link is triggered, addressed to the guild's email.
 
-### TC-LAND-06 — "Join the Conversation" Facebook Group link
+### TC-LAND-06 — Facebook Page link
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. In the "Join the Conversation" section, click the Facebook Group link.
-**Expected Result:** The link navigates to the guild's Facebook Group (distinct from the Facebook Page).
+1. Click the Facebook Page link.
+**Expected Result:** The guild's Facebook Page opens, at a URL distinct from the Facebook Group link.
 
-### TC-LAND-07 — "Join the Conversation" Instagram link
+### TC-LAND-07 — Facebook Group link
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. In the "Join the Conversation" section, click the Instagram link.
-**Expected Result:** The link navigates to the guild's Instagram profile.
+1. Click the Facebook Group link.
+**Expected Result:** The guild's Facebook Group opens, at a URL distinct from the Facebook Page link.
 
-### TC-LAND-08 — "Join the Conversation" Meetup link
+### TC-LAND-08 — Instagram link
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. In the "Join the Conversation" section, click the Meetup link.
-**Expected Result:** The link navigates to the guild's Meetup page.
+1. Click the Instagram link.
+**Expected Result:** The guild's Instagram profile opens.
 
-## Site-wide Footer
-
-### TC-FOOT-01 — Copyright notice displays
+### TC-LAND-09 — Meetup link
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Load the landing page.
-2. Scroll to the footer.
-**Expected Result:** A copyright notice is shown on the left side of the footer.
+1. Click the Meetup link.
+**Expected Result:** The guild's Meetup page opens.
 
-### TC-FOOT-02 — Admin link navigates to admin page
+## Footer
+
+### TC-FOOT-01 — Copyright notice and Admin link on left
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Scroll to the footer on any page.
-2. Click the "Admin" link.
+1. Open the landing page and scroll to the footer.
+2. Observe the left side of the footer.
+**Expected Result:** A copyright notice and an "Admin" link are shown on the left.
+
+### TC-FOOT-02 — Admin link navigates to /admin/
+**Requirement(s):** #5, #8
+**Preconditions:** None.
+**Steps:**
+1. Click the "Admin" link in the footer.
 **Expected Result:** The browser navigates to `/admin/`.
 
-### TC-FOOT-03 — Starter Culture Studio logo links out correctly
+### TC-FOOT-03 — Starter Culture Studio logo on right
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Scroll to the footer.
-2. Click the Starter Culture Studio logo on the right side of the footer.
-**Expected Result:** The link navigates to `starterculturestudio.com`.
+1. Observe the right side of the footer.
+2. Click the logo shown there.
+**Expected Result:** A Starter Culture Studio logo is displayed on the right; clicking it navigates to `starterculturestudio.com`.
 
-### TC-FOOT-04 — Footer appears consistently across pages
+### TC-FOOT-04 — Footer appears on all pages
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Load the landing page, the `/recipes/` page, and the `/admin/` page.
-2. Compare the footer content on each.
-**Expected Result:** The same footer (copyright + Admin link on left, Starter Culture Studio logo on right) appears on all three pages, since they share `Layout.astro`.
-
-## Deployment & Release Trigger
-
-### TC-DEPLOY-01 — Push to main does not trigger a deploy
-**Requirement(s):** #2
-**Preconditions:** Have push access to `main`; access to the Actions tab.
-**Steps:**
-1. Push a commit directly to `main` (or merge a PR into `main`).
-2. Open the GitHub Actions tab for the repo.
-**Expected Result:** No new deploy workflow run is started as a result of the push to `main`.
-
-### TC-DEPLOY-02 — Pushing a v*.*.* tag triggers the deploy workflow
-**Requirement(s):** #2
-**Preconditions:** Have push access; admin role needed to create the tag (per ruleset in #4).
-**Steps:**
-1. Run `git tag vX.Y.Z && git push origin vX.Y.Z` on a valid commit.
-2. Open the GitHub Actions tab.
-**Expected Result:** A new workflow run starts, builds with `withastro/action`, and deploys to GitHub Pages.
-
-### TC-DEPLOY-03 — Manual workflow_dispatch triggers a deploy
-**Requirement(s):** #2
-**Preconditions:** Have permission to run workflows manually.
-**Steps:**
-1. Go to the Actions tab, select the deploy workflow.
-2. Click "Run workflow" and confirm.
-**Expected Result:** The workflow runs and deploys the site, independent of any tag push.
+1. Navigate to `/recipes/` and check the footer.
+2. Navigate to `/admin/` and check the footer.
+**Expected Result:** The same footer (copyright + Admin link left, Starter Culture Studio logo right) appears on both pages, matching the landing page footer.
 
 ## Custom Domain
 
-### TC-DOM-01 — Root domain resolves to the site
+### TC-DOM-01 — Apex domain loads the site
 **Requirement(s):** #3
-**Preconditions:** DNS has propagated.
+**Preconditions:** None.
 **Steps:**
-1. Navigate to `https://heartlandfermentersguild.org` in a browser.
+1. Navigate to `https://heartlandfermentersguild.org`.
 **Expected Result:** The landing page loads successfully over HTTPS.
 
-### TC-DOM-02 — www subdomain resolves to the site
+### TC-DOM-02 — www subdomain loads the site
 **Requirement(s):** #3
-**Preconditions:** DNS has propagated.
+**Preconditions:** None.
 **Steps:**
-1. Navigate to `https://www.heartlandfermentersguild.org` in a browser.
-**Expected Result:** The site loads (directly or via redirect to the root domain).
+1. Navigate to `https://www.heartlandfermentersguild.org`.
+**Expected Result:** The same site loads successfully.
 
-## Repository Access Control
+## Recipes List Page
 
-### TC-REPO-01 — Repository is publicly visible
-**Requirement(s):** #4
-**Preconditions:** A logged-out browser session or incognito window.
+### TC-REC-01 — Recipe list loads from Supabase
+**Requirement(s):** #7
+**Preconditions:** At least one recipe exists in the database.
 **Steps:**
-1. Navigate to the repo's GitHub URL without being logged in.
-**Expected Result:** The repository contents are visible without authentication.
+1. Navigate to `/recipes/`.
+2. Observe the rendered list.
+**Expected Result:** Recipes stored in Supabase are displayed (e.g., titles/categories visible).
 
-### TC-REPO-02 — Only one collaborator is listed
-**Requirement(s):** #4
-**Preconditions:** Admin access to repo settings.
+### TC-REC-02 — Selecting a recipe opens its detail page
+**Requirement(s):** #7
+**Preconditions:** At least one recipe exists.
 **Steps:**
-1. Go to Settings > Collaborators and teams.
-**Expected Result:** BubbaF377 is the only listed collaborator.
+1. On `/recipes/`, click a recipe entry.
+**Expected Result:** The browser navigates to `/recipes/view?slug=<that recipe's slug>` and the matching recipe's detail loads.
 
-### TC-REPO-03 — Force-push to main is blocked
-**Requirement(s):** #4
-**Preconditions:** Local clone with push access; a rewritten local history on `main`.
+### TC-REC-03 — Newly added recipe appears without a redeploy
+**Requirement(s):** #7
+**Preconditions:** Admin access.
 **Steps:**
-1. Attempt `git push --force origin main`.
-**Expected Result:** The push is rejected by branch protection.
+1. Add a new recipe via the admin form and save.
+2. Reload `/recipes/` immediately, without any new site build/deploy.
+**Expected Result:** The new recipe appears in the list right away.
 
-### TC-REPO-04 — Deleting main is blocked
-**Requirement(s):** #4
-**Preconditions:** Push access.
-**Steps:**
-1. Attempt to delete the `main` branch via CLI or GitHub UI.
-**Expected Result:** The deletion is rejected.
+## Recipe Detail Page
 
-### TC-REPO-05 — PR merge blocked while conversations are unresolved
-**Requirement(s):** #4
-**Preconditions:** An open PR against `main` with at least one unresolved review comment.
+### TC-RVIEW-01 — Detail page loads via slug query string
+**Requirement(s):** #7
+**Preconditions:** A known recipe slug exists.
 **Steps:**
-1. Attempt to merge the PR while a conversation thread is unresolved.
-**Expected Result:** The merge button is disabled/blocked until all conversations are marked resolved.
+1. Navigate to `/recipes/view?slug=<known-slug>`.
+**Expected Result:** The detail page for that specific recipe loads and displays its content.
 
-### TC-REPO-06 — Non-admin blocked from creating a v* tag
-**Requirement(s):** #4
-**Preconditions:** A repo contributor without the admin role.
+### TC-RVIEW-02 — Core fields render
+**Requirement(s):** #9
+**Preconditions:** A recipe with all fields populated (title, category, summary, yield, ingredients, instructions, notes, submitted-by).
 **Steps:**
-1. As that non-admin user, attempt `git push origin vX.Y.Z` for a new tag matching `v*`.
-**Expected Result:** The push is rejected by the repository ruleset.
+1. Open that recipe's detail page.
+2. Check each field is displayed.
+**Expected Result:** All populated fields are shown; ingredients and instructions render as separate items, one per line as entered.
+
+### TC-RVIEW-03 — Optional fields absent when not entered
+**Requirement(s):** #9
+**Preconditions:** A recipe saved with notes and submitted-by left blank.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** No notes/tips section and no submitted-by credit are shown; other fields render normally.
+
+### TC-RVIEW-04 — Photo displays when present
+**Requirement(s):** #11
+**Preconditions:** A recipe with an uploaded photo.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** The recipe photo is displayed.
+
+### TC-RVIEW-05 — No photo shown when absent
+**Requirement(s):** #9, #11
+**Preconditions:** A recipe saved without a photo.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** No photo/placeholder is shown.
+
+### TC-RVIEW-06 — Video embeds from a `watch?v=` URL
+**Requirement(s):** #11
+**Preconditions:** A recipe with `video_url` in `youtube.com/watch?v=...` format.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** A working embedded YouTube player is shown, correctly built from that URL.
+
+### TC-RVIEW-07 — Video embeds from a `youtu.be` URL
+**Requirement(s):** #11
+**Preconditions:** A recipe with `video_url` in `youtu.be/...` format.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** A working embedded YouTube player is shown, correctly built from that URL.
+
+### TC-RVIEW-08 — No video section when absent
+**Requirement(s):** #9, #11
+**Preconditions:** A recipe saved without a `video_url`.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** No video/embed section is shown.
+
+### TC-RVIEW-09 — Time stages render as labeled chips
+**Requirement(s):** #10
+**Preconditions:** A recipe with `time_stages` containing a line "Prep: 20 min".
+**Steps:**
+1. Open that recipe's detail page.
+2. Locate the time-stage chips.
+**Expected Result:** A chip labeled "Active Prep" reading "20 min" is displayed, with one chip per stored line, in stored order.
+
+### TC-RVIEW-10 — No chips when time_stages is empty
+**Requirement(s):** #10
+**Preconditions:** A recipe saved with `time_stages` left blank.
+**Steps:**
+1. Open that recipe's detail page.
+**Expected Result:** No time-stage chip row is shown.
 
 ## Admin Login
 
-### TC-ADMIN-01 — Correct shared password logs in
+### TC-ALOGIN-01 — Login form shown when logged out
+**Requirement(s):** #8
+**Preconditions:** Not currently logged in.
+**Steps:**
+1. Navigate to `/admin/`.
+**Expected Result:** A password login form is shown; no recipe list or add-recipe form is visible.
+
+### TC-ALOGIN-02 — Correct password logs in
 **Requirement(s):** #8
 **Preconditions:** Know the current shared admin password.
 **Steps:**
 1. Navigate to `/admin/`.
 2. Enter the correct password and submit.
-**Expected Result:** Login succeeds and the recipe creation form becomes accessible.
+**Expected Result:** Login succeeds; the admin recipe list and add-recipe controls become visible.
 
-### TC-ADMIN-02 — Incorrect password is rejected
+### TC-ALOGIN-03 — Incorrect password is rejected
 **Requirement(s):** #8
 **Preconditions:** None.
 **Steps:**
 1. Navigate to `/admin/`.
 2. Enter an incorrect password and submit.
-**Expected Result:** Login fails with an error message; the recipe form is not shown.
+**Expected Result:** An error is shown and admin content stays hidden.
 
-### TC-ADMIN-03 — Recipe form is inaccessible without login
-**Requirement(s):** #8
-**Preconditions:** Not logged in (fresh session).
-**Steps:**
-1. Navigate directly to `/admin/` without entering a password.
-**Expected Result:** The recipe creation form is not displayed/usable; a login prompt is shown instead.
+## Admin Add/Edit Recipe Form
 
-## Recipes List Page
-
-### TC-REC-01 — New recipe appears without a rebuild
-**Requirement(s):** #7
-**Preconditions:** Admin logged in; ability to add a recipe.
-**Steps:**
-1. Note the current recipes shown on `/recipes/`.
-2. Add a new recipe via the admin form.
-3. Reload `/recipes/` (same deployed build, no new deploy triggered).
-**Expected Result:** The newly added recipe appears in the list immediately, without needing a new site deploy.
-
-### TC-REC-02 — Recipe card links to detail page via slug query string
-**Requirement(s):** #7
-**Preconditions:** At least one recipe exists.
-**Steps:**
-1. On `/recipes/`, click a recipe card/link.
-**Expected Result:** The browser navigates to `/recipes/view?slug=<that-recipe's-slug>` and shows the correct recipe.
-
-## Recipe Detail Page
-
-### TC-REC-03 — Detail page loads the recipe matching the slug
-**Requirement(s):** #7
-**Preconditions:** A known recipe slug.
-**Steps:**
-1. Navigate to `/recipes/view?slug=<known-slug>` directly.
-**Expected Result:** The page displays that recipe's data (not a different recipe).
-
-### TC-REC-04 — Recipe with a photo displays it
-**Requirement(s):** #9, #11
-**Preconditions:** A recipe exists with a photo uploaded.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** The photo is displayed, loaded from the derived public Storage URL.
-
-### TC-REC-05 — Recipe without a photo shows no photo
-**Requirement(s):** #9, #11
-**Preconditions:** A recipe exists with no photo uploaded.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** No broken image or placeholder photo is shown; the photo area is simply absent.
-
-### TC-REC-06 — Recipe with a `youtube.com/watch?v=` video embeds correctly
-**Requirement(s):** #11
-**Preconditions:** A recipe exists with `video_url` set to a `youtube.com/watch?v=...` link.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** A working YouTube embed is shown using the extracted video ID.
-
-### TC-REC-07 — Recipe with a `youtu.be/` video embeds correctly
-**Requirement(s):** #11
-**Preconditions:** A recipe exists with `video_url` set to a `youtu.be/...` link.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** A working YouTube embed is shown using the extracted video ID.
-
-### TC-REC-08 — Recipe without a video shows no video section
-**Requirement(s):** #9, #11
-**Preconditions:** A recipe exists with no `video_url`.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** No video embed or empty embed placeholder is shown.
-
-### TC-REC-09 — Recipe with both photo and video shows both
-**Requirement(s):** #9, #11
-**Preconditions:** A recipe exists with both a photo and a video URL set.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** Both the photo and the video embed are displayed independently.
-
-### TC-REC-10 — Time stages render as labeled chips
-**Requirement(s):** #10
-**Preconditions:** A recipe exists with `time_stages` containing `Prep: 20 min`.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** A chip labeled "Active Prep" reading "20 min" is displayed (per the doc's stated parsing example).
-
-### TC-REC-11 — Recipe with no time stages shows no chips
-**Requirement(s):** #10
-**Preconditions:** A recipe exists with an empty `time_stages` field.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** No time-stage chips are shown.
-
-### TC-REC-12 — Ingredients render as a list from newline text
+### TC-AFORM-01 — Category dropdown shows the fixed list
 **Requirement(s):** #9
-**Preconditions:** A recipe exists with multi-line ingredients text.
+**Preconditions:** Logged in as admin.
 **Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** Each line of the stored ingredients text appears as a separate list item.
+1. Open the add-recipe form.
+2. Open the category dropdown.
+**Expected Result:** Exactly these options appear: Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, Other.
 
-### TC-REC-13 — Instructions render as a list from newline text
-**Requirement(s):** #9
-**Preconditions:** A recipe exists with multi-line instructions text.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** Each line of the stored instructions text appears as a separate step/list item.
-
-### TC-REC-14 — Yield/servings line displays when present
-**Requirement(s):** #9
-**Preconditions:** A recipe exists with a yield/servings value set.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** The yield/servings text is displayed on the page.
-
-### TC-REC-15 — Notes/tips display when present
-**Requirement(s):** #9
-**Preconditions:** A recipe exists with a notes/tips value set.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** The notes/tips content is displayed.
-
-### TC-REC-16 — Submitted-by name displays when present
-**Requirement(s):** #9
-**Preconditions:** A recipe exists with a submitted-by name set.
-**Steps:**
-1. Open that recipe's detail page.
-**Expected Result:** The submitted-by name is displayed on the page.
-
-## Admin Recipe Creation Form
-
-### TC-ADMIN-04 — Creating a recipe with all required fields succeeds
-**Requirement(s):** #8, #9
-**Preconditions:** Logged into `/admin/`.
-**Steps:**
-1. Fill in title, category, summary, ingredients, and instructions.
-2. Submit the form.
-**Expected Result:** The recipe saves successfully and becomes visible on `/recipes/`.
-
-### TC-ADMIN-05 — Category dropdown shows the fixed list
-**Requirement(s):** #9
-**Preconditions:** Logged into `/admin/`.
-**Steps:**
-1. Open the category dropdown/select on the recipe form.
-**Expected Result:** Exactly these options are present: Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, Other.
-
-### TC-ADMIN-06 — Selecting a category auto-populates suggested stages when empty
+### TC-AFORM-02 — Category selection auto-populates suggested time stages
 **Requirement(s):** #10, #12
-**Preconditions:** Logged into `/admin/`; time-stages section is empty.
+**Preconditions:** Logged in as admin, blank form.
 **Steps:**
 1. Select "Bread & Sourdough" as the category.
 2. Observe the time-stages section.
-**Expected Result:** Rows for Prep, Rise, and Bake are auto-populated.
+**Expected Result:** Rows for Prep, Rise, and Bake are pre-filled, matching the documented suggestions for that category.
 
-### TC-ADMIN-07 — Changing category does not overwrite already-edited stages
+### TC-AFORM-03 — "Other" category yields no suggested stages
 **Requirement(s):** #10, #12
-**Preconditions:** Logged into `/admin/`; time-stages section already has manually entered/edited rows.
-**Steps:**
-1. Manually edit or add a stage row.
-2. Change the category selection to a different category.
-**Expected Result:** The existing stage rows remain unchanged; no auto-population overwrites them.
-
-### TC-ADMIN-08 — "Other" category populates no suggested stages
-**Requirement(s):** #10, #12
-**Preconditions:** Logged into `/admin/`; time-stages section is empty.
+**Preconditions:** Logged in as admin, blank form.
 **Steps:**
 1. Select "Other" as the category.
-2. Observe the time-stages section.
-**Expected Result:** No stage rows are auto-added.
+**Expected Result:** The time-stages section stays empty; no rows are pre-filled.
 
-### TC-ADMIN-09 — Add a new blank time-stage row
+### TC-AFORM-04 — Switching category after editing stages does not overwrite them
 **Requirement(s):** #12
-**Preconditions:** Logged into `/admin/`.
+**Preconditions:** Logged in as admin, blank form.
 **Steps:**
-1. Click the "add row" control in the time-stages section.
-**Expected Result:** A new blank label/duration row appears, editable and removable.
+1. Select "Beer" (auto-populates Prep/Ferment/Condition-Carbonate).
+2. Edit one row's label or duration, or add a custom row.
+3. Change the category to "Wine".
+**Expected Result:** The submitter's already-edited/added stages remain unchanged; Wine's suggestions are not applied over them.
 
-### TC-ADMIN-10 — Remove a time-stage row
+### TC-AFORM-05 — Add a blank time-stage row
 **Requirement(s):** #12
-**Preconditions:** Logged into `/admin/`; at least one stage row exists.
+**Preconditions:** Logged in as admin, form open.
 **Steps:**
-1. Click the remove control on an existing stage row.
-**Expected Result:** That row is removed from the section; other rows remain intact.
+1. Click the control to add a new stage row.
+**Expected Result:** A new blank label/duration row appears with its own remove control.
 
-### TC-ADMIN-11 — Edit a stage row's label and duration
+### TC-AFORM-06 — Remove a time-stage row
 **Requirement(s):** #12
-**Preconditions:** Logged into `/admin/`; at least one stage row exists.
+**Preconditions:** Form has at least one stage row.
 **Steps:**
-1. Change the label text and duration text in an existing row.
-**Expected Result:** The row reflects the edited values.
+1. Click the remove control on a stage row.
+**Expected Result:** That row disappears; remaining rows are unaffected.
 
-### TC-ADMIN-12 — Stage rows collapse into newline-separated value on submit
+### TC-AFORM-07 — Submitted stages render correctly after save
 **Requirement(s):** #10, #12
-**Preconditions:** Logged into `/admin/`; time-stages section has rows: "Prep"/"20 min", "Rise"/"4 hr".
+**Preconditions:** Logged in as admin.
 **Steps:**
-1. Fill remaining required fields and submit the form.
-2. View the resulting recipe's detail page.
-**Expected Result:** Chips render for both "Active Prep: 20 min" and the Rise stage, matching the entered rows in the order left by the submitter.
+1. Fill in required fields; add rows "Cold Proof"/"12 hr" and "Bake"/"45 min"; submit.
+2. Open the new recipe's detail page.
+**Expected Result:** Both stages appear as chips on the detail page with the exact labels/durations entered, in the order left in the form.
 
-### TC-ADMIN-13 — Photo upload succeeds and recipe saves with photo
+### TC-AFORM-08 — Save a recipe with no photo
+**Requirement(s):** #9, #11
+**Preconditions:** Logged in as admin.
+**Steps:**
+1. Fill in required fields, leave the photo upload empty.
+2. Submit.
+**Expected Result:** The recipe saves successfully; its detail page has no photo section.
+
+### TC-AFORM-09 — Save a recipe with a photo
 **Requirement(s):** #11, #12
-**Preconditions:** Logged into `/admin/`; a valid image file available.
+**Preconditions:** Logged in as admin; a valid image file available.
 **Steps:**
-1. Fill required fields, attach a photo file.
-2. Submit the form.
-**Expected Result:** The photo uploads, the recipe saves, and the photo displays on the recipe's detail page.
+1. Fill in required fields; choose a valid image in the photo upload field.
+2. Submit.
+**Expected Result:** The recipe saves; the photo appears on the resulting detail page.
 
-### TC-ADMIN-14 — Failed photo upload blocks the save
+### TC-AFORM-10 — Failed photo upload blocks the save
 **Requirement(s):** #12
-**Preconditions:** Logged into `/admin/`; a condition that causes upload failure (e.g. simulate network failure or invalid file).
+**Preconditions:** Logged in as admin; a way to force the upload to fail (e.g., interrupt network connectivity right after submitting).
 **Steps:**
-1. Fill required fields, attach a photo that triggers an upload failure.
-2. Submit the form.
-**Expected Result:** The form shows an error and the recipe is not saved (no row appears on `/recipes/`).
+1. Fill in required fields, attach a photo.
+2. Interrupt connectivity so the upload fails.
+3. Observe the result.
+**Expected Result:** The form shows an error and no recipe row is saved.
 
-### TC-ADMIN-15 — Video URL field shows placeholder and accepts a pasted link
+### TC-AFORM-11 — Video URL field shows placeholder text
+**Requirement(s):** #12
+**Preconditions:** Logged in as admin, blank form.
+**Steps:**
+1. Open the add-recipe form.
+2. Look at the empty video URL input.
+**Expected Result:** Placeholder text illustrating the expected YouTube URL format is shown.
+
+### TC-AFORM-12 — Save a recipe with a video URL
 **Requirement(s):** #11, #12
-**Preconditions:** Logged into `/admin/`.
+**Preconditions:** Logged in as admin.
 **Steps:**
-1. Inspect the empty video URL input for placeholder text.
-2. Paste a valid YouTube URL and submit the form with other required fields filled.
-**Expected Result:** Placeholder text shows the expected format; after submit, the recipe saves and the video embeds correctly on its detail page.
+1. Fill in required fields; paste a `youtube.com/watch?v=...` link into the video URL field.
+2. Submit and open the resulting detail page.
+**Expected Result:** The recipe saves and the video embeds correctly on the detail page.
 
-### TC-ADMIN-16 — Yield/servings field can be left blank
+### TC-AFORM-13 — Optional yield/servings field saves and displays
 **Requirement(s):** #9, #12
-**Preconditions:** Logged into `/admin/`.
+**Preconditions:** Logged in as admin.
 **Steps:**
-1. Fill required fields, leave yield/servings blank.
-2. Submit the form.
-**Expected Result:** The recipe saves successfully; no yield/servings line appears on the detail page.
+1. Fill in required fields plus a freeform yield line (e.g., "makes 2 loaves").
+2. Submit and open the detail page.
+**Expected Result:** The yield/servings text is displayed exactly as entered.
 
-### TC-ADMIN-17 — Notes/tips field can be left blank
+### TC-AFORM-14 — Optional notes/tips field saves and displays
 **Requirement(s):** #9, #12
-**Preconditions:** Logged into `/admin/`.
+**Preconditions:** Logged in as admin.
 **Steps:**
-1. Fill required fields, leave notes/tips blank.
-2. Submit the form.
-**Expected Result:** The recipe saves successfully; no notes/tips section appears on the detail page.
+1. Fill in required fields plus text in the notes/tips textarea.
+2. Submit and open the detail page.
+**Expected Result:** The notes/tips text is shown on the detail page.
 
-### TC-ADMIN-18 — Submitted-by field can be left blank
-**Requirement(s):** #9, #12
-**Preconditions:** Logged into `/admin/`.
-**Steps:**
-1. Fill required fields, leave submitted-by blank.
-2. Submit the form.
-**Expected Result:** The recipe saves successfully; no submitted-by name appears on the detail page.
-
-### TC-ADMIN-19 — Ingredients and instructions accept plain multi-line text
+### TC-AFORM-15 — Optional submitted-by field saves and displays
 **Requirement(s):** #9
-**Preconditions:** Logged into `/admin/`.
+**Preconditions:** Logged in as admin.
 **Steps:**
-1. Enter several lines of plain text (one item per line) into the ingredients and instructions fields.
-2. Submit the form.
-**Expected Result:** The recipe saves; the detail page correctly splits each field into one item per line, in the order entered.
+1. Fill in required fields plus a submitted-by name.
+2. Submit and open the detail page.
+**Expected Result:** The submitted-by name is displayed on the detail page.
+
+### TC-AFORM-16 — Multi-line ingredients and instructions render as separate items
+**Requirement(s):** #9
+**Preconditions:** Logged in as admin.
+**Steps:**
+1. Enter several lines in the ingredients field (one item per line) and several in instructions.
+2. Submit and open the detail page.
+**Expected Result:** Each line appears as a distinct ingredient/instruction item, in the order entered.
+
+## Admin Recipe Management (List, Edit, Delete)
+
+### TC-AMGMT-01 — Admin recipe list shows all recipes with expected columns
+**Requirement(s):** #14
+**Preconditions:** Logged in as admin; at least one recipe with a photo and one without exist.
+**Steps:**
+1. Open `/admin/` while logged in.
+2. Review the recipe list.
+**Expected Result:** Every recipe is listed with title, category, date, and a photo thumbnail where a photo exists (no thumbnail for the one without a photo).
+
+### TC-AMGMT-02 — Edit opens the add-recipe form pre-filled
+**Requirement(s):** #14
+**Preconditions:** Logged in as admin; an existing recipe.
+**Steps:**
+1. Click "Edit" on a recipe in the admin list.
+**Expected Result:** The same form used to add a recipe opens in an edit mode, pre-populated with that recipe's current values, including its existing time stages.
+
+### TC-AMGMT-03 — Editing preserves the recipe's slug
+**Requirement(s):** #14
+**Preconditions:** Logged in as admin; note the recipe's current `/recipes/view?slug=...` URL.
+**Steps:**
+1. Edit the recipe's title (or other fields) and save.
+2. Revisit the originally noted URL.
+**Expected Result:** The original URL still resolves and now shows the updated content; the slug did not change.
+
+### TC-AMGMT-04 — Delete requires confirmation
+**Requirement(s):** #14
+**Preconditions:** Logged in as admin; an existing recipe.
+**Steps:**
+1. Click "Delete" on a recipe in the admin list.
+**Expected Result:** A confirmation prompt appears before anything is removed.
+
+### TC-AMGMT-05 — Confirming delete removes the recipe
+**Requirement(s):** #14
+**Preconditions:** Logged in as admin; an existing recipe.
+**Steps:**
+1. Click "Delete" on a recipe and confirm.
+2. Check `/admin/` and `/recipes/`.
+**Expected Result:** The recipe no longer appears in either list, and its `/recipes/view?slug=...` page no longer shows the recipe.
+
+### TC-AMGMT-06 — Deleting a recipe with a photo removes the stored photo
+**Requirement(s):** #14
+**Preconditions:** Logged in as admin; a recipe with an uploaded photo; note the photo's public URL beforehand.
+**Steps:**
+1. Delete that recipe and confirm.
+2. Attempt to load the previously noted photo URL directly.
+**Expected Result:** The photo is no longer served (best-effort removal from Storage alongside the row deletion).
 
 ## Out of scope
 
-- **Members-only auth section** — auth approach and hosting are explicitly undecided open questions; nothing is built yet.
-- **Related recipes strip on the detail page** — explicitly deferred with no ETA (Requirement #13).
-- **Category filter pills on the recipe list page** — explicitly deferred with no ETA (Requirement #13).
-- **Editing or deleting an existing recipe (including Storage cleanup on delete)** — explicitly deferred; no RLS policies or UI exist yet.
-- **About/Events info pages** — content not yet drafted, pages not yet built.
-- **Row Level Security policy enforcement on `recipes` table/`recipe-photos` bucket** — architectural/backend guarantee (Postgres RLS, Storage policies), not something to click through in the UI; belongs to automated/policy-level testing.
-- **Server-side (vs. client-side) password comparison for admin login** — architectural implementation detail; observable login success/failure is covered in TC-ADMIN-01/02, but the "never client-side-only" guarantee itself isn't independently clickable.
-- **Astro static-output architecture and incremental server-rendering readiness (Requirement #1)** — purely a build/tooling choice with no distinct manual UI behavior to verify.
-- **Porkbun/Cloudflare DNS-resolution backend note (Requirement #3)** — internal DNS infrastructure detail with no user-facing behavior difference to test.
+- Related recipes strip on the recipe detail page (#13) — deferred, no ETA.
+- Category filter pills on the recipe list page (#13) — deferred, no ETA.
+- Cleanup of the old photo object when a recipe's photo is replaced via edit (#14 / open questions) — explicitly a known, unbuilt gap.
+- Auth approach for the future members-only section — not yet decided/built.
+- Hosting model for members-only section's server-side pieces — not yet decided/built.
+- Content for About/Events info pages — not yet drafted; pages don't exist.
+
+## Not manually testable (architecture/backend only)
+
+- Astro static-output-with-incremental-server-rendering choice (#1) — internal tech decision, no distinct clickable behavior.
+- GitHub Actions deploy trigger on `v*.*.*` tag push / `workflow_dispatch` (#2) — CI/CD pipeline behavior verified via repo Actions runs, not through the website UI.
+- Repo visibility, branch protection, sole-collaborator restriction, and tag-creation ruleset (#4) — GitHub repository administration settings, not app UI.
+- Row Level Security policies gating writes/reads on `recipes` and the `recipe-photos` bucket (#7, #8, #11, #14) — enforced server-side in Postgres/Storage; their observable effect (only a logged-in admin can add/edit/delete/upload, anyone can read) is already exercised by the Admin Login and Admin Recipe Management test cases above.
+- Server-side (not client-side) password verification via Supabase Auth (#8) — internal implementation guarantee; only the resulting login/reject behavior is testable (see TC-ALOGIN-02/03).
