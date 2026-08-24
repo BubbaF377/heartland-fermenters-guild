@@ -55,6 +55,12 @@ test.describe('Landing page', () => {
     await expect(link).toHaveAttribute('target', '_blank');
   });
 
+  test('YouTube link points to the guild channel', async ({ page }) => {
+    const link = page.getByRole('link', { name: /YouTube/i });
+    await expect(link).toHaveAttribute('href', 'https://www.youtube.com/@HeartlandFermentersGuild');
+    await expect(link).toHaveAttribute('target', '_blank');
+  });
+
   test('footer shows copyright and the Starter Culture Studio logo', async ({ page }) => {
     await expect(page.locator('.site-footer')).toContainText(/Heartland Fermenters Guild/);
     await expect(page.locator('.starter-culture-logo')).toBeVisible();
