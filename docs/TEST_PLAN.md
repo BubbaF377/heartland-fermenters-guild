@@ -5,7 +5,7 @@
 2=74ba323e0a07
 3=c1a27b1ede7c
 4=d62dbc43a89f
-5=6294ef378458
+5=db8dcdbbefec
 6=dbcec06c817c
 7=c5fb0daa7d8a
 8=6cf7ff87fbd8
@@ -15,6 +15,7 @@
 12=e54aaeada7dc
 13=2255b0761d84
 14=4a26a4be6d0f
+15=9c1694d7b565
 -->
 
 ## Landing Page
@@ -108,16 +109,17 @@
 **Preconditions:** None.
 **Steps:**
 1. Observe the right side of the footer.
-2. Click the logo shown there.
-**Expected Result:** A Starter Culture Studio logo is displayed on the right; clicking it navigates to `starterculturestudio.com`.
+2. Click the "Website development donated by" text.
+3. Click the Starter Culture Studio logo shown there.
+**Expected Result:** "Website development donated by" is shown as plain text next to a Starter Culture Studio logo on the right; clicking the text does not navigate anywhere, but clicking the logo navigates to `starterculturestudio.com`.
 
-### TC-FOOT-04 — Footer appears on all pages
+### TC-FOOT-04 — Footer appears on all pages and stays pinned to bottom
 **Requirement(s):** #5
 **Preconditions:** None.
 **Steps:**
-1. Navigate to `/recipes/` and check the footer.
+1. Navigate to `/recipes/` (with an empty recipe list) and check the footer.
 2. Navigate to `/admin/` and check the footer.
-**Expected Result:** The same footer (copyright + Admin link left, Starter Culture Studio logo right) appears on both pages, matching the landing page footer.
+**Expected Result:** The same footer (copyright + Admin link on the left, "Website development donated by" text next to the Starter Culture Studio logo on the right) appears on both pages, matching the landing page footer, and remains pinned to the bottom of the viewport even when the page content is short, rather than floating up under it.
 
 ## Custom Domain
 
