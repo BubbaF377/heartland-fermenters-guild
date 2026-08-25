@@ -1,0 +1,347 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { RECIPE_CATEGORIES } from '../../lib/constants.js';
+---
+
+<Layout
+  title="Submit a Recipe — Heartland Fermenters Guild"
+  description="Guild members: submit a recipe for review."
+>
+  <main class="submit-page">
+    <h1>Submit a Recipe</h1>
+    <p class="intro">
+      For active guild members. A submitted recipe doesn&rsquo;t appear on the site right
+      away — an admin reviews it first.
+    </p>
+
+    <section id="login-section">
+      <p>Enter your email and we&rsquo;ll send you a one-time login link.</p>
+      <form id="login-form">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" />
+        <button type="submit">Email me a login link</button>
+      </form>
+      <p id="login-status" class="status" hidden></p>
+    </section>
+
+    <section id="submit-section" hidden>
+      <div class="admin-bar">
+        <p id="logged-in-as"></p>
+        <button id="logout-button" type="button" class="secondary">Log out</button>
+      </div>
+
+      <form id="recipe-form">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required />
+
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          {RECIPE_CATEGORIES.map((category) => <option value={category}>{category}</option>)}
+        </select>
+
+        <label for="summary">Short summary</label>
+        <textarea id="summary" name="summary" rows="2"></textarea>
+
+        <label for="photo">Photo <span class="hint">(optional)</span></label>
+        <input type="file" id="photo" name="photo" accept="image/*" />
+
+        <label for="video_url">How-to video <span class="hint">(optional — a YouTube link)</span></label>
+        <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." />
+
+        <label for="yield_text">Yield / servings <span class="hint">(optional)</span></label>
+        <input type="text" id="yield_text" name="yield_text" placeholder="e.g. About 1 quart" />
+
+        <label id="time-stages-label">Time stages <span class="hint">(optional — e.g. Prep, Ferment, Bake)</span></label>
+        <div id="time-stages-list" aria-labelledby="time-stages-label"></div>
+        <button type="button" id="add-stage-button" class="secondary stage-add">+ Add stage</button>
+
+        <label for="ingredients">Ingredients <span class="hint">(one per line)</span></label>
+        <textarea id="ingredients" name="ingredients" rows="6" required></textarea>
+
+        <label for="instructions">Instructions <span class="hint">(one step per line)</span></label>
+        <textarea id="instructions" name="instructions" rows="8" required></textarea>
+
+        <label for="notes">Notes &amp; tips <span class="hint">(optional)</span></label>
+        <textarea id="notes" name="notes" rows="3"></textarea>
+
+        <label for="submitted_by">Your name <span class="hint">(optional — shown publicly once approved)</span></label>
+        <input type="text" id="submitted_by" name="submitted_by" />
+
+        <button type="submit" id="save-button">Submit Recipe</button>
+      </form>
+      <p id="recipe-status" class="status" hidden></p>
+    </section>
+  </main>
+
+  <script>
+    import { supabase } from '../../lib/supabase.js';
+    import { slugify } from '../../lib/constants.js';
+    import { wireStageEditor, collectRecipeFields, uploadRecipePhoto } from '../../lib/recipe-form.js';
+
+    const loginSection = document.getElementById('login-section');
+    const submitSection = document.getElementById('submit-section');
+    const loginForm = document.getElementById('login-form');
+    const loginStatus = document.getElementById('login-status');
+    const loggedInAs = document.getElementById('logged-in-as');
+    const logoutButton = document.getElementById('logout-button');
+    const recipeForm = document.getElementById('recipe-form');
+    const recipeStatus = document.getElementById('recipe-status');
+    const categorySelect = document.getElementById('category');
+    const stagesList = document.getElementById('time-stages-list');
+    const addStageButton = document.getElementById('add-stage-button');
+    const photoInput = document.getElementById('photo');
+    const saveButton = document.getElementById('save-button');
+
+    const { reset: resetStageSuggestions } = wireStageEditor({ stagesList, addStageButton, categorySelect });
+
+    function showLoggedIn(isLoggedIn, email) {
+      loginSection.hidden = isLoggedIn;
+      submitSection.hidden = !isLoggedIn;
+      if (isLoggedIn) loggedInAs.textContent = `Logged in as ${email}.`;
+    }
+
+    // Reflect whatever the current session actually is (a returning member stays
+    // logged in via Supabase's persisted session — including right after clicking
+    // their magic link, which lands back here already authenticated).
+    supabase.auth.onAuthStateChange((_event, session) => {
+      showLoggedIn(Boolean(session), session?.user?.email);
+    });
+
+    const {
+      data: { session: initialSession },
+    } = await supabase.auth.getSession();
+    showLoggedIn(Boolean(initialSession), initialSession?.user?.email);
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      loginStatus.hidden = true;
+
+      const email = String(new FormData(loginForm).get('email') || '').trim();
+      const submitButton = loginForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+
+      // Authentication itself is open to any email — that's how magic-link login
+      // works. Whether this email is actually an active member is checked by the
+      // database when they try to submit, not here.
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/submit/` },
+      });
+
+      loginStatus.className = error ? 'status error' : 'status success';
+      loginStatus.textContent = error
+        ? 'Could not send a login link — please try again.'
+        : `Check ${email} for a login link.`;
+      loginStatus.hidden = false;
+      submitButton.disabled = false;
+    });
+
+    logoutButton.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    // Checks for a slug collision only among *published* recipes — a member's
+    // authenticated session can't see pending/deactivated rows (RLS scopes public
+    // reads to status='published' for everyone but admin), so a same-titled pending
+    // or deactivated recipe wouldn't be caught here. Rare on a small site, and the
+    // worst case is a duplicate-slug insert error surfaced as the generic failure
+    // message below, not a security issue — not worth a dedicated RPC just for this.
+    async function findAvailableSlug(baseSlug) {
+      for (let attempt = 0; attempt < 25; attempt++) {
+        const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
+        const { data, error } = await supabase.from('recipes').select('slug').eq('slug', candidate).maybeSingle();
+        if (error) throw error;
+        if (!data) return candidate;
+      }
+      throw new Error('Could not find an available slug — too many recipes with a similar title.');
+    }
+
+    recipeForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      recipeStatus.hidden = true;
+
+      const fields = collectRecipeFields(recipeForm, stagesList);
+      const photoFile = photoInput.files[0] || null;
+
+      saveButton.disabled = true;
+
+      try {
+        const slug = await findAvailableSlug(slugify(fields.title) || 'recipe');
+        const photoPath = photoFile ? await uploadRecipePhoto(supabase, photoFile, slug) : null;
+
+        const { error } = await supabase.from('recipes').insert({
+          ...fields,
+          slug,
+          photo_path: photoPath,
+          status: 'pending',
+        });
+
+        if (error) throw error;
+
+        recipeStatus.className = 'status success';
+        recipeStatus.textContent = 'Thanks! Your recipe was submitted and is now waiting for admin review.';
+        recipeStatus.hidden = false;
+        recipeForm.reset();
+        resetStageSuggestions();
+      } catch (err) {
+        recipeStatus.className = 'status error';
+        // 42501 is Postgres's row-level-security-violation code — the most likely
+        // cause here is that this email isn't (or is no longer) an active member.
+        recipeStatus.textContent =
+          err && err.code === '42501'
+            ? "Could not submit — this email isn't on the active member list. Contact makers@heartlandfermentersguild.org to be added."
+            : 'Could not submit your recipe right now — please try again in a moment.';
+        recipeStatus.hidden = false;
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+  </script>
+</Layout>
+
+<!--
+  is:global: the time-stage rows are built client-side with document.createElement.
+  Astro's scoped styles only match elements it renders itself, so a scoped style
+  here would silently fail to apply to them.
+-->
+<style is:global>
+  .submit-page {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .submit-page h1 {
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .submit-page .intro {
+    color: var(--brown);
+    margin: 0 0 1.5rem;
+  }
+
+  .submit-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .submit-page label {
+    font-weight: 600;
+    color: var(--brown-deep);
+    margin-top: 0.75rem;
+  }
+
+  .submit-page .hint {
+    font-weight: 400;
+    color: var(--brown);
+    opacity: 0.8;
+  }
+
+  .submit-page input,
+  .submit-page select,
+  .submit-page textarea {
+    font: inherit;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid rgba(44, 30, 18, 0.3);
+    border-radius: 6px;
+    background: var(--cream-light);
+    color: var(--ink);
+  }
+
+  .submit-page input:focus,
+  .submit-page select:focus,
+  .submit-page textarea:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  .submit-page textarea {
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .submit-page button {
+    font: inherit;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    padding: 0.65rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--green-deep);
+    color: var(--cream-light);
+    cursor: pointer;
+    align-self: flex-start;
+  }
+
+  .submit-page button:hover,
+  .submit-page button:focus-visible {
+    background: var(--green);
+  }
+
+  .submit-page button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .submit-page button.secondary {
+    background: transparent;
+    color: var(--brown-deep);
+    border: 1px solid rgba(44, 30, 18, 0.3);
+    margin-top: 0;
+  }
+
+  .submit-page .admin-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(44, 30, 18, 0.15);
+  }
+
+  .submit-page .admin-bar p {
+    margin: 0;
+    color: var(--brown);
+  }
+
+  .submit-page #time-stages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .submit-page .stage-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .submit-page .stage-remove {
+    padding: 0.4rem 0.7rem;
+    line-height: 1;
+    font-size: 1.1rem;
+  }
+
+  .submit-page .stage-add {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+  }
+
+  .submit-page .status {
+    margin-top: 1rem;
+  }
+
+  .submit-page .status.success {
+    color: var(--green-deep);
+    font-weight: 600;
+  }
+
+  .submit-page .status.error {
+    color: var(--wine);
+    font-weight: 600;
+  }
+</style>

@@ -7,6 +7,15 @@ test.describe('Admin — time-stage editor', () => {
     await loginAsAdmin(page);
   });
 
+  test('the default category (Beer) shows its suggested stages with no interaction at all', async ({ page }) => {
+    // Beer is the <select>'s first option, so it's already selected on load —
+    // no "change" event ever fires for it unless something else is picked first.
+    await expect(page.getByLabel('Category')).toHaveValue('Beer');
+    const rows = page.locator('.stage-row');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0).locator('.stage-label')).toHaveValue('Prep');
+  });
+
   for (const [category, stages] of Object.entries(TIME_STAGE_SUGGESTIONS)) {
     test(`selecting "${category}" pre-populates its suggested stages`, async ({ page }) => {
       await page.getByLabel('Category').selectOption(category);
@@ -35,7 +44,11 @@ test.describe('Admin — time-stage editor', () => {
   });
 
   test('"+ Add stage" appends a blank row', async ({ page }) => {
+    // "Other" has no suggested stages, so this starts from a clean, empty list —
+    // Beer (the default category) would already show its own suggested rows.
+    await page.getByLabel('Category').selectOption('Other');
     await expect(page.locator('.stage-row')).toHaveCount(0);
+
     await page.getByRole('button', { name: '+ Add stage' }).click();
     await expect(page.locator('.stage-row')).toHaveCount(1);
     await expect(page.locator('.stage-row .stage-label')).toHaveValue('');

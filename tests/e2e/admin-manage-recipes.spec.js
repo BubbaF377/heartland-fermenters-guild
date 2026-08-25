@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin, mockRecipesTable, mockPhotoDelete } from './mock-supabase.js';
-import { fullRecipe, minimalRecipe } from './fixtures/recipes.js';
+import { fullRecipe, minimalRecipe, deactivatedRecipe } from './fixtures/recipes.js';
 
 test.describe('Admin — recipe list', () => {
   test('lists existing recipes with a thumbnail only when a photo is set', async ({ page }) => {
     await loginAsAdmin(page, { list: [fullRecipe, minimalRecipe] });
 
-    const rows = page.locator('.recipe-row');
+    const rows = page.locator('#recipe-list .recipe-row');
     await expect(rows).toHaveCount(2);
     await expect(rows.nth(0)).toContainText(fullRecipe.title);
     await expect(rows.nth(0)).toContainText(fullRecipe.category);
@@ -18,7 +18,7 @@ test.describe('Admin — recipe list', () => {
   test('shows a message when there are no recipes yet', async ({ page }) => {
     await loginAsAdmin(page, { list: [] });
     await expect(page.locator('#recipe-list-status')).toContainText(/no recipes yet/i);
-    await expect(page.locator('.recipe-row')).toHaveCount(0);
+    await expect(page.locator('#recipe-list .recipe-row')).toHaveCount(0);
   });
 
   test('reloading a page with an already-persisted session does not duplicate rows', async ({ page }) => {
@@ -31,14 +31,14 @@ test.describe('Admin — recipe list', () => {
     await page.reload();
 
     await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeVisible();
-    await expect(page.locator('.recipe-row')).toHaveCount(1);
+    await expect(page.locator('#recipe-list .recipe-row')).toHaveCount(1);
   });
 });
 
 test.describe('Admin — edit a recipe', () => {
   test('Edit populates the form and switches it into edit mode', async ({ page }) => {
     await loginAsAdmin(page, { list: [fullRecipe] });
-    await page.locator('.recipe-row').getByRole('button', { name: 'Edit' }).click();
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
     await expect(page.getByRole('heading', { name: 'Edit Recipe' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Update Recipe' })).toBeVisible();
@@ -49,6 +49,20 @@ test.describe('Admin — edit a recipe', () => {
     await expect(page.getByLabel(/^Yield/)).toHaveValue(fullRecipe.yield_text);
     await expect(page.getByLabel(/^Ingredients/)).toHaveValue(fullRecipe.ingredients);
 
+    const stageRows = page.locator('.stage-row');
+    await expect(stageRows).toHaveCount(4);
+    await expect(stageRows.nth(0).locator('.stage-label')).toHaveValue('Prep');
+    await expect(stageRows.nth(0).locator('.stage-value')).toHaveValue('30 min');
+  });
+
+  test('changing category while editing does not replace the recipe\'s loaded stages', async ({ page }) => {
+    await loginAsAdmin(page, { list: [fullRecipe] });
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+    await expect(page.locator('.stage-row')).toHaveCount(4);
+
+    await page.getByLabel('Category').selectOption('Cheese');
+
+    // Still the recipe's own 4 loaded stages, not Cheese's 3 suggested ones.
     const stageRows = page.locator('.stage-row');
     await expect(stageRows).toHaveCount(4);
     await expect(stageRows.nth(0).locator('.stage-label')).toHaveValue('Prep');
@@ -67,7 +81,7 @@ test.describe('Admin — edit a recipe', () => {
       },
     });
 
-    await page.locator('.recipe-row').getByRole('button', { name: 'Edit' }).click();
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
     await page.getByLabel('Title').fill('Updated Title');
     await page.getByRole('button', { name: 'Update Recipe' }).click();
 
@@ -84,7 +98,7 @@ test.describe('Admin — edit a recipe', () => {
 
   test('Cancel restores add mode without submitting anything', async ({ page }) => {
     await loginAsAdmin(page, { list: [fullRecipe] });
-    await page.locator('.recipe-row').getByRole('button', { name: 'Edit' }).click();
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
     await expect(page.getByRole('heading', { name: 'Edit Recipe' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Cancel' }).click();
@@ -92,7 +106,10 @@ test.describe('Admin — edit a recipe', () => {
     await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Save Recipe' })).toBeVisible();
     await expect(page.getByLabel('Title')).toHaveValue('');
-    await expect(page.locator('.stage-row')).toHaveCount(0);
+    // Category resets to Beer (the default), whose suggested stages get
+    // re-populated fresh — not left empty.
+    await expect(page.getByLabel('Category')).toHaveValue('Beer');
+    await expect(page.locator('.stage-row')).toHaveCount(3);
   });
 });
 
@@ -118,9 +135,9 @@ test.describe('Admin — delete a recipe', () => {
     });
 
     page.once('dialog', (dialog) => dialog.accept());
-    await page.locator('.recipe-row').getByRole('button', { name: 'Delete' }).click();
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Delete' }).click();
 
-    await expect(page.locator('.recipe-row')).toHaveCount(0);
+    await expect(page.locator('#recipe-list .recipe-row')).toHaveCount(0);
     expect(deletedId).toBe(fullRecipe.id);
     expect(deletedPhotoPrefixes).toEqual([fullRecipe.photo_path]);
   });
@@ -143,9 +160,9 @@ test.describe('Admin — delete a recipe', () => {
     });
 
     page.once('dialog', (dialog) => dialog.accept());
-    await page.locator('.recipe-row').getByRole('button', { name: 'Delete' }).click();
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Delete' }).click();
 
-    await expect(page.locator('.recipe-row')).toHaveCount(0);
+    await expect(page.locator('#recipe-list .recipe-row')).toHaveCount(0);
     expect(deletedId).toBe(minimalRecipe.id);
     expect(photoDeleteCalled).toBe(false);
   });
@@ -161,10 +178,48 @@ test.describe('Admin — delete a recipe', () => {
     });
 
     page.once('dialog', (dialog) => dialog.dismiss());
-    await page.locator('.recipe-row').getByRole('button', { name: 'Delete' }).click();
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Delete' }).click();
     await page.waitForTimeout(300);
 
-    await expect(page.locator('.recipe-row')).toHaveCount(1);
+    await expect(page.locator('#recipe-list .recipe-row')).toHaveCount(1);
     expect(deleteCalled).toBe(false);
+  });
+});
+
+test.describe('Admin — deactivate/reactivate a recipe', () => {
+  test('Deactivate updates status and shows a "Deactivated" flag after refresh', async ({ page }) => {
+    let updatedId = null;
+    let updatedBody = null;
+    await loginAsAdmin(page, { list: [fullRecipe] });
+    await mockRecipesTable(page, {
+      list: [{ ...fullRecipe, status: 'deactivated' }],
+      onUpdate: (id, body) => {
+        updatedId = id;
+        updatedBody = body;
+      },
+    });
+
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Deactivate' }).click();
+
+    expect(updatedId).toBe(fullRecipe.id);
+    expect(updatedBody).toEqual({ status: 'deactivated' });
+    await expect(page.locator('#recipe-list .recipe-row')).toContainText('Deactivated');
+    await expect(page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Reactivate' })).toBeVisible();
+  });
+
+  test('Reactivate on an already-deactivated recipe sets status back to published', async ({ page }) => {
+    let updatedBody = null;
+    await loginAsAdmin(page, { list: [deactivatedRecipe] });
+    await mockRecipesTable(page, {
+      list: [{ ...deactivatedRecipe, status: 'published' }],
+      onUpdate: (id, body) => {
+        updatedBody = body;
+      },
+    });
+
+    await expect(page.locator('#recipe-list .recipe-row')).toContainText('Deactivated');
+    await page.locator('#recipe-list .recipe-row').getByRole('button', { name: 'Reactivate' }).click();
+
+    expect(updatedBody).toEqual({ status: 'published' });
   });
 });

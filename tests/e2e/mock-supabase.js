@@ -80,6 +80,45 @@ export async function mockRecipesTable(
   });
 }
 
+// Mocks the `active_members` table — list, insert (add a member), and update
+// (toggle active). Same shape/conventions as mockRecipesTable.
+export async function mockMembersTable(page, { list = [], onInsert, onUpdate } = {}) {
+  await page.route(`${SUPABASE_URL}/rest/v1/active_members**`, async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const idFilter = url.searchParams.get('id');
+    const id = idFilter ? idFilter.replace(/^eq\./, '') : null;
+
+    if (request.method() === 'POST') {
+      const body = request.postDataJSON();
+      const failure = onInsert?.(body);
+      if (failure) {
+        return route.fulfill({
+          status: failure.status,
+          contentType: 'application/json',
+          body: JSON.stringify(failure.body),
+        });
+      }
+      return route.fulfill({ status: 201, contentType: 'application/json', body: '' });
+    }
+
+    if (request.method() === 'PATCH') {
+      const body = request.postDataJSON();
+      const failure = onUpdate?.(id, body);
+      if (failure) {
+        return route.fulfill({
+          status: failure.status,
+          contentType: 'application/json',
+          body: JSON.stringify(failure.body),
+        });
+      }
+      return route.fulfill({ status: 204, contentType: 'application/json', body: '' });
+    }
+
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(list) });
+  });
+}
+
 // Mocks password sign-in. Omit `password` to accept any password; pass it to only
 // succeed for that exact value (so a wrong-password test can share the same mock).
 export async function mockAuth(page, { succeeds = true, password } = {}) {
@@ -153,14 +192,69 @@ export async function mockPhotoDelete(page, { succeeds = true } = {}) {
   });
 }
 
+// Mocks the email magic-link request itself (POST /auth/v1/otp). This never
+// establishes a session on its own — in real life the member has to click the
+// emailed link. mockMemberSession below is what simulates "already clicked it."
+export async function mockSignInWithOtp(page, { succeeds = true } = {}) {
+  await page.route(`${SUPABASE_URL}/auth/v1/otp**`, async (route) => {
+    if (succeeds) {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    }
+    return route.fulfill({
+      status: 429,
+      contentType: 'application/json',
+      body: JSON.stringify({ error_code: 'over_email_send_rate_limit', msg: 'Too many requests.' }),
+    });
+  });
+}
+
+// Simulates a member who has already clicked their magic link and holds a real
+// session — supabase-js validates a persisted session by calling GET
+// /auth/v1/user, so an authenticated-session test needs that mocked too, not just
+// the OTP request itself.
+export async function mockMemberSession(page, { email = 'member@example.com' } = {}) {
+  await page.route(`${SUPABASE_URL}/auth/v1/user**`, async (route) => {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 'test-member-id',
+        email,
+        aud: 'authenticated',
+        role: 'authenticated',
+      }),
+    });
+  });
+
+  await page.addInitScript(
+    ({ url, session }) => {
+      const key = `sb-${new URL(url).hostname.split('.')[0]}-auth-token`;
+      window.localStorage.setItem(key, JSON.stringify(session));
+    },
+    {
+      url: SUPABASE_URL,
+      session: {
+        access_token: 'test-member-access-token',
+        token_type: 'bearer',
+        expires_in: 3600,
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        refresh_token: 'test-member-refresh-token',
+        user: { id: 'test-member-id', email, aud: 'authenticated', role: 'authenticated' },
+      },
+    },
+  );
+}
+
 // Logs in through the real UI (mocking only the network) rather than poking at DOM
 // state directly, so the test exercises the actual login flow. Also mocks the
-// recipes table with `recipesTableConfig` before navigating, since logging in
-// immediately triggers the admin recipe list's fetch — registering the mock after
-// login would be too late for that first request (though tests can still safely
-// re-mock afterward to override what a later action, like a submit, sees).
-export async function loginAsAdmin(page, recipesTableConfig = {}) {
+// recipes and active_members tables before navigating, since logging in
+// immediately triggers both the admin recipe list's and the members list's fetch —
+// registering a mock after login would be too late for those first requests
+// (though tests can still safely re-mock afterward to override what a later
+// action, like a submit, sees).
+export async function loginAsAdmin(page, recipesTableConfig = {}, membersTableConfig = {}) {
   await mockRecipesTable(page, recipesTableConfig);
+  await mockMembersTable(page, membersTableConfig);
   await mockAuth(page, { succeeds: true });
   await page.goto('/admin/');
   await page.getByLabel('Password').fill('whatever-the-mock-accepts');

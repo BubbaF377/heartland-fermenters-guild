@@ -14,9 +14,13 @@ npm run preview   # serve the production build locally
 
 ## Deployment
 
-Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the site with
-the official `withastro/action` and publishes it to GitHub Pages. No manual build/upload
-step is needed.
+Deploy only triggers on a `v*.*.*` release tag (`.github/workflows/deploy.yml`), or
+manually via `workflow_dispatch` — pushing to `main` alone does not deploy. Cut a
+release with `git tag vX.Y.Z && git push origin vX.Y.Z`; the workflow builds the site
+with the official `withastro/action` and publishes it to GitHub Pages, no manual
+build/upload step needed. (`.github/workflows/test.yml` is separate and unrelated —
+it runs the test suite on every PR/push to `main` as a quality gate, but doesn't
+deploy anything.)
 
 One-time repo setup on GitHub:
 
@@ -46,44 +50,62 @@ redirect to the apex domain as well.
 
 DNS propagation can take anywhere from a few minutes to 24 hours.
 
-## Recipes & admin (Supabase) setup
+## Recipes, admin & members (Supabase) setup
 
 Recipes live in a [Supabase](https://supabase.com) Postgres database, read directly by
-the browser (no server of our own to run) and written to through a password-gated admin
-page. One-time setup:
+the browser (no server of our own to run). Two ways content reaches it: a
+password-gated admin can add/edit/delete/deactivate a recipe directly, or an active
+guild member can submit one for admin approval. One-time setup:
 
 1. **Create a Supabase project** (free tier is plenty) at [supabase.com](https://supabase.com).
-2. **Create the table, its columns, and its access rules**: open the project's SQL
-   Editor and run `supabase/schema.sql` from this repo. It creates the `recipes` table
-   (including the photo/video/yield/time-stages/notes columns), turns on Row Level
-   Security with public-read / signed-in-insert policies, and creates the public
-   `recipe-photos` Storage bucket with the matching public-read / signed-in-upload
-   policies. The whole file is safe to re-run against an already-set-up project — it
-   only adds what's missing.
-3. **Create the one shared admin login**: there's no per-person account system — anyone
-   who knows the password can add a recipe, per the requirement. In the dashboard, go to
-   **Authentication → Users → Add user**, set the email to `admin@heartlandfermentersguild.org`
-   (this exact address — it's hardcoded as the login identifier in `src/lib/constants.js`,
-   not a secret itself), pick a password, and share that password with whoever should
-   have admin access. Changing who can log in later just means changing this one
-   password (**Authentication → Users → \[the user\] → Reset password**).
-4. **Get your API keys**: **Settings → API Keys**. Copy the **Project URL** and the
+2. **Create the tables, functions, and access rules**: open the project's SQL Editor
+   and run `supabase/schema.sql` from this repo. It creates the `recipes` table
+   (photo/video/yield/time-stages/notes/status columns), the `active_members` roster
+   table, the `is_admin()`/`is_active_member()` helper functions RLS policies use to
+   tell admin, members, and the public apart, Row Level Security across all of it, and
+   the public `recipe-photos` Storage bucket with matching policies. The whole file is
+   safe to run against an already-set-up project — every `create policy` is preceded
+   by a matching `drop policy if exists`, so re-running it (e.g. after pulling a schema
+   change) replaces policies cleanly instead of erroring on ones that already exist.
+3. **Allow the magic-link redirect URL**: **Authentication → URL Configuration →
+   Redirect URLs**, add both `http://localhost:4321/submit/` (local dev) and
+   `https://heartlandfermentersguild.org/submit/` (production). Supabase rejects an
+   OTP/magic-link redirect that isn't on this allowlist, so a member's login link
+   won't work correctly without it.
+4. **Create the one shared admin login**: there's no per-person account system for
+   admin — anyone who knows the password has full admin access, per the requirement.
+   In the dashboard, go to **Authentication → Users → Add user**, set the email to
+   `admin@heartlandfermentersguild.org` (this exact address — it's hardcoded as the
+   login identifier in `src/lib/constants.js`, not a secret itself), pick a password,
+   and share that password with whoever should have admin access. Changing who can log
+   in later just means changing this one password (**Authentication → Users →
+   \[the user\] → Reset password**).
+5. **Check the magic-link email template**: members log in via Supabase's email OTP
+   (`signInWithOtp`), which this project hadn't used before this feature. In
+   **Authentication → Email Templates → Magic Link**, confirm the template reads as a
+   login link (not "Confirm signup" wording) — Supabase's default template usually
+   works as-is, but it's worth a look before members start using it.
+6. **Get your API keys**: **Settings → API Keys**. Copy the **Project URL** and the
    **Publishable key** (`sb_publishable_...` — safe to expose in client-side code; real
    protection comes from the RLS policies above, not from keeping this key secret).
-5. **Set them for local development**: copy `.env.example` to `.env` and fill in both
+7. **Set them for local development**: copy `.env.example` to `.env` and fill in both
    values.
-6. **Set them for the GitHub Actions build**: repo **Settings → Secrets and variables →
+8. **Set them for the GitHub Actions build**: repo **Settings → Secrets and variables →
    Actions → Variables tab** (variables, not secrets — these values aren't sensitive),
    add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `deploy.yml` already
    reads them from there.
 
-Once that's done: `/recipes/` lists everything in the table, `/recipes/view?slug=...`
-renders one recipe from a shared template (a query-string slug rather than a path
-segment like `/recipes/my-recipe/`, since GitHub Pages can only serve pre-built static
-files — there's no way to pre-build a page per database row that updates without a
-redeploy, and recipes are meant to appear instantly when added), and `/admin/` is the
-password-gated form that lists every recipe with Edit/Delete actions alongside the
-form for adding a new one.
+Once that's done: `/recipes/` lists every **published** recipe from the table,
+`/recipes/view?slug=...` renders one from a shared template (a query-string slug
+rather than a path segment like `/recipes/my-recipe/`, since GitHub Pages can only
+serve pre-built static files — there's no way to pre-build a page per database row
+that updates without a redeploy, and recipes are meant to appear instantly once
+approved). `/admin/` is the password-gated panel: a Pending Recipes queue
+(Approve/Reject), the Recipes list (Edit/Deactivate/Delete), a Members list (add by
+email, Deactivate/Reactivate), and the add-a-recipe form. `/submit/` is where an
+active member logs in by email (a magic link, no password to set) and submits a
+recipe, which lands as `pending` — invisible on the public site until an admin
+approves it from `/admin/`.
 
 ## Project structure
 
@@ -92,26 +114,31 @@ src/
   layouts/Layout.astro     shared <head>, nav, footer, fonts, global styles
   lib/constants.js         admin email, recipe categories, time-stage suggestions, slugify/list/YouTube-ID helpers (no Supabase import)
   lib/supabase.js          Supabase client (client-side only — needs env vars set)
+  lib/recipe-form.js       shared recipe-form logic (stage editor, field reading, photo upload) used by admin and /submit/
   pages/index.astro        the landing page
-  pages/recipes/index.astro  recipe list (fetches from Supabase client-side)
+  pages/recipes/index.astro  recipe list (published only, fetches from Supabase client-side)
   pages/recipes/view.astro   single-recipe template (?slug=... from Supabase)
-  pages/admin/index.astro  password login + add-recipe form
+  pages/admin/index.astro  password login; pending-recipe review, recipes, and members management
+  pages/submit/index.astro  member magic-link login + recipe submission (lands as pending)
   pages/404.astro          not-found page
 public/
   assets/                 logo, header banner, favicons
   CNAME                   custom domain for GitHub Pages
   robots.txt
-supabase/schema.sql       recipes table, Row Level Security policies, recipe-photos Storage bucket + policies
-.github/workflows/deploy.yml   CI build + deploy
+supabase/schema.sql       recipes + active_members tables, RLS policies, is_admin()/is_active_member() functions, recipe-photos Storage bucket
+.github/workflows/deploy.yml   CI build + deploy (tag-only)
+.github/workflows/test.yml     CI test suite (every PR/push to main)
 ```
 
 ## Roadmap
 
 - [x] Landing page: header image, welcome text, guild links
-- [x] Recipes section (Supabase-backed, template-driven) + password-gated admin add-recipe form
-- [ ] Other admin actions (edit/delete a recipe)
+- [x] Recipes section (Supabase-backed, template-driven)
+- [x] Password-gated admin: add/edit/delete/deactivate recipes
+- [x] Member accounts (email magic link) that can submit a recipe for admin approval
+      — experimental, may not launch (see docs/PRODUCT.md Requirement #16)
 - [ ] Full info site (About, Events)
-- [ ] Auth-protected members-only section (separate from the single-password admin area above)
+- [ ] Auth-protected members-only *content* section (gating actual pages, beyond recipe submission)
 
 ## Devlore
 

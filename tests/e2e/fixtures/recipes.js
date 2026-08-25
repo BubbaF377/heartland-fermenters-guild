@@ -16,6 +16,7 @@ export const fullRecipe = {
   instructions: 'Mix starter and water, then stir in flour.\nBulk rise 4-6 hours.\nShape into a boule.\nBake covered, then uncovered.',
   notes: 'Starter should double and pass the float test before you begin.',
   submitted_by: 'Jamie',
+  status: 'published',
   created_at: '2026-08-20T00:00:00Z',
 };
 
@@ -33,5 +34,24 @@ export const minimalRecipe = {
   instructions: 'Brew the tea and let cool.\nAdd the SCOBY and ferment 7-10 days.',
   notes: null,
   submitted_by: null,
+  status: 'published',
   created_at: '2026-08-10T00:00:00Z',
+};
+
+export const deactivatedRecipe = {
+  ...fullRecipe,
+  id: 'recipe-deactivated',
+  slug: 'retired-recipe',
+  title: 'Retired Recipe',
+  status: 'deactivated',
+};
+
+export const pendingRecipe = {
+  ...fullRecipe,
+  id: 'recipe-pending',
+  slug: 'new-submission',
+  title: 'New Submission',
+  submitted_by: 'Alex',
+  status: 'pending',
+  created_at: '2026-08-22T00:00:00Z',
 };
