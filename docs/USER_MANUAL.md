@@ -1,6 +1,6 @@
-<!-- devlore:user-manual source-hash:3458f76c4608c85a10ca53ca5f52612dedb61408879b777a49ad71c827f49fb7 -->
-> **Do not move, rename, or edit this file.** Devlore generates and maintains this user manual automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's documented, update `docs/PRODUCT.md` itself.
-<!-- devlore:user-manual requirement-hashes
+<!-- devkeep:user-manual source-hash:980aed6e57a22c09431b1187fc6942e3ee95d23d1a284da6d7a1771e592cd3d0 -->
+> **Do not move, rename, or edit this file.** Devkeep generates and maintains this user manual automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devkeep detects the requirements have changed. To change what's documented, update `docs/PRODUCT.md` itself.
+<!-- devkeep:user-manual requirement-hashes
 1=8c6a5f4fb077
 2=74ba323e0a07
 3=c1a27b1ede7c
@@ -16,88 +16,109 @@
 13=2255b0761d84
 14=4a26a4be6d0f
 15=9c1694d7b565
+16=60f784e9c539
 -->
 
-The Heartland Fermenters Guild website is the online home for a real-world community of home brewers, bakers, picklers, and cheesemakers. It's meant for two audiences: the general public who land on it from social media or a friend's recommendation and want to learn what the guild is about and how to connect with it, and guild members who browse (and, for the small group with admin access, contribute to) a shared collection of fermentation and baking recipes. This manual walks through what you can do on the site today, as a visitor, a recipe reader, and as an admin.
+Heartland Fermenters Guild is the public website for a real-world community of home brewers, bakers, picklers, and cheesemakers, reachable at `heartlandfermentersguild.org`. It's meant for two kinds of people: visitors from social media or in-person meetups who want to learn about the guild and find its recipes, and guild admins/members who keep that recipe collection growing. This manual walks through what's actually on the site today and how to use each part of it.
 
 ## Table of Contents
 
-- [The Landing Page](#the-landing-page)
+- [Visiting the Landing Page](#visiting-the-landing-page)
 - [Browsing Recipes](#browsing-recipes)
-- [Viewing a Recipe](#viewing-a-recipe)
-- [Logging In as an Admin](#logging-in-as-an-admin)
-- [Adding a New Recipe](#adding-a-new-recipe)
-- [Managing Existing Recipes](#managing-existing-recipes)
+- [Logging In as Admin](#logging-in-as-admin)
+- [Adding and Editing Recipes](#adding-and-editing-recipes)
+- [Managing Recipes as Admin](#managing-recipes-as-admin)
+- [Submitting a Recipe as a Member](#submitting-a-recipe-as-a-member)
+- [Managing Members and Pending Recipes](#managing-members-and-pending-recipes)
 
-## The Landing Page
+## Visiting the Landing Page
 <!-- requirements: #5 -->
 
-When you visit `heartlandfermentersguild.org`, you land on a simple welcome page. At the top is a header banner image, followed by a short paragraph introducing the guild — what it is and who it's for. Below that is a "Join the Conversation" section with links out to the ways you can connect with the guild: email, the guild's Facebook Page, its Facebook Group, Instagram, and Meetup. Click any of these to go to that platform and follow, join, or message the guild directly.
+The homepage is a simple, welcoming landing page. At the top is a header banner image, followed by a short welcome paragraph explaining what the Heartland Fermenters Guild is and who it's for. Below that is a "Join the Conversation" section with links out to the guild's email, its Facebook Page, its Facebook Group, its Instagram, and its Meetup — use these to reach the guild or follow along on whichever platform you already use.
 
-At the bottom of every page on the site, including this one, you'll find a footer. On the left is the copyright notice and a link to the Admin area (see "Logging In as an Admin" below). On the right, the text "Website development donated by" sits next to a Starter Culture Studio logo — only the logo itself is a link, and it goes to `starterculturestudio.com`. The footer always stays pinned to the bottom of your browser window, even on pages with very little content, like an empty recipe list.
+Every page on the site, including the landing page, shares a common footer. On the left it shows the copyright notice and a link to the Admin page. On the right it reads "Website development donated by" next to a Starter Culture Studio logo — only the logo itself is clickable, linking out to `starterculturestudio.com`. The footer stays pinned to the bottom of your browser window even on pages with very little content, rather than floating up partway up the page.
 
 [↑ Back to table of contents](#table-of-contents)
 
 ## Browsing Recipes
-<!-- requirements: #7 -->
-
-The `/recipes/` page lists recipes submitted by the guild. Because recipes are stored in a live database rather than baked into the site at build time, anything an admin adds shows up here right away — no need to wait for a site rebuild. Each entry links to that recipe's own page. If no recipes have been added yet, you'll simply see an empty list rather than an error.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Viewing a Recipe
 <!-- requirements: #7, #9, #10, #11 -->
 
-Clicking a recipe from the list takes you to its detail page, reached via a link that includes the recipe's slug (its short URL identifier), for example `/recipes/view?slug=sourdough-boule`. On this page you'll find:
+The recipes section lists recipes the guild has shared — beer, wine, bread & sourdough, vegetables & pickles, kombucha, cheese, and a catch-all "Other" category. Recipes appear on the list as soon as an admin adds them, with no need to wait for a site rebuild.
 
-- The recipe's title, category (one of Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, or Other), and a short summary.
-- A photo, if the submitter included one.
-- An embedded how-to video, if the submitter linked one — paste-friendly YouTube links are automatically turned into a playable embed right on the page.
-- A yield/servings line, if one was given (e.g. "makes one 9-inch loaf" or "serves 6").
-- A row of small metadata chips showing time stages relevant to that recipe — things like "Active Prep: 20 min," "Ferment: 5 days," or "Bake: 45 min." Different recipes show different stages depending on what the submitter entered; a cold-proofed sourdough recipe, for instance, might show an extra "Cold Proof" chip that a same-day loaf wouldn't have.
-- The ingredient list and step-by-step instructions.
-- A notes/tips section, if the submitter added any extra advice.
-- A submitted-by credit, if the submitter chose to include their name.
+Clicking a recipe takes you to its detail page, which shows:
 
-Anyone can view a recipe's page and photo — you don't need to log in to read recipes.
+- Title, category, and a short summary
+- A photo, if the submitter added one
+- An embedded how-to video, if the submitter linked one (pasted from YouTube)
+- A freeform yield/servings line (e.g. "makes 2 loaves"), if given
+- Time-stage chips such as "Active Prep: 20 min" or "Ferment: 5 days" — however many stages the recipe actually has, since different recipes (even in the same category) can use different combinations
+- Ingredients and instructions, each listed one item per line
+- An optional notes/tips section with extra guidance from the submitter
+- Who submitted the recipe, if they chose to share their name
+
+If a recipe has neither a photo nor a video, the page simply omits both — they're independent and optional.
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Logging In as an Admin
+## Logging In as Admin
 <!-- requirements: #8 -->
 
-Recipe submission and management is gated behind a login at `/admin/`. This isn't an individual account system — there's a single shared admin password for the whole guild, so anyone who's been given that password can log in and manage recipes. Enter the password on the admin login form and submit it; the site checks it against the guild's admin account before letting you in. If the password is wrong, you won't be let past the login form. Once logged in, you'll see the admin recipe-management page described in the next two sections.
+Recipe management is gated behind an Admin login at `/admin/`. This isn't an individual account system — it's a single shared password known to whoever the guild has entrusted with admin access. Enter the password on the admin login screen; it's checked securely rather than compared in a way that could be read from the page itself. A successful login just confirms you know the current shared password, not who you are personally, so treat the password itself as the thing to keep within the trusted group.
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Adding a New Recipe
+## Adding and Editing Recipes
 <!-- requirements: #9, #10, #11, #12 -->
 
-After logging into `/admin/`, you'll find a form for adding a new recipe. Fill in:
+Once logged in as admin, you can add a new recipe or edit an existing one using the same form. The fields are:
 
-- **Title** — the recipe's name.
-- **Category** — pick one of Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, or Other.
-- **Summary** — a short description shown on the recipe page.
-- **Photo** (optional) — upload an image file. If you also fill in a video URL, both will show on the recipe page; you can include a photo, a video, both, or neither.
-- **Video URL** (optional) — paste a YouTube link (either a `youtube.com/watch?v=...` or `youtu.be/...` style URL); the input shows placeholder text reminding you of the expected format.
-- **Yield/servings** (optional) — a freeform line like "serves 4" or "makes 2 loaves."
-- **Time stages** — a repeatable list of rows, each with a label (like "Prep" or "Ferment") and a duration (like "20 min" or "3 days"). Use the "add a row" control to add more stages, and each row has its own way to remove it. When you pick a category, this section automatically fills in with suggested starting stages for that category (for example, choosing Bread & Sourdough suggests Prep, Rise, and Bake). This only happens if the stages section is still empty — if you've already started typing in stages and then change the category, your entries are left alone. You're free to add, remove, relabel, or reorder any stage before saving; the suggestions are just a starting point, not a requirement.
-- **Ingredients** — one ingredient per line.
-- **Instructions** — one step per line.
-- **Notes/tips** (optional) — any extra advice, freeform text.
-- **Submitted by** (optional) — a name to credit on the recipe page.
+- **Title** — the recipe's name
+- **Category** — chosen from the fixed list (Beer, Wine, Bread & Sourdough, Vegetables & Pickles, Kombucha, Cheese, Other)
+- **Summary** — a short description
+- **Photo** (optional) — upload an image file; if the upload fails, the form shows an error and nothing is saved, so you won't end up with a recipe pointing at a broken image
+- **Video URL** (optional) — paste a `youtube.com/watch?v=...` or `youtu.be/...` link; the placeholder text in the field shows the expected format, and the site builds the embedded player from it automatically
+- **Yield/servings** (optional) — a freeform line like "serves 6" or "makes one 1-gallon batch"
+- **Time stages** — a repeatable list of label-and-duration rows (e.g. "Prep" / "20 min"). Choosing a category auto-fills suggested starting stages for that category (for example, Bread & Sourdough suggests Prep, Rise, Bake; Cheese suggests Prep, Culture, Age; Other suggests none) — but only if you haven't already started typing stages yourself, so switching categories partway through never wipes out your work. You can add, remove, or relabel any row before saving; whatever you leave in place is what gets stored.
+- **Ingredients** and **Instructions** — plain text, one item per line
+- **Notes/tips** (optional) — a free text area for extra guidance
+- **Submitted by** (optional) — a name to credit
 
-When you submit the form, if you included a photo, it's uploaded first; if that upload fails for any reason, you'll see an error and the recipe won't be saved — this avoids ending up with a recipe pointing at a missing photo. Otherwise, the recipe is saved and becomes visible on `/recipes/` and its own detail page immediately.
+When editing an existing recipe, the same form is reused in an "edit" mode, pre-filled with that recipe's current values. The recipe's underlying link (its slug) never changes when you edit it, so any link to that recipe already shared elsewhere keeps working.
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Managing Existing Recipes
+## Managing Recipes as Admin
 <!-- requirements: #14 -->
 
-The admin page also shows a list of every recipe that's been added, with its title, category, a photo thumbnail (if it has one), and the date it was added. From this list you can:
+The admin page lists every existing recipe with its title, category, photo thumbnail (if it has one), and the date it was added. From this list you can:
 
-- **Edit** a recipe — this opens the same form used for adding a recipe, pre-filled with that recipe's existing details, so you can update any field (title, category, summary, photo, video, yield, time stages, ingredients, instructions, notes, submitted-by) and save your changes. The recipe's underlying link (its slug) never changes when you edit it, so any links to it that have already been shared keep working.
-- **Delete** a recipe — you'll be asked to confirm before anything happens. Once confirmed, the recipe is removed from the list and its page becomes unavailable. If the recipe had a photo, the system also tries to clean up that stored photo as part of the deletion.
+- **Edit** a recipe, which opens the same add-a-recipe form pre-filled with that recipe's details
+- **Delete** a recipe, which asks for confirmation first. Deleting also best-effort removes the recipe's uploaded photo from storage; if that cleanup step fails for some reason, the recipe itself is still deleted rather than left stuck
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Submitting a Recipe as a Member
+<!-- requirements: #16 -->
+
+Guild members who've been added to the guild's member roster by an admin can submit their own recipes through the members submission page at `/submit/`, without needing the admin password.
+
+To log in, enter your email address and follow the magic link sent to your inbox — there's no password to remember. Note that only email addresses an admin has actually added to the member roster are able to submit; anyone can request a login link, but only recognized member emails can successfully submit a recipe.
+
+The submission form captures the same fields as the admin recipe form (title, category, summary, photo, video URL, yield/servings, time stages, ingredients, instructions, notes/tips, submitted-by). Recipes submitted this way don't appear on the public recipe list right away — they go into a pending queue for an admin to review first. This is a deliberate moderation step, so nothing a member submits reaches the public site without an admin approving it.
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Managing Members and Pending Recipes
+<!-- requirements: #16 -->
+
+The admin page includes a Members section where you can see the current member roster, add a new member by email (granting them access to the submission form), and deactivate or reactivate an existing member's access without deleting their record.
+
+There's also a Pending Recipes queue listing every recipe submitted by members that hasn't been reviewed yet. From here you can:
+
+- **Approve** a pending recipe, which publishes it to the public recipe list immediately
+- **Reject** a pending recipe, which permanently deletes it (with the same best-effort photo cleanup used elsewhere)
+
+The main Recipes list also gains a Deactivate/Reactivate toggle, separate from the hard Delete action, letting you pull a published recipe out of public view without permanently removing it.
 
 [↑ Back to table of contents](#table-of-contents)
 
