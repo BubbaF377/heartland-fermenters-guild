@@ -16,27 +16,10 @@ jobs:
     secrets:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
-  sync-test-plan:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/sync-test-plan.yml@main
+  crypting-candidates-scan:
+    uses: BubbaF377/devkeep-workflows/.github/workflows/crypting-candidates-scan.yml@main
     with:
-      project-name: heartland-fermenters-guild
       vault-repo: BubbaF377/devkeep-vault
     secrets:
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
-  sync-user-manual:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/sync-user-manual.yml@main
-    with:
-      project-name: heartland-fermenters-guild
-      vault-repo: BubbaF377/devkeep-vault
-    secrets:
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-      devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
-  sync-visualizer:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/sync-visualizer.yml@main
-    with:
-      project-name: heartland-fermenters-guild
-      vault-repo: BubbaF377/devkeep-vault
-    secrets:
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-      devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
+      devcrypt-blind-index-key: ${{ secrets.DEVCRYPT_BLIND_INDEX_KEY }}
