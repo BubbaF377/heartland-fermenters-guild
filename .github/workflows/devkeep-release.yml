@@ -27,14 +27,6 @@ jobs:
     secrets:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
-  analyze:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/analyze-codebase.yml@main
-    with:
-      project-name: heartland-fermenters-guild
-      vault-repo: BubbaF377/devkeep-vault
-    secrets:
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-      devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
   sync-onboarding:
     uses: BubbaF377/devkeep-workflows/.github/workflows/sync-onboarding.yml@main
     with:
