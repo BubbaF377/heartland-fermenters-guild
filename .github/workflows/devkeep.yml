@@ -19,6 +19,7 @@ jobs:
   crypting-candidates-scan:
     uses: BubbaF377/devkeep-workflows/.github/workflows/crypting-candidates-scan.yml@main
     with:
+      project-name: heartland-fermenters-guild
       vault-repo: BubbaF377/devkeep-vault
     secrets:
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
