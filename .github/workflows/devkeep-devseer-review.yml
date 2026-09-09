@@ -16,7 +16,7 @@ on:
 
 jobs:
   review:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/devseer-review.yml@main
+    uses: BubbaF377/devkeep-workflows/.github/workflows/devseer-review.yml@v1
     with:
       project-name: heartland-fermenters-guild
       vault-repo: BubbaF377/devkeep-vault
