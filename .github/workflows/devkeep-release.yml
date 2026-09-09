@@ -10,7 +10,7 @@ on:
 
 jobs:
   consolidate:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/consolidate-release.yml@main
+    uses: BubbaF377/devkeep-workflows/.github/workflows/consolidate-release.yml@v1
     with:
       project-name: heartland-fermenters-guild
       tag: ${{ github.ref_name }}
@@ -19,7 +19,7 @@ jobs:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
   draft-release-notes:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/draft-release-notes.yml@main
+    uses: BubbaF377/devkeep-workflows/.github/workflows/draft-release-notes.yml@v1
     with:
       project-name: heartland-fermenters-guild
       tag: ${{ github.ref_name }}
@@ -28,7 +28,7 @@ jobs:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
   sync-onboarding:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/sync-onboarding.yml@main
+    uses: BubbaF377/devkeep-workflows/.github/workflows/sync-onboarding.yml@v1
     with:
       project-name: heartland-fermenters-guild
       vault-repo: BubbaF377/devkeep-vault
