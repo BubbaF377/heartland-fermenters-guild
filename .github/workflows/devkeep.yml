@@ -9,7 +9,7 @@ on:
 
 jobs:
   draft:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/draft-log-entry.yml@main
+    uses: BubbaF377/devkeep-workflows/.github/workflows/draft-log-entry.yml@v1
     with:
       project-name: heartland-fermenters-guild
       vault-repo: BubbaF377/devkeep-vault
@@ -17,7 +17,7 @@ jobs:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
   crypting-candidates-scan:
-    uses: BubbaF377/devkeep-workflows/.github/workflows/crypting-candidates-scan.yml@main
+    uses: BubbaF377/devkeep-workflows/.github/workflows/crypting-candidates-scan.yml@v1
     with:
       project-name: heartland-fermenters-guild
       vault-repo: BubbaF377/devkeep-vault
