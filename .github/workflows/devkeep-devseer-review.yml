@@ -9,6 +9,10 @@ on:
       review-tag:
         description: The release tag to review
         required: true
+      review-agent:
+        description: Which auditor to run (engineering, qa)
+        required: false
+        default: engineering
       review-tier:
         description: Model tier (fast, balanced, capable, max)
         required: false
@@ -22,6 +26,7 @@ jobs:
       vault-repo: BubbaF377/devkeep-vault
       review-tag: ${{ inputs.review-tag }}
       review-tier: ${{ inputs.review-tier }}
+      review-agent: ${{ inputs.review-agent }}
     secrets:
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
       devkeep-github-token: ${{ secrets.DEVKEEP_GITHUB_TOKEN }}
