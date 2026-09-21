@@ -91,6 +91,8 @@ Hard requirements as they get locked in, separate from the discovery narrative a
 
     2026-09-21: added the verified-email requirement with the Firebase migration.
 
+17. Both recipe forms — admin's add/edit form (Requirement #12) and the member submission form (Requirement #16) — have a **Preview** button that opens the unsaved recipe in a new tab, rendered by the real recipe page, so what's previewed is exactly what visitors will see. Previewing saves and uploads nothing: a newly chosen photo shows without being uploaded. When editing, the preview shows the recipe's current photo and original date. A banner marks the page as an unsaved preview, and previewing again updates the same tab.
+
 ## Open questions
 
 - Whether Requirement #16 actually launches — open. If it doesn't, the Firestore data model/Security Rules/pages can stay in place unused rather than needing to be ripped out; nothing about it is destructive to remove either way.

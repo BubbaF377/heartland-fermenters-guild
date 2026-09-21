@@ -4,6 +4,7 @@
 // and field-reading logic. Client-side only (touches the DOM) — not imported from
 // Astro frontmatter.
 import {
+  RECIPE_PREVIEW_STORAGE_KEY,
   TIME_STAGE_SUGGESTIONS,
   linesToPairs,
   pairsToLines,
@@ -141,4 +142,42 @@ export function wirePhotoInput(photoInput, errorEl) {
   });
 
   photoInput.form?.addEventListener('reset', () => showProblem(null));
+}
+
+// Object URL for the photo in the most recent preview — kept so it can be
+// released when the next preview replaces it.
+let previewPhotoUrl = null;
+
+// Opens /recipes/view?preview=1 in a tab showing exactly what's in the form right
+// now, without saving anything: the real recipe page renders it, so the preview
+// can't drift from what visitors will see. Re-previewing reuses the same tab.
+//
+// The recipe travels through localStorage (readable by the new tab, unlike
+// sessionStorage). A newly chosen photo isn't uploaded — it's handed over as an
+// object URL, which the preview tab can load for as long as this page stays
+// open. When editing with no new photo chosen, `existingPhotoPath` shows the
+// recipe's current one.
+//
+// Returns false if the browser won't allow localStorage (e.g. some private
+// browsing modes), so the caller can say preview isn't available.
+export function openRecipePreview({ form, stagesList, photoInput, existingPhotoPath = null, createdAt = null }) {
+  const photoFile = photoInput.files[0] || null;
+
+  if (previewPhotoUrl) URL.revokeObjectURL(previewPhotoUrl);
+  previewPhotoUrl = photoFile ? URL.createObjectURL(photoFile) : null;
+
+  const preview = {
+    ...collectRecipeFields(form, stagesList),
+    photo_preview_url: previewPhotoUrl,
+    photo_path: photoFile ? null : existingPhotoPath,
+    created_at: (createdAt || new Date()).toISOString(),
+  };
+
+  try {
+    window.localStorage.setItem(RECIPE_PREVIEW_STORAGE_KEY, JSON.stringify(preview));
+  } catch {
+    return false;
+  }
+  window.open('/recipes/view?preview=1', 'hfg-recipe-preview');
+  return true;
 }

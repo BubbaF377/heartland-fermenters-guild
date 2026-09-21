@@ -95,6 +95,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
 
         <div class="form-actions">
           <button type="submit" id="save-button">Save Recipe</button>
+          <button type="button" id="preview-button" class="secondary">Preview</button>
           <button type="button" id="cancel-edit-button" class="secondary" hidden>Cancel</button>
         </div>
       </form>
@@ -132,6 +133,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       wirePhotoInput,
       collectRecipeFields,
       populateRecipeForm,
+      openRecipePreview,
     } from '../../lib/recipe-form.js';
 
     const loginSection = document.getElementById('login-section');
@@ -146,6 +148,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     const addStageButton = document.getElementById('add-stage-button');
     const photoInput = document.getElementById('photo');
     const photoError = document.getElementById('photo-error');
+    const previewButton = document.getElementById('preview-button');
     const pendingListStatus = document.getElementById('pending-list-status');
     const pendingList = document.getElementById('pending-list');
     const recipeListStatus = document.getElementById('recipe-list-status');
@@ -159,10 +162,12 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     const cancelEditButton = document.getElementById('cancel-edit-button');
 
     // null in create mode; while editing, these hold the recipe's slug (its
-    // document ID, which never changes on edit — see startEditing) and its current
-    // photo_path (resubmitted unchanged unless a new file is chosen).
+    // document ID, which never changes on edit — see startEditing), its current
+    // photo_path (resubmitted unchanged unless a new file is chosen), and its
+    // created_at (so Preview shows the recipe's real date, not today's).
     let editingSlug = null;
     let editingPhotoPath = null;
+    let editingCreatedAt = null;
 
     const { markTouched: markStagesTouched, reset: resetStageSuggestions } = wireStageEditor({
       stagesList,
@@ -348,6 +353,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     function startEditing(recipe) {
       editingSlug = recipe.slug;
       editingPhotoPath = recipe.photo_path;
+      editingCreatedAt = recipe.created_at;
 
       populateRecipeForm(recipeForm, stagesList, recipe);
       // Loaded a real recipe's actual stages — lock them so a category change
@@ -365,6 +371,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     function stopEditing() {
       editingSlug = null;
       editingPhotoPath = null;
+      editingCreatedAt = null;
       recipeForm.reset();
       // Unlocks and re-populates suggestions for whatever category the reset
       // form now shows (recipeForm.reset() puts it back to the default with no
@@ -378,6 +385,21 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     cancelEditButton.addEventListener('click', stopEditing);
 
     wirePhotoInput(photoInput, photoError);
+
+    previewButton.addEventListener('click', () => {
+      const opened = openRecipePreview({
+        form: recipeForm,
+        stagesList,
+        photoInput,
+        existingPhotoPath: editingPhotoPath,
+        createdAt: editingCreatedAt,
+      });
+      if (!opened) {
+        recipeStatus.className = 'status error';
+        recipeStatus.textContent = "Preview isn't available in this browser (it may be blocking site storage).";
+        recipeStatus.hidden = false;
+      }
+    });
 
     // Shared by Delete (an existing published/deactivated recipe) and Reject (a
     // pending submission) — both are "remove this recipe and its photo for good."

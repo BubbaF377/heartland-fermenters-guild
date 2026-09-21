@@ -78,7 +78,10 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         <label for="submitted_by">Your name <span class="hint">(optional — shown publicly once approved)</span></label>
         <input type="text" id="submitted_by" name="submitted_by" />
 
-        <button type="submit" id="save-button">Submit Recipe</button>
+        <div class="form-actions">
+          <button type="submit" id="save-button">Submit Recipe</button>
+          <button type="button" id="preview-button" class="secondary">Preview</button>
+        </div>
       </form>
       <p id="recipe-status" class="status" hidden></p>
     </section>
@@ -94,7 +97,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     } from 'firebase/auth';
     import { auth, createRecipeWithUniqueSlug, uploadRecipePhoto } from '../../lib/firebase.js';
     import { slugify } from '../../lib/constants.js';
-    import { wireStageEditor, wirePhotoInput, collectRecipeFields } from '../../lib/recipe-form.js';
+    import { wireStageEditor, wirePhotoInput, collectRecipeFields, openRecipePreview } from '../../lib/recipe-form.js';
 
     const loginSection = document.getElementById('login-section');
     const submitSection = document.getElementById('submit-section');
@@ -110,6 +113,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     const addStageButton = document.getElementById('add-stage-button');
     const photoInput = document.getElementById('photo');
     const photoError = document.getElementById('photo-error');
+    const previewButton = document.getElementById('preview-button');
     const saveButton = document.getElementById('save-button');
 
     // Firebase's email-link sign-in needs the email again when the link is opened,
@@ -120,6 +124,12 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
 
     const { reset: resetStageSuggestions } = wireStageEditor({ stagesList, addStageButton, categorySelect });
     wirePhotoInput(photoInput, photoError);
+
+    previewButton.addEventListener('click', () => {
+      if (!openRecipePreview({ form: recipeForm, stagesList, photoInput })) {
+        showStatus(recipeStatus, true, "Preview isn't available in this browser (it may be blocking site storage).");
+      }
+    });
 
     function showStatus(el, isError, message) {
       el.className = isError ? 'status error' : 'status success';
@@ -395,6 +405,17 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--wine);
+  }
+
+  .submit-page .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .submit-page .form-actions button {
+    margin-top: 0;
   }
 
   .submit-page .status {

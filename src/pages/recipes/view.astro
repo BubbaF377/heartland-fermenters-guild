@@ -7,7 +7,12 @@ import Layout from '../../layouts/Layout.astro';
   description="A recipe shared by a member of the Heartland Fermenters Guild."
 >
   <main class="recipe-page">
-    <a class="back-link" href="/recipes/">&larr; All recipes</a>
+    <a id="back-link" class="back-link" href="/recipes/">&larr; All recipes</a>
+
+    <p id="preview-banner" class="preview-banner" hidden>
+      <strong>Preview</strong> — this recipe hasn&rsquo;t been saved yet. Close this tab to go
+      back to the form.
+    </p>
 
     <p id="recipe-status" class="status">Loading recipe&hellip;</p>
 
@@ -67,9 +72,12 @@ import Layout from '../../layouts/Layout.astro';
       linesToPairs,
       timeStageChipLabel,
       extractYouTubeId,
+      RECIPE_PREVIEW_STORAGE_KEY,
     } from '../../lib/constants.js';
 
     const statusEl = document.getElementById('recipe-status');
+    const backLinkEl = document.getElementById('back-link');
+    const previewBannerEl = document.getElementById('preview-banner');
     const contentEl = document.getElementById('recipe-content');
     const categoryEl = document.getElementById('recipe-category');
     const titleEl = document.getElementById('recipe-title');
@@ -107,9 +115,7 @@ import Layout from '../../layouts/Layout.astro';
       metaStripEl.append(item);
     }
 
-    async function loadRecipe() {
-      const slug = new URLSearchParams(window.location.search).get('slug');
-
+    async function loadRecipe(slug) {
       if (!slug) {
         statusEl.textContent = 'No recipe was specified.';
         return;
@@ -138,7 +144,39 @@ import Layout from '../../layouts/Layout.astro';
       }
 
       const data = recipeFromSnap(snap);
+      renderRecipe(data, data.photo_path ? photoDownloadUrl(data.photo_path) : null);
+    }
 
+    // /recipes/view?preview=1: the recipe forms' Preview button (openRecipePreview
+    // in src/lib/recipe-form.js) leaves the unsaved recipe in localStorage and
+    // opens this page to render it — nothing is read from Firestore.
+    function showPreview() {
+      let data = null;
+      try {
+        data = JSON.parse(window.localStorage.getItem(RECIPE_PREVIEW_STORAGE_KEY));
+      } catch {}
+
+      if (!data) {
+        statusEl.textContent = 'Nothing to preview — use the Preview button on a recipe form.';
+        return;
+      }
+
+      previewBannerEl.hidden = false;
+      backLinkEl.hidden = true;
+
+      let photoUrl = null;
+      if (data.photo_preview_url) photoUrl = Promise.resolve(data.photo_preview_url);
+      else if (data.photo_path) photoUrl = photoDownloadUrl(data.photo_path);
+
+      renderRecipe(
+        { ...data, title: data.title || 'Untitled recipe', created_at: new Date(data.created_at) },
+        photoUrl,
+      );
+      document.title = `Preview: ${document.title}`;
+    }
+
+    // photoUrl: a promise of the photo's URL, or null for a recipe without one.
+    function renderRecipe(data, photoUrl) {
       document.title = `${data.title} — Heartland Fermenters Guild`;
       categoryEl.textContent = data.category;
       titleEl.textContent = data.title;
@@ -161,9 +199,9 @@ import Layout from '../../layouts/Layout.astro';
       metaStripEl.hidden = false;
 
       // Photo and video are independent — a recipe can have either, both, or neither.
-      if (data.photo_path) {
+      if (photoUrl) {
         photoImgEl.alt = data.title;
-        photoDownloadUrl(data.photo_path)
+        photoUrl
           .then((url) => {
             photoImgEl.src = url;
             photoEl.hidden = false;
@@ -192,7 +230,12 @@ import Layout from '../../layouts/Layout.astro';
       contentEl.hidden = false;
     }
 
-    loadRecipe();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('preview') === '1') {
+      showPreview();
+    } else {
+      loadRecipe(params.get('slug'));
+    }
   </script>
 </Layout>
 
@@ -217,6 +260,11 @@ import Layout from '../../layouts/Layout.astro';
     text-decoration: none;
   }
 
+  /* display: inline-block above would otherwise override the hidden attribute. */
+  .back-link[hidden] {
+    display: none;
+  }
+
   .back-link:hover,
   .back-link:focus-visible {
     text-decoration: underline;
@@ -225,6 +273,21 @@ import Layout from '../../layouts/Layout.astro';
   .status {
     color: var(--brown);
     font-style: italic;
+  }
+
+  .preview-banner {
+    margin: 0 0 1.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px dashed var(--gold);
+    border-radius: 8px;
+    background: var(--cream-light);
+    color: var(--brown-deep);
+  }
+
+  @media print {
+    .preview-banner {
+      display: none;
+    }
   }
 
   .top-row {

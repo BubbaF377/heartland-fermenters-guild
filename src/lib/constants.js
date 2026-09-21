@@ -54,6 +54,10 @@ export function photoFileProblem(file) {
   return null;
 }
 
+// localStorage key the recipe forms' Preview button hands the unsaved recipe to
+// /recipes/view?preview=1 through.
+export const RECIPE_PREVIEW_STORAGE_KEY = 'hfg-recipe-preview';
+
 // Requirement #10: suggested starting time stages per category, used only to
 // pre-populate the admin form's stage editor — never enforced. "Other" has no
 // suggestions since it covers everything that doesn't fit the named categories.
