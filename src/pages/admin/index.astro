@@ -36,7 +36,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       </div>
 
       <div id="panel-recipes" role="tabpanel" aria-labelledby="tab-recipes">
-        <div class="admin-subtabs" role="tablist" aria-label="Recipes">
+        <div id="recipe-subtabs" class="admin-subtabs" role="tablist" aria-label="Recipes">
           <button type="button" role="tab" id="subtab-stored" aria-controls="subpanel-stored" aria-selected="true">
             Stored Recipes
           </button>
@@ -119,26 +119,39 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       </div>
 
       <div id="panel-members" role="tabpanel" aria-labelledby="tab-members" hidden>
-        <h2>Members</h2>
-        <p id="members-status" class="status">Loading members&hellip;</p>
-        <ul id="members-list" class="recipe-list" hidden></ul>
-        <form id="add-member-form">
-          <h3 id="member-form-heading">Add a member</h3>
-          <label for="member-name">Member name</label>
-          <input type="text" id="member-name" name="name" required autocomplete="off" />
+        <div id="member-subtabs" class="admin-subtabs" role="tablist" aria-label="Members">
+          <button type="button" role="tab" id="subtab-member-list" aria-controls="subpanel-member-list" aria-selected="true">
+            Member List
+          </button>
+          <button type="button" role="tab" id="subtab-member-form" aria-controls="subpanel-member-form" aria-selected="false" tabindex="-1">
+            Add a Member
+          </button>
+        </div>
 
-          <label for="member-email">Member email <span class="hint">(what they log in with)</span></label>
-          <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
+        <div id="subpanel-member-list" role="tabpanel" aria-labelledby="subtab-member-list">
+          <p id="members-status" class="status">Loading members&hellip;</p>
+          <ul id="members-list" class="recipe-list" hidden></ul>
+        </div>
 
-          <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
-          <input type="tel" id="member-phone" name="phone" autocomplete="off" placeholder="(402) 555-0134" />
+        <div id="subpanel-member-form" role="tabpanel" aria-labelledby="subtab-member-form" hidden>
+          <form id="add-member-form">
+            <h2 id="member-form-heading">Add a Member</h2>
+            <label for="member-name">Member name</label>
+            <input type="text" id="member-name" name="name" required autocomplete="off" />
 
-          <div class="form-actions">
-            <button type="submit" id="member-save-button">Add Member</button>
-            <button type="button" id="member-cancel-button" class="secondary" hidden>Cancel</button>
-          </div>
-        </form>
-        <p id="add-member-status" class="status" hidden></p>
+            <label for="member-email">Member email <span class="hint">(what they log in with)</span></label>
+            <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
+
+            <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
+            <input type="tel" id="member-phone" name="phone" autocomplete="off" placeholder="(402) 555-0134" />
+
+            <div class="form-actions">
+              <button type="submit" id="member-save-button">Add Member</button>
+              <button type="button" id="member-cancel-button" class="secondary" hidden>Cancel</button>
+            </div>
+          </form>
+          <p id="add-member-status" class="status" hidden></p>
+        </div>
       </div>
     </section>
   </main>
@@ -220,17 +233,18 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       categorySelect,
     });
 
-    // --- Tabs: Recipes (Stored / Pending / Add a Recipe) and Members ---
+    // --- Tabs: Recipes (Stored / Pending / Add a Recipe), Members (List / Add) ---
 
-    // Two groups of standard ARIA tabs: the top-level strip, and the Recipes
-    // tab's own sub-tabs. In each group only the selected tab is in the Tab
-    // order, and the arrow keys (plus Home/End) move between tabs and select as
-    // they go. The view is remembered in the URL, so a reload or a bookmark
-    // lands back on it: no hash is Recipes → Stored Recipes.
+    // Standard ARIA tab groups: the top-level strip, and each top-level tab's
+    // own sub-tabs. In each group only the selected tab is in the Tab order,
+    // and the arrow keys (plus Home/End) move between tabs and select as they
+    // go. The view is remembered in the URL, so a reload or a bookmark lands
+    // back on it: no hash is Recipes → Stored Recipes.
     const VIEW_HASHES = {
       'subtab-pending': '#pending',
       'subtab-form': '#add-recipe',
-      'tab-members': '#members',
+      'subtab-member-list': '#members',
+      'subtab-member-form': '#add-member',
     };
 
     function wireTabGroup(tablist) {
@@ -269,28 +283,29 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     }
 
     const topTabs = wireTabGroup(document.querySelector('.admin-tabs'));
-    const recipeTabs = wireTabGroup(document.querySelector('.admin-subtabs'));
+    // Each top-level tab's sub-tabs, keyed by the top-level tab's id.
+    const subTabs = {
+      'tab-recipes': wireTabGroup(document.getElementById('recipe-subtabs')),
+      'tab-members': wireTabGroup(document.getElementById('member-subtabs')),
+    };
     const recipeFormTab = document.getElementById('subtab-form');
+    const memberFormTab = document.getElementById('subtab-member-form');
 
-    // Only runs from a tab selection, which happens after both groups exist.
+    // Only runs from a tab selection, which happens after every group exists.
     function rememberView() {
-      const view = topTabs.selected.id === 'tab-members' ? topTabs.selected : recipeTabs.selected;
+      const view = subTabs[topTabs.selected.id].selected;
       const hash = VIEW_HASHES[view.id] || '';
       if (window.location.hash !== hash) {
         window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
       }
     }
 
-    // Opens a given view: a top-level tab, or a Recipes sub-tab (which also
-    // selects the Recipes tab around it).
-    function showView(tabId) {
-      const tab = document.getElementById(tabId);
-      if (recipeTabs.tabs.includes(tab)) {
-        topTabs.select(document.getElementById('tab-recipes'));
-        recipeTabs.select(tab);
-      } else {
-        topTabs.select(tab);
-      }
+    // Opens a sub-tab's view, selecting the top-level tab around it too.
+    function showView(subTabId) {
+      const tab = document.getElementById(subTabId);
+      const [topId, group] = Object.entries(subTabs).find(([, g]) => g.tabs.includes(tab));
+      topTabs.select(document.getElementById(topId));
+      group.select(tab);
     }
 
     const viewFromHash = Object.keys(VIEW_HASHES).find((id) => VIEW_HASHES[id] === window.location.hash);
@@ -703,22 +718,30 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       addMemberForm.elements.name.value = member.name || '';
       addMemberForm.elements.email.value = member.email;
       addMemberForm.elements.phone.value = formatPhone(member.phone);
-      memberFormHeading.textContent = 'Edit member';
+      memberFormHeading.textContent = 'Edit Member';
+      memberFormTab.textContent = 'Edit Member';
       memberSaveButton.textContent = 'Save Changes';
       memberCancelButton.hidden = false;
       addMemberStatus.hidden = true;
+      showView('subtab-member-form');
       addMemberForm.scrollIntoView({ behavior: 'smooth' });
     }
 
     function stopEditingMember() {
       editingMember = null;
       addMemberForm.reset();
-      memberFormHeading.textContent = 'Add a member';
+      memberFormHeading.textContent = 'Add a Member';
+      memberFormTab.textContent = 'Add a Member';
       memberSaveButton.textContent = 'Add Member';
       memberCancelButton.hidden = true;
     }
 
-    memberCancelButton.addEventListener('click', stopEditingMember);
+    // Same as the recipe form: Cancel returns to the list, a save stays here
+    // to show its message.
+    memberCancelButton.addEventListener('click', () => {
+      stopEditingMember();
+      showView('subtab-member-list');
+    });
 
     // Tidy a valid phone into (402) 555-0134 as soon as the admin leaves the
     // field, so what they see matches how it will be shown. An invalid one is
@@ -921,15 +944,6 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
   .admin-page h2 {
     font-size: 1.5rem;
     margin: 1.5rem 0 1rem;
-  }
-
-  #add-member-form {
-    margin-top: 1rem;
-  }
-
-  #add-member-form h3 {
-    font-size: 1.15rem;
-    margin: 0;
   }
 
   form {

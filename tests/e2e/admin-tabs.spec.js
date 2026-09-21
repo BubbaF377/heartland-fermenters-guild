@@ -58,23 +58,63 @@ test.describe('Admin — Recipes and Members tabs', () => {
     await expect(tab(page, 'Add a Recipe')).toBeVisible();
   });
 
-  test('the Members tab shows members and hides recipes', async ({ page }) => {
-    await loginAsAdmin(page);
+  test('the Members tab opens on Member List, with Add a Member beside it', async ({ page }) => {
+    await loginAsAdmin(page, {
+      members: [{ name: 'Jamie Rivera', email: 'jamie@example.com', active: true, created_at: '2026-08-20T00:00:00Z' }],
+    });
     await openAdminTab(page, 'Members');
 
     await expect(tab(page, 'Members')).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByRole('heading', { name: 'Add a member' })).toBeVisible();
+    await expect(tab(page, 'Member List')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#members-list .recipe-row')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Add a Member' })).toBeHidden();
     await expect(tab(page, 'Stored Recipes')).toBeHidden();
+
+    await openAdminTab(page, 'Add a Member');
+    await expect(page.getByRole('heading', { name: 'Add a Member' })).toBeVisible();
+    await expect(page.locator('#members-list')).toBeHidden();
   });
 
-  for (const [name, hash] of [
-    ['Pending Recipes', '#pending'],
-    ['Add a Recipe', '#add-recipe'],
-    ['Members', '#members'],
+  test('Edit on a member opens the form tab, renamed "Edit Member"; Cancel returns to Member List', async ({ page }) => {
+    await loginAsAdmin(page, {
+      members: [{ name: 'Jamie Rivera', email: 'jamie@example.com', active: true, created_at: '2026-08-20T00:00:00Z' }],
+    });
+    await openAdminTab(page, 'Members');
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await expect(tab(page, 'Edit Member')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByLabel('Member name')).toHaveValue('Jamie Rivera');
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(tab(page, 'Member List')).toHaveAttribute('aria-selected', 'true');
+    await expect(tab(page, 'Add a Member')).toBeVisible();
+  });
+
+  test('switching top-level tabs keeps each one\'s sub-tab', async ({ page }) => {
+    await loginAsAdmin(page);
+    await openAdminTab(page, 'Pending Recipes');
+    await openAdminTab(page, 'Members');
+    await openAdminTab(page, 'Add a Member');
+
+    await page.locator('#tab-recipes').click();
+    await expect(tab(page, 'Pending Recipes')).toHaveAttribute('aria-selected', 'true');
+    await expect(page).toHaveURL(/\/admin\/#pending$/);
+
+    await openAdminTab(page, 'Members');
+    await expect(tab(page, 'Add a Member')).toHaveAttribute('aria-selected', 'true');
+    await expect(page).toHaveURL(/\/admin\/#add-member$/);
+  });
+
+  // [view, its address, the tabs to click to get there]
+  for (const [name, hash, path] of [
+    ['Pending Recipes', '#pending', ['Pending Recipes']],
+    ['Add a Recipe', '#add-recipe', ['Add a Recipe']],
+    ['Member List', '#members', ['Members']],
+    ['Add a Member', '#add-member', ['Members', 'Add a Member']],
   ]) {
     test(`the "${name}" view is remembered in the address (${hash}) across a reload`, async ({ page }) => {
       await loginAsAdmin(page);
-      await openAdminTab(page, name);
+      for (const step of path) await openAdminTab(page, step);
       await expect(page).toHaveURL(new RegExp(`/admin/${hash}$`));
 
       await page.reload();

@@ -1,9 +1,15 @@
-import { test, expect, getMember, loginAsAdmin } from './emulator.js';
+import { test, expect, getMember, loginAsAdmin, openAdminTab } from './emulator.js';
 
-// Members live on their own tab of the admin page.
+// Members live on their own tab of the admin page, which opens on Member List.
 async function loginToMembersTab(page, seed) {
   await loginAsAdmin(page, seed);
-  await page.getByRole('tab', { name: 'Members' }).click();
+  await openAdminTab(page, 'Members');
+}
+
+// The add form is the Members tab's other sub-tab.
+async function loginToMemberForm(page, seed) {
+  await loginToMembersTab(page, seed);
+  await openAdminTab(page, 'Add a Member');
 }
 
 const activeMember = {
@@ -43,7 +49,7 @@ test.describe('Admin — members', () => {
   });
 
   test('adding a member stores their name, lowercased email, and phone, as active', async ({ page }) => {
-    await loginToMembersTab(page);
+    await loginToMemberForm(page);
 
     await page.getByLabel('Member name').fill('Jamie Rivera');
     await page.getByLabel(/^Member email/).fill('Jamie@Example.com');
@@ -63,7 +69,7 @@ test.describe('Admin — members', () => {
   });
 
   test('phone is optional; name and email are required', async ({ page }) => {
-    await loginToMembersTab(page);
+    await loginToMemberForm(page);
 
     await page.getByLabel(/^Member email/).fill('sam@example.com');
     await page.getByRole('button', { name: 'Add Member' }).click();
@@ -77,7 +83,7 @@ test.describe('Admin — members', () => {
   });
 
   test('adding a duplicate email shows a specific error and leaves the member as-is', async ({ page }) => {
-    await loginToMembersTab(page, { members: [inactiveMember] });
+    await loginToMemberForm(page, { members: [inactiveMember] });
 
     await page.getByLabel('Member name').fill('Someone Else');
     await page.getByLabel(/^Member email/).fill(inactiveMember.email);
@@ -109,7 +115,7 @@ test.describe('Admin — edit a member', () => {
     await loginToMembersTab(page, { members: [activeMember] });
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Edit member' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edit Member' })).toBeVisible();
     await expect(page.getByLabel('Member name')).toHaveValue(activeMember.name);
     await expect(page.getByLabel(/^Member email/)).toHaveValue(activeMember.email);
     await expect(page.getByLabel(/^Member phone/)).toHaveValue('(402) 555-0134');
@@ -132,7 +138,7 @@ test.describe('Admin — edit a member', () => {
       active: true,
     });
     // Back to adding.
-    await expect(page.getByRole('heading', { name: 'Add a member' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Add a Member' })).toBeVisible();
     await expect(page.getByLabel('Member name')).toHaveValue('');
   });
 
@@ -176,19 +182,22 @@ test.describe('Admin — edit a member', () => {
 
     await expect(page.locator('#add-member-status')).toContainText('Another member already has that email.');
     // Still in edit mode, so the admin can fix the email and try again.
-    await expect(page.getByRole('heading', { name: 'Edit member' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edit Member' })).toBeVisible();
     expect(await getMember(activeMember.email)).toMatchObject({ name: activeMember.name, active: true });
     expect(await getMember(inactiveMember.email)).toMatchObject({ active: false });
   });
 
-  test('Cancel returns to adding without saving', async ({ page }) => {
+  test('Cancel returns to the member list without saving', async ({ page }) => {
     await loginToMembersTab(page, { members: [activeMember] });
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
     await page.getByLabel('Member name').fill('Not Saved');
 
     await page.getByRole('button', { name: 'Cancel' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Add a member' })).toBeVisible();
+    // Back to the list, with the form reset to adding.
+    await expect(page.getByRole('tab', { name: 'Member List' })).toHaveAttribute('aria-selected', 'true');
+    await openAdminTab(page, 'Add a Member');
+    await expect(page.getByRole('heading', { name: 'Add a Member' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Add Member' })).toBeVisible();
     await expect(page.getByLabel('Member name')).toHaveValue('');
     expect(await getMember(activeMember.email)).toMatchObject({ name: activeMember.name });
@@ -198,7 +207,7 @@ test.describe('Admin — edit a member', () => {
 test.describe('Admin — member phone numbers', () => {
   for (const typed of ['4025550134', '(402) 555-0134', '402-555-0134']) {
     test(`accepts "${typed}", stores the digits, and shows (402) 555-0134`, async ({ page }) => {
-      await loginToMembersTab(page);
+      await loginToMemberForm(page);
       await page.getByLabel('Member name').fill('Jamie Rivera');
       await page.getByLabel(/^Member email/).fill('jamie@example.com');
       await page.getByLabel(/^Member phone/).fill(typed);
@@ -210,7 +219,7 @@ test.describe('Admin — member phone numbers', () => {
   }
 
   test('a valid phone is tidied into (402) 555-0134 when leaving the field', async ({ page }) => {
-    await loginToMembersTab(page);
+    await loginToMemberForm(page);
     const phone = page.getByLabel(/^Member phone/);
     await phone.fill('402-555-0134');
     await page.getByLabel('Member name').focus();
@@ -223,7 +232,7 @@ test.describe('Admin — member phone numbers', () => {
   });
 
   test('a phone that is not 10 digits is refused and nothing is saved', async ({ page }) => {
-    await loginToMembersTab(page);
+    await loginToMemberForm(page);
     await page.getByLabel('Member name').fill('Jamie Rivera');
     await page.getByLabel(/^Member email/).fill('jamie@example.com');
     await page.getByLabel(/^Member phone/).fill('555-0134');
