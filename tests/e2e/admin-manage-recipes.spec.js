@@ -26,7 +26,7 @@ test.describe('Admin — recipe list', () => {
     await loginAsAdmin(page, { recipes: [fullRecipe] });
     await page.reload();
 
-    await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Stored Recipes' })).toBeVisible();
     await expect(page.locator('#recipe-list .recipe-row')).toHaveCount(1);
   });
 });
@@ -92,6 +92,10 @@ test.describe('Admin — edit a recipe', () => {
 
     await page.getByRole('button', { name: 'Cancel' }).click();
 
+    // Back to the list the Edit came from, with the form reset to adding.
+    await expect(page.getByRole('tab', { name: 'Stored Recipes' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tab', { name: 'Add a Recipe' })).toBeVisible();
+    await page.getByRole('tab', { name: 'Add a Recipe' }).click();
     await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Save Recipe' })).toBeVisible();
     await expect(page.getByLabel('Title')).toHaveValue('');

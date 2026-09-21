@@ -169,7 +169,8 @@ export async function signInAsMember(page, email) {
 
 // Logs in through the real UI rather than poking at DOM state directly, so each
 // spec exercises the actual login flow. Seeds any recipes/members first, since
-// logging in immediately loads both admin lists.
+// logging in immediately loads both admin lists. Lands on Recipes → Stored
+// Recipes, the admin page's default view.
 export async function loginAsAdmin(page, { recipes = [], members = [] } = {}) {
   await seedRecipes(recipes);
   await seedMembers(members);
@@ -177,7 +178,13 @@ export async function loginAsAdmin(page, { recipes = [], members = [] } = {}) {
   await page.goto('/admin/');
   await page.getByLabel('Password').fill(ADMIN_PASSWORD);
   await page.getByRole('button', { name: 'Log in' }).click();
-  await page.getByRole('heading', { name: 'Add a Recipe' }).waitFor();
+  await page.getByRole('tab', { name: 'Stored Recipes' }).waitFor();
+}
+
+// Opens an admin tab or Recipes sub-tab by its label: 'Members', 'Pending
+// Recipes', 'Add a Recipe', ...
+export async function openAdminTab(page, name) {
+  await page.getByRole('tab', { name }).click();
 }
 
 // Specs import `test`/`expect` from here instead of @playwright/test, so every test

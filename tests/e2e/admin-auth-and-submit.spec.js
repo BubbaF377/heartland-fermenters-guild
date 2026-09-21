@@ -1,4 +1,4 @@
-import { test, expect, createAdminUser, getRecipe, loginAsAdmin, photoExists, seedRecipes, signInAsMember, seedMembers, ADMIN_PASSWORD } from './emulator.js';
+import { test, expect, createAdminUser, getRecipe, loginAsAdmin, openAdminTab, photoExists, seedRecipes, signInAsMember, seedMembers, ADMIN_PASSWORD } from './emulator.js';
 import { minimalRecipe } from './fixtures/recipes.js';
 
 test.describe('Admin — login', () => {
@@ -16,13 +16,13 @@ test.describe('Admin — login', () => {
     await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeHidden();
   });
 
-  test('correct password reveals the add-a-recipe form', async ({ page }) => {
+  test('correct password reveals the admin panel', async ({ page }) => {
     await page.goto('/admin/');
 
     await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Log in' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Stored Recipes' })).toBeVisible();
     await expect(page.locator('#login-section')).toBeHidden();
   });
 
@@ -40,6 +40,7 @@ test.describe('Admin — login', () => {
 test.describe('Admin — add a recipe', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await openAdminTab(page, 'Add a Recipe');
   });
 
   async function fillRequiredFields(page) {

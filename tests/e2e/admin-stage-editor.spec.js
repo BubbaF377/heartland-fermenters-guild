@@ -1,9 +1,10 @@
-import { test, expect, loginAsAdmin } from './emulator.js';
+import { test, expect, loginAsAdmin, openAdminTab } from './emulator.js';
 import { TIME_STAGE_SUGGESTIONS } from '../../src/lib/constants.js';
 
 test.describe('Admin — time-stage editor', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await openAdminTab(page, 'Add a Recipe');
   });
 
   test('the default category (Beer) shows its suggested stages with no interaction at all', async ({ page }) => {

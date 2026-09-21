@@ -36,70 +36,86 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       </div>
 
       <div id="panel-recipes" role="tabpanel" aria-labelledby="tab-recipes">
-        <h2>Pending Recipes</h2>
-        <p id="pending-list-status" class="status">Loading&hellip;</p>
-        <ul id="pending-list" class="recipe-list" hidden></ul>
+        <div class="admin-subtabs" role="tablist" aria-label="Recipes">
+          <button type="button" role="tab" id="subtab-stored" aria-controls="subpanel-stored" aria-selected="true">
+            Stored Recipes
+          </button>
+          <button type="button" role="tab" id="subtab-pending" aria-controls="subpanel-pending" aria-selected="false" tabindex="-1">
+            Pending Recipes<span id="pending-count" class="tab-count" hidden></span>
+          </button>
+          <button type="button" role="tab" id="subtab-form" aria-controls="subpanel-form" aria-selected="false" tabindex="-1">
+            Add a Recipe
+          </button>
+        </div>
 
-        <h2>Recipes</h2>
-        <p id="recipe-list-status" class="status">Loading recipes&hellip;</p>
-        <ul id="recipe-list" class="recipe-list" hidden></ul>
+        <div id="subpanel-stored" role="tabpanel" aria-labelledby="subtab-stored">
+          <p id="recipe-list-status" class="status">Loading recipes&hellip;</p>
+          <ul id="recipe-list" class="recipe-list" hidden></ul>
+        </div>
 
-        <h2 id="recipe-form-heading">Add a Recipe</h2>
-        <form id="recipe-form">
-          <label for="title">Title</label>
-          <input type="text" id="title" name="title" required />
+        <div id="subpanel-pending" role="tabpanel" aria-labelledby="subtab-pending" hidden>
+          <p id="pending-list-status" class="status">Loading&hellip;</p>
+          <ul id="pending-list" class="recipe-list" hidden></ul>
+        </div>
 
-          <label for="category">Category</label>
-          <select id="category" name="category" required>
-            {RECIPE_CATEGORIES.map((category) => <option value={category}>{category}</option>)}
-          </select>
+        <div id="subpanel-form" role="tabpanel" aria-labelledby="subtab-form" hidden>
+          <h2 id="recipe-form-heading">Add a Recipe</h2>
+          <form id="recipe-form">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required />
 
-          <label for="summary">Short summary</label>
-          <textarea id="summary" name="summary" rows="2"></textarea>
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+              {RECIPE_CATEGORIES.map((category) => <option value={category}>{category}</option>)}
+            </select>
 
-          <label for="photo">Photo <span class="hint">(optional)</span></label>
-          <input
-            type="file"
-            id="photo"
-            name="photo"
-            accept={Object.keys(PHOTO_TYPES).join(',')}
-            aria-describedby="photo-requirements"
-          />
-          <p id="photo-requirements" class="field-note">
-            {PHOTO_TYPE_NAMES}, up to {MAX_PHOTO_MB} MB. Landscape photos work best, at least 1200&nbsp;px
-            wide. The recipe page crops photos to a wide frame, so keep the dish near the center.
-          </p>
-          <p id="photo-error" class="field-error" role="alert" hidden></p>
+            <label for="summary">Short summary</label>
+            <textarea id="summary" name="summary" rows="2"></textarea>
 
-          <label for="video_url">How-to video <span class="hint">(optional — a YouTube link)</span></label>
-          <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." />
+            <label for="photo">Photo <span class="hint">(optional)</span></label>
+            <input
+              type="file"
+              id="photo"
+              name="photo"
+              accept={Object.keys(PHOTO_TYPES).join(',')}
+              aria-describedby="photo-requirements"
+            />
+            <p id="photo-requirements" class="field-note">
+              {PHOTO_TYPE_NAMES}, up to {MAX_PHOTO_MB} MB. Landscape photos work best, at least 1200&nbsp;px
+              wide. The recipe page crops photos to a wide frame, so keep the dish near the center.
+            </p>
+            <p id="photo-error" class="field-error" role="alert" hidden></p>
 
-          <label for="yield_text">Yield / servings <span class="hint">(optional)</span></label>
-          <input type="text" id="yield_text" name="yield_text" placeholder="e.g. About 1 quart" />
+            <label for="video_url">How-to video <span class="hint">(optional — a YouTube link)</span></label>
+            <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." />
 
-          <label id="time-stages-label">Time stages <span class="hint">(optional — e.g. Prep, Ferment, Bake)</span></label>
-          <div id="time-stages-list" aria-labelledby="time-stages-label"></div>
-          <button type="button" id="add-stage-button" class="secondary stage-add">+ Add stage</button>
+            <label for="yield_text">Yield / servings <span class="hint">(optional)</span></label>
+            <input type="text" id="yield_text" name="yield_text" placeholder="e.g. About 1 quart" />
 
-          <label for="ingredients">Ingredients <span class="hint">(one per line)</span></label>
-          <textarea id="ingredients" name="ingredients" rows="6" required></textarea>
+            <label id="time-stages-label">Time stages <span class="hint">(optional — e.g. Prep, Ferment, Bake)</span></label>
+            <div id="time-stages-list" aria-labelledby="time-stages-label"></div>
+            <button type="button" id="add-stage-button" class="secondary stage-add">+ Add stage</button>
 
-          <label for="instructions">Instructions <span class="hint">(one step per line)</span></label>
-          <textarea id="instructions" name="instructions" rows="8" required></textarea>
+            <label for="ingredients">Ingredients <span class="hint">(one per line)</span></label>
+            <textarea id="ingredients" name="ingredients" rows="6" required></textarea>
 
-          <label for="notes">Notes &amp; tips <span class="hint">(optional)</span></label>
-          <textarea id="notes" name="notes" rows="3"></textarea>
+            <label for="instructions">Instructions <span class="hint">(one step per line)</span></label>
+            <textarea id="instructions" name="instructions" rows="8" required></textarea>
 
-          <label for="submitted_by">Your name <span class="hint">(optional)</span></label>
-          <input type="text" id="submitted_by" name="submitted_by" />
+            <label for="notes">Notes &amp; tips <span class="hint">(optional)</span></label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
 
-          <div class="form-actions">
-            <button type="submit" id="save-button">Save Recipe</button>
-            <button type="button" id="preview-button" class="secondary">Preview</button>
-            <button type="button" id="cancel-edit-button" class="secondary" hidden>Cancel</button>
-          </div>
-        </form>
-        <p id="recipe-status" class="status" hidden></p>
+            <label for="submitted_by">Your name <span class="hint">(optional)</span></label>
+            <input type="text" id="submitted_by" name="submitted_by" />
+
+            <div class="form-actions">
+              <button type="submit" id="save-button">Save Recipe</button>
+              <button type="button" id="preview-button" class="secondary">Preview</button>
+              <button type="button" id="cancel-edit-button" class="secondary" hidden>Cancel</button>
+            </div>
+          </form>
+          <p id="recipe-status" class="status" hidden></p>
+        </div>
       </div>
 
       <div id="panel-members" role="tabpanel" aria-labelledby="tab-members" hidden>
@@ -176,6 +192,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     const previewButton = document.getElementById('preview-button');
     const pendingListStatus = document.getElementById('pending-list-status');
     const pendingList = document.getElementById('pending-list');
+    const pendingCount = document.getElementById('pending-count');
     const recipeListStatus = document.getElementById('recipe-list-status');
     const recipeList = document.getElementById('recipe-list');
     const membersStatus = document.getElementById('members-status');
@@ -203,45 +220,81 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       categorySelect,
     });
 
-    // --- Tabs: Recipes and Members ---
+    // --- Tabs: Recipes (Stored / Pending / Add a Recipe) and Members ---
 
-    // Standard ARIA tabs: only the selected tab is in the Tab order, and the
-    // arrow keys (plus Home/End) move between tabs and select as they go. The
-    // Members tab is remembered in the URL (#members), so a reload or a
-    // bookmark lands back on it.
-    const tabs = [...document.querySelectorAll('.admin-tabs [role="tab"]')];
+    // Two groups of standard ARIA tabs: the top-level strip, and the Recipes
+    // tab's own sub-tabs. In each group only the selected tab is in the Tab
+    // order, and the arrow keys (plus Home/End) move between tabs and select as
+    // they go. The view is remembered in the URL, so a reload or a bookmark
+    // lands back on it: no hash is Recipes → Stored Recipes.
+    const VIEW_HASHES = {
+      'subtab-pending': '#pending',
+      'subtab-form': '#add-recipe',
+      'tab-members': '#members',
+    };
 
-    function selectTab(tab, { focus = false } = {}) {
-      for (const each of tabs) {
-        const selected = each === tab;
-        each.setAttribute('aria-selected', String(selected));
-        each.tabIndex = selected ? 0 : -1;
-        document.getElementById(each.getAttribute('aria-controls')).hidden = !selected;
+    function wireTabGroup(tablist) {
+      const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+      const group = {
+        tabs,
+        selected: tabs[0],
+        select(tab, { focus = false } = {}) {
+          for (const each of tabs) {
+            const isSelected = each === tab;
+            each.setAttribute('aria-selected', String(isSelected));
+            each.tabIndex = isSelected ? 0 : -1;
+            document.getElementById(each.getAttribute('aria-controls')).hidden = !isSelected;
+          }
+          group.selected = tab;
+          if (focus) tab.focus();
+          rememberView();
+        },
+      };
+      for (const tab of tabs) {
+        tab.addEventListener('click', () => group.select(tab));
+        tab.addEventListener('keydown', (event) => {
+          const index = tabs.indexOf(tab);
+          const next = {
+            ArrowRight: tabs[(index + 1) % tabs.length],
+            ArrowLeft: tabs[(index - 1 + tabs.length) % tabs.length],
+            Home: tabs[0],
+            End: tabs[tabs.length - 1],
+          }[event.key];
+          if (!next) return;
+          event.preventDefault();
+          group.select(next, { focus: true });
+        });
       }
-      if (focus) tab.focus();
-      const hash = tab.id === 'tab-members' ? '#members' : '';
+      return group;
+    }
+
+    const topTabs = wireTabGroup(document.querySelector('.admin-tabs'));
+    const recipeTabs = wireTabGroup(document.querySelector('.admin-subtabs'));
+    const recipeFormTab = document.getElementById('subtab-form');
+
+    // Only runs from a tab selection, which happens after both groups exist.
+    function rememberView() {
+      const view = topTabs.selected.id === 'tab-members' ? topTabs.selected : recipeTabs.selected;
+      const hash = VIEW_HASHES[view.id] || '';
       if (window.location.hash !== hash) {
         window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
       }
     }
 
-    for (const tab of tabs) {
-      tab.addEventListener('click', () => selectTab(tab));
-      tab.addEventListener('keydown', (event) => {
-        const index = tabs.indexOf(tab);
-        const next = {
-          ArrowRight: tabs[(index + 1) % tabs.length],
-          ArrowLeft: tabs[(index - 1 + tabs.length) % tabs.length],
-          Home: tabs[0],
-          End: tabs[tabs.length - 1],
-        }[event.key];
-        if (!next) return;
-        event.preventDefault();
-        selectTab(next, { focus: true });
-      });
+    // Opens a given view: a top-level tab, or a Recipes sub-tab (which also
+    // selects the Recipes tab around it).
+    function showView(tabId) {
+      const tab = document.getElementById(tabId);
+      if (recipeTabs.tabs.includes(tab)) {
+        topTabs.select(document.getElementById('tab-recipes'));
+        recipeTabs.select(tab);
+      } else {
+        topTabs.select(tab);
+      }
     }
 
-    selectTab(window.location.hash === '#members' ? document.getElementById('tab-members') : tabs[0]);
+    const viewFromHash = Object.keys(VIEW_HASHES).find((id) => VIEW_HASHES[id] === window.location.hash);
+    showView(viewFromHash || 'subtab-stored');
 
     // --- Recipe + pending-recipe lists (Requirements #14, #16) ---
 
@@ -286,6 +339,11 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
 
       const pending = data.filter((recipe) => recipe.status === 'pending');
       const others = data.filter((recipe) => recipe.status !== 'pending');
+
+      // A count on the Pending tab, so submissions waiting for review get
+      // noticed without opening that tab.
+      pendingCount.textContent = pending.length ? ` (${pending.length})` : '';
+      pendingCount.hidden = pending.length === 0;
 
       if (pending.length === 0) {
         pendingListStatus.textContent = 'No pending submissions.';
@@ -430,9 +488,11 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       photoInput.value = '';
 
       formHeading.textContent = 'Edit Recipe';
+      recipeFormTab.textContent = 'Edit Recipe';
       saveButton.textContent = 'Update Recipe';
       cancelEditButton.hidden = false;
       recipeStatus.hidden = true;
+      showView('subtab-form');
       recipeForm.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -446,11 +506,17 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       // "change" event, same gap as the initial page load).
       resetStageSuggestions();
       formHeading.textContent = 'Add a Recipe';
+      recipeFormTab.textContent = 'Add a Recipe';
       saveButton.textContent = 'Save Recipe';
       cancelEditButton.hidden = true;
     }
 
-    cancelEditButton.addEventListener('click', stopEditing);
+    // Cancel goes back to the list the Edit came from; a successful save stays
+    // on the form, where its "Saved — View the recipe" message is.
+    cancelEditButton.addEventListener('click', () => {
+      stopEditing();
+      showView('subtab-stored');
+    });
 
     wirePhotoInput(photoInput, photoError);
 
@@ -964,21 +1030,21 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
 
   .admin-tabs {
     display: flex;
-    gap: 0.25rem;
-    margin-top: 1.25rem;
+    gap: 0.35rem;
+    margin-top: 1.5rem;
     border-bottom: 1px solid rgba(44, 30, 18, 0.2);
   }
 
   /* Overrides the page's filled green button style: tabs read as a strip. */
   .admin-tabs button[role='tab'] {
     margin: 0 0 -1px;
-    padding: 0.6rem 1.1rem;
+    padding: 0.8rem 1.6rem;
     background: transparent;
     color: var(--brown);
     border: none;
-    border-bottom: 3px solid transparent;
-    border-radius: 6px 6px 0 0;
-    font-size: 1.05rem;
+    border-bottom: 4px solid transparent;
+    border-radius: 8px 8px 0 0;
+    font-size: 1.35rem;
   }
 
   .admin-tabs button[role='tab']:hover {
@@ -995,6 +1061,42 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     background: var(--cream);
     outline: 2px solid var(--green-deep);
     outline-offset: -2px;
+  }
+
+  /* Second-level tabs inside Recipes: smaller pills, so the two levels read
+     as different things. */
+  .admin-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0 1.25rem;
+  }
+
+  .admin-subtabs button[role='tab'] {
+    margin: 0;
+    padding: 0.45rem 1rem;
+    background: transparent;
+    color: var(--brown-deep);
+    /* 0.55, not the 0.3 other secondary buttons use: 0.3 measures 1.9:1
+       against the page, under the 3:1 an interactive boundary needs. */
+    border: 1px solid rgba(44, 30, 18, 0.55);
+    border-radius: 999px;
+    font-size: 1rem;
+  }
+
+  .admin-subtabs button[role='tab']:hover {
+    background: var(--cream);
+  }
+
+  .admin-subtabs button[role='tab'][aria-selected='true'] {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    color: var(--cream-light);
+  }
+
+  .admin-subtabs button[role='tab']:focus-visible {
+    outline: 2px solid var(--green-deep);
+    outline-offset: 2px;
   }
 
   .field-note {

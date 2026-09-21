@@ -1,4 +1,4 @@
-import { test, expect, listRecipeSlugs, loginAsAdmin, seedMembers, seedRecipes, signInAsMember } from './emulator.js';
+import { test, expect, listRecipeSlugs, loginAsAdmin, openAdminTab, seedMembers, seedRecipes, signInAsMember } from './emulator.js';
 import { fullRecipe } from './fixtures/recipes.js';
 
 // Clicks the form's Preview button and returns the tab it opens.
@@ -23,6 +23,7 @@ async function fillRecipe(page) {
 test.describe('Recipe preview — admin', () => {
   test('shows the unsaved recipe on the real recipe page, including a not-yet-uploaded photo', async ({ page }) => {
     await loginAsAdmin(page);
+    await openAdminTab(page, 'Add a Recipe');
     await fillRecipe(page);
     await page.setInputFiles('#photo', {
       name: 'pickles.png',
@@ -54,6 +55,7 @@ test.describe('Recipe preview — admin', () => {
 
   test('previewing again updates the same preview tab', async ({ page }) => {
     await loginAsAdmin(page);
+    await openAdminTab(page, 'Add a Recipe');
     await fillRecipe(page);
     const preview = await openPreview(page);
     await expect(preview.locator('#recipe-title')).toHaveText('Preview Pickles');
@@ -85,6 +87,7 @@ test.describe('Recipe preview — admin', () => {
 
   test('an empty form still previews, with a placeholder title', async ({ page }) => {
     await loginAsAdmin(page);
+    await openAdminTab(page, 'Add a Recipe');
     const preview = await openPreview(page);
     await expect(preview.locator('#recipe-title')).toHaveText('Untitled recipe');
   });
