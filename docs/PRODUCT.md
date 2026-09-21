@@ -109,11 +109,15 @@ Hard requirements as they get locked in, separate from the discovery narrative a
 
     2026-09-21: at phone width, list rows used to squeeze the title down to a couple of letters and let the buttons overlap the text; the row layout never wrapped. Found in a phone-width screenshot of the pending queue; the same row layout is used for recipes and members, so both were affected.
 
-    2026-09-21: secondary buttons (Edit, Deactivate, Log out, Cancel, and similar) had outlines measuring 1.9:1 against the page, under the 3:1 an interactive boundary needs. Darkened to 3.6:1 against the page and 3.5:1 against the list rows. Form fields still use the lighter outline — see Open questions.
+    2026-09-21: secondary buttons (Edit, Deactivate, Log out, Cancel, and similar) had outlines measuring 1.9:1 against the page, under the 3:1 an interactive boundary needs. Darkened to 3.6:1 against the page and 3.5:1 against the list rows. Form fields still use the lighter outline — see below.
+
+    2026-09-21: form fields (text boxes, dropdowns, file inputs) keep the lighter outline, measured at 1.9:1 against the page — reviewed and left as is: the admin judged they look fine.
+
+19. The Members tab's Member List has an **Email all members** button that opens the admin's own email app with every active member who has an email in **BCC** (so members don't see each other's addresses), and a **Copy emails** button that copies the same addresses, comma-separated, for pasting into any email service. It shows how many members that is. Deactivated members and members without an email are left out. The admin writes the message and adds any attachments in their own email app — the site itself doesn't send email. If the list is too long for an email link (some browsers and mail apps drop very long ones), the Email button gives way to a note to use Copy; if copying is blocked by the browser, the addresses are shown, selected, to copy by hand.
+
+    **History.** 2026-09-21: chosen over a built-in email tool (compose on the admin page, attachments, sent history, sent through an email service via Firebase's Trigger Email extension). That needs an email provider account and DNS records for the guild domain, since a static site can't hold a mail password; it remains the next step if emailing members becomes frequent.
 
 ## Open questions
-
-- Form fields (text boxes, dropdowns, file inputs) on the admin page and `/submit/` still have outlines measuring 1.9:1 against the page, the same shortfall the buttons had (Requirement #18). Not changed yet: raised alongside the button fix but not asked for.
 
 - Whether Requirement #16 actually launches — open. If it doesn't, the Firestore data model/Security Rules/pages can stay in place unused rather than needing to be ripped out; nothing about it is destructive to remove either way.
 - The member email-link sign-in email currently sends from Firebase's default shared address. Firebase Authentication's console lets you customize the sender name, reply-to address, and subject line on the default template without any extra setup — worth doing regardless, and a lower bar than Supabase's default mailer required. Sending from the guild's own domain (`heartlandfermentersguild.org`) instead of Firebase's shared address needs the separate [custom-domain-for-Auth-emails](https://firebase.google.com/docs/auth/email-custom-domain) flow (domain verification + DNS records) — deferred, planned for later, not done yet.

@@ -129,6 +129,15 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         </div>
 
         <div id="subpanel-member-list" role="tabpanel" aria-labelledby="subtab-member-list">
+          <div id="member-email-tools" class="member-email-tools" hidden>
+            <p id="member-email-count"></p>
+            <div class="member-email-actions">
+              <a id="email-all-link" class="button-link primary">Email all members</a>
+              <button type="button" id="copy-emails-button" class="secondary">Copy emails</button>
+            </div>
+            <p id="member-email-note" class="field-note" hidden></p>
+            <textarea id="member-email-fallback" class="member-email-fallback" rows="3" readonly hidden aria-label="Addresses to copy"></textarea>
+          </div>
           <p id="members-status" class="status">Loading members&hellip;</p>
           <ul id="members-list" class="recipe-list" hidden></ul>
         </div>
@@ -210,6 +219,12 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     const recipeList = document.getElementById('recipe-list');
     const membersStatus = document.getElementById('members-status');
     const membersList = document.getElementById('members-list');
+    const memberEmailTools = document.getElementById('member-email-tools');
+    const memberEmailCount = document.getElementById('member-email-count');
+    const emailAllLink = document.getElementById('email-all-link');
+    const copyEmailsButton = document.getElementById('copy-emails-button');
+    const memberEmailNote = document.getElementById('member-email-note');
+    const memberEmailFallback = document.getElementById('member-email-fallback');
     const addMemberForm = document.getElementById('add-member-form');
     const addMemberStatus = document.getElementById('add-member-status');
     const memberFormHeading = document.getElementById('member-form-heading');
@@ -644,6 +659,8 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         return;
       }
 
+      updateEmailTools(data);
+
       if (data.length === 0) {
         membersStatus.textContent = 'No members yet.';
         return;
@@ -653,6 +670,63 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       membersStatus.hidden = true;
       membersList.hidden = false;
     }
+
+    // --- Email all members (Requirement #19) ---
+
+    // The site can't send email itself (that needs a server holding a mail
+    // password), so this hands the addresses to the admin's own email app:
+    // everyone in BCC, so members don't see each other's addresses. Only active
+    // members with an email are included.
+    let memberEmails = [];
+
+    // Some browsers and mail apps quietly drop a mailto: link much longer than
+    // this, so past it the Email button gives way to Copy.
+    const MAX_MAILTO_LENGTH = 1900;
+
+    function updateEmailTools(members) {
+      memberEmails = members.filter((m) => m.active && m.email).map((m) => m.email);
+      memberEmailNote.hidden = true;
+      memberEmailFallback.hidden = true;
+      memberEmailTools.hidden = members.length === 0;
+
+      const n = memberEmails.length;
+      memberEmailCount.textContent =
+        n === 0
+          ? 'No active members have an email yet.'
+          : `${n} active ${n === 1 ? 'member has' : 'members have'} an email.`;
+      copyEmailsButton.hidden = n === 0;
+
+      const href = `mailto:?bcc=${memberEmails.map(encodeURIComponent).join(',')}`;
+      const tooLong = href.length > MAX_MAILTO_LENGTH;
+      emailAllLink.hidden = n === 0 || tooLong;
+      emailAllLink.href = n === 0 ? '' : href;
+      if (n > 0 && tooLong) {
+        memberEmailNote.textContent =
+          'Too many addresses for your email app to open in one go. Use Copy emails, then paste them into the BCC field of a new message.';
+        memberEmailNote.hidden = false;
+      }
+    }
+
+    copyEmailsButton.addEventListener('click', async () => {
+      const text = memberEmails.join(', ');
+      try {
+        await navigator.clipboard.writeText(text);
+        memberEmailNote.textContent =
+          memberEmails.length === 1
+            ? 'Copied 1 email. Paste it into the BCC field of a new message.'
+            : `Copied ${memberEmails.length} emails. Paste them into the BCC field of a new message.`;
+        memberEmailNote.hidden = false;
+        memberEmailFallback.hidden = true;
+      } catch {
+        // Clipboard access can be refused (browser settings, older browsers):
+        // show the addresses, selected, to copy by hand.
+        memberEmailNote.textContent = "Couldn't copy automatically — the emails are selected below; press Cmd+C (or Ctrl+C) to copy them.";
+        memberEmailNote.hidden = false;
+        memberEmailFallback.value = text;
+        memberEmailFallback.hidden = false;
+        memberEmailFallback.select();
+      }
+    });
 
     function buildMemberRow(member) {
       const li = document.createElement('li');
@@ -1067,6 +1141,11 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     border-radius: 8px;
   }
 
+  /* display: inline-flex above would otherwise override the hidden attribute. */
+  .button-link[hidden] {
+    display: none;
+  }
+
   .admin-bar {
     display: flex;
     align-items: center;
@@ -1224,6 +1303,46 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .member-email-tools {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(44, 30, 18, 0.15);
+  }
+
+  .member-email-tools p {
+    margin: 0 0 0.6rem;
+  }
+
+  .member-email-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .button-link.primary {
+    background: var(--green-deep);
+    color: var(--cream-light);
+  }
+
+  .button-link.primary:hover,
+  .button-link.primary:focus-visible {
+    background: var(--green);
+  }
+
+  /* The link and the button side by side: same size, whatever their base styles. */
+  .member-email-actions > a,
+  .member-email-actions > button {
+    margin-top: 0;
+    padding: 0.6rem 1.1rem;
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .member-email-fallback {
+    width: 100%;
+    margin-top: 0.6rem;
   }
 
   .member-contact {
