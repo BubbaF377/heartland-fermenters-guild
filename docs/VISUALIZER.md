@@ -1,94 +1,111 @@
-<!-- devlore:visualizer source-hash:3458f76c4608c85a10ca53ca5f52612dedb61408879b777a49ad71c827f49fb7 -->
+<!-- devlore:visualizer source-hash:980aed6e57a22c09431b1187fc6942e3ee95d23d1a284da6d7a1771e592cd3d0 -->
 > **Do not move, rename, or edit this file.** Devlore generates and maintains this diagram automatically from `docs/PRODUCT.md`'s requirements — manual edits will be overwritten the next time Devlore detects the requirements have changed. To change what's diagrammed, update `docs/PRODUCT.md` itself.
 
-Since a codebase snapshot is provided, the diagrams below reflect the actual file/module layout described (pages, layout, lib modules, tests) alongside the external services and tooling connections named in the docs.
+Since a codebase snapshot is included, these diagrams are grounded in both the snapshot and `PRODUCT.md`.
 
-This diagram shows how the Astro pages, shared layout, and the two `src/lib` modules relate to each other inside the repo, plus how the test suites target each layer.
+This diagram shows how the site's own Astro pages, shared layout, and `src/lib` helper modules relate to each other, plus the schema file that defines the database shape they talk to.
 
 ```mermaid
 graph TD
-    Layout["src/layouts/Layout.astro<br/>(header/nav/footer, social links,<br/>Starter Culture Studio credit)"]
+    Layout["src/layouts/Layout.astro<br/>(nav, footer, social links)"]
 
-    IndexPage["src/pages/index.astro<br/>(landing page)"]
-    RecipesList["src/pages/recipes/index.astro<br/>(recipe list, category field only)"]
-    RecipeView["src/pages/recipes/view.astro<br/>(single recipe via ?slug=)"]
-    AdminPage["src/pages/admin/index.astro<br/>(login + add/edit/delete recipe form)"]
+    Index["src/pages/index.astro<br/>(landing page)"]
+    RecipesList["src/pages/recipes/index.astro<br/>(recipe list, filters TBD)"]
+    RecipeView["src/pages/recipes/view.astro<br/>(?slug= detail page)"]
+    AdminPage["src/pages/admin/index.astro<br/>(login, add/edit/delete recipes,<br/>members list, pending queue)"]
+    SubmitPage["src/pages/submit/index.astro<br/>(member magic-link login + submit form)"]
     NotFound["src/pages/404.astro"]
 
-    Constants["src/lib/constants.js<br/>(categories, admin email,<br/>time-stage suggestions, slugify,<br/>list/newline parsing, YouTube ID parsing)"]
-    SupabaseClient["src/lib/supabase.js<br/>(browser Supabase client,<br/>publishable key, env vars)"]
+    Constants["src/lib/constants.js<br/>(categories, slugify, time-stage suggestions,<br/>admin email — no Supabase import)"]
+    SupabaseClient["src/lib/supabase.js<br/>(browser Supabase client, env vars)"]
+    RecipeForm["src/lib/recipe-form.js<br/>(shared form logic: time-stage editor,<br/>field reading, photo upload)"]
 
-    Schema["supabase/schema.sql<br/>(recipes table, RLS policies,<br/>recipe-photos bucket + policies)"]
+    Schema["supabase/schema.sql<br/>(recipes table, status column,<br/>active_members, RLS policies,<br/>is_admin()/is_active_member() fns,<br/>recipe-photos bucket policies)"]
 
-    IndexPage --> Layout
+    Index --> Layout
     RecipesList --> Layout
     RecipeView --> Layout
     AdminPage --> Layout
+    SubmitPage --> Layout
     NotFound --> Layout
 
     RecipesList --> SupabaseClient
-    RecipeView --> SupabaseClient
-    AdminPage --> SupabaseClient
-
     RecipesList --> Constants
+    RecipeView --> SupabaseClient
     RecipeView --> Constants
+
+    AdminPage --> SupabaseClient
     AdminPage --> Constants
+    AdminPage --> RecipeForm
 
-    SupabaseClient -. "reads/writes governed by" .-> Schema
+    SubmitPage --> SupabaseClient
+    SubmitPage --> Constants
+    SubmitPage --> RecipeForm
 
-    VitestTest["src/lib/constants.test.js<br/>(Vitest)"] --> Constants
-    PlaywrightTests["tests/e2e/*.spec.js<br/>(Playwright, against build+preview)"] --> IndexPage
-    PlaywrightTests --> RecipesList
-    PlaywrightTests --> RecipeView
-    PlaywrightTests --> AdminPage
-    MockSupabase["tests/e2e/mock-supabase.js<br/>(page.route() network mocks)"] --> PlaywrightTests
+    SupabaseClient -.enforced by.-> Schema
+
+    ConstTest["src/lib/constants.test.js<br/>(Vitest)"] --> Constants
+    E2E["tests/e2e/*.spec.js<br/>(Playwright, against build+preview)"] --> AdminPage
+    E2E --> SubmitPage
+    E2E --> RecipesList
+    E2E --> RecipeView
+    MockSupabase["tests/e2e/mock-supabase.js<br/>(page.route() network mocks)"] --> E2E
 ```
 
-This diagram shows the outside services the live site talks to directly from the browser (no backend server of its own), plus the deploy/DNS chain that gets it onto the internet.
+This diagram shows the outside services and third-party destinations the site talks to at runtime and at deploy time — there's no backend of its own, so the browser calls Supabase directly.
 
 ```mermaid
 graph LR
-    Browser["Site code running<br/>in visitor's/admin's browser"]
+    Browser["Visitor's browser<br/>(runs Astro-rendered pages)"]
 
-    SupaAuth["Supabase Auth<br/>(single admin@heartlandfermentersguild.org user)"]
-    SupaDB["Supabase Postgres<br/>(recipes table, via REST/PostgREST,<br/>RLS-enforced)"]
-    SupaStorage["Supabase Storage<br/>(recipe-photos public bucket)"]
-    YouTube["YouTube<br/>(video embed via extracted video ID)"]
+    subgraph Supabase["Supabase (managed Postgres + Auth + Storage)"]
+        SupaAuth["Supabase Auth<br/>(admin password login;<br/>member email magic link)"]
+        SupaDB["Postgres<br/>recipes, active_members<br/>(RLS-gated)"]
+        SupaStorage["Storage bucket<br/>recipe-photos<br/>(public read, admin write/delete)"]
+    end
+
+    YouTube["YouTube<br/>(video_url embeds, ID extracted at render)"]
     SCS["starterculturestudio.com<br/>(footer logo link only)"]
+    Social["Email / Facebook Page /<br/>Facebook Group / Instagram / Meetup<br/>(Join the Conversation links)"]
 
-    Browser -->|"login (Req #8)"| SupaAuth
-    Browser -->|"read/write recipes"| SupaDB
-    Browser -->|"upload/read recipe photos"| SupaStorage
-    Browser -->|"render embedded video"| YouTube
-    Browser -->|"outbound link"| SCS
+    Browser -->|"admin login / member OTP login"| SupaAuth
+    Browser -->|"select/insert/update/delete recipes,<br/>active_members via publishable key"| SupaDB
+    Browser -->|"upload/read/delete recipe photos"| SupaStorage
+    Browser -->|"embed via extracted video ID"| YouTube
+    Browser -->|"logo click-through"| SCS
+    Browser -->|"click-through"| Social
 
-    GHActions["GitHub Actions<br/>(withastro/action,<br/>triggered by v*.*.* tag push<br/>or manual dispatch)"]
+    GHActions["GitHub Actions<br/>(withastro/action)"]
     GHPages["GitHub Pages<br/>(static hosting)"]
-    Porkbun["Porkbun DNS<br/>(A records + www CNAME,<br/>nameservers *.ns.porkbun.com,<br/>resolution backend on Cloudflare)"]
-    Domain["heartlandfermentersguild.org"]
+    Porkbun["Porkbun DNS<br/>(A records + www CNAME,<br/>nameservers stay on Porkbun;<br/>resolution backend on Cloudflare,<br/>not a traffic proxy)"]
 
-    GHActions -->|"astro build + deploy"| GHPages
-    GHPages -->|"serves built site"| Browser
-    Porkbun -->|"resolves domain to GH Pages IPs"| Domain
-    Domain --> GHPages
+    GHActions -->|"build on v*.*.* tag push<br/>or workflow_dispatch"| GHPages
+    GHPages -->|"served at heartlandfermentersguild.org"| Porkbun
+    Porkbun -->|"resolves to"| GHPages
+    Browser -->|"HTTP"| GHPages
 ```
 
-The docs describe one real cross-repo connection — this project links to the external Devlore documentation tool via its workflows — so that's shown here rather than speculating about any other linked project.
+This diagram shows Devlore, the one external, cross-project tool with a real described connection to this repo — it isn't part of the shipped site, but it reads and generates project docs via dedicated workflows.
 
 ```mermaid
-graph TD
+graph LR
     ProductDoc["docs/PRODUCT.md<br/>(hand-edited source of truth)"]
-    DevloreWorkflows[".github/workflows/devlore*.yml<br/>(devlore.yml, devlore-analyze.yml,<br/>devlore-release.yml)"]
-    Devlore["Devlore<br/>(external, cross-project<br/>documentation automation tool)"]
-    TestPlan["docs/TEST_PLAN.md<br/>(machine-generated)"]
-    UserManual["docs/USER_MANUAL.md<br/>(machine-generated)"]
-    Visualizer["docs/VISUALIZER.md<br/>(machine-generated)"]
+    Repo["heartland-fermenters-guild repo<br/>(public on GitHub)"]
+
+    subgraph DevloreWorkflows[".github/workflows/devlore*.yml"]
+        DevloreMain["devlore.yml"]
+        DevloreAnalyze["devlore-analyze.yml"]
+        DevloreRelease["devlore-release.yml"]
+    end
+
+    Devlore["Devlore<br/>(external documentation automation tool)"]
+
+    Generated["Generated docs:<br/>docs/TEST_PLAN.md<br/>docs/USER_MANUAL.md<br/>docs/VISUALIZER.md"]
 
     ProductDoc --> DevloreWorkflows
-    DevloreWorkflows -->|"invokes"| Devlore
-    Devlore -->|"generates/maintains"| TestPlan
-    Devlore -->|"generates/maintains"| UserManual
-    Devlore -->|"generates/maintains"| Visualizer
-
-    Repo["heartland-fermenters-guild repo<br/>(public, linked via<br/>create-new-project wizard)"] --> Devlore
+    DevloreWorkflows --> Devlore
+    Devlore -->|"builds/answers questions from"| ProductDoc
+    Devlore -->|"maintains"| Generated
+    Devlore -.->|"release tag pattern v*.*.* shared with"| Repo
+    Repo --> DevloreWorkflows
 ```
