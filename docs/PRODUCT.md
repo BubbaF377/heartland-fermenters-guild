@@ -101,9 +101,17 @@ Hard requirements as they get locked in, separate from the discovery narrative a
 
 18. The admin page (`/admin/`) is split into two tabs, **Recipes** and **Members**. Recipes has three sub-tabs of its own: **Stored Recipes** (the recipe list, Requirement #14), **Pending Recipes** (the submission queue, Requirement #16), and **Add a Recipe** (the recipe form, Requirement #12); Members holds the member list and the add/edit member form (Requirement #16). The page opens on Recipes → Stored Recipes. The Pending Recipes tab shows how many submissions are waiting, e.g. "Pending Recipes (2)", so they get noticed without opening it. Editing a stored recipe switches to the form tab, relabeled "Edit Recipe"; Cancel returns to Stored Recipes. The current view is remembered in the address (`#pending`, `#add-recipe`, `#members`), so a reload or bookmark lands back on it. Both tab groups work from the keyboard (arrow keys, Home, End) and are announced as tabs by screen readers.
 
+    The admin page works at phone width: a list row whose buttons don't fit beside the title moves them to a line of their own. Every button and tab outline on the admin page and on `/submit/` has at least 3:1 contrast against its background.
+
     **History.** 2026-09-21: the tabs first had Recipes as one long page (pending queue, recipe list, then the form) and opened there so pending submissions were the first thing an admin saw. Recipes was then split into sub-tabs and the top tabs made larger; the pending count on the Pending Recipes tab took over the job of making submissions noticeable.
 
+    2026-09-21: at phone width, list rows used to squeeze the title down to a couple of letters and let the buttons overlap the text; the row layout never wrapped. Found in a phone-width screenshot of the pending queue; the same row layout is used for recipes and members, so both were affected.
+
+    2026-09-21: secondary buttons (Edit, Deactivate, Log out, Cancel, and similar) had outlines measuring 1.9:1 against the page, under the 3:1 an interactive boundary needs. Darkened to 3.6:1 against the page and 3.5:1 against the list rows. Form fields still use the lighter outline — see Open questions.
+
 ## Open questions
+
+- Form fields (text boxes, dropdowns, file inputs) on the admin page and `/submit/` still have outlines measuring 1.9:1 against the page, the same shortfall the buttons had (Requirement #18). Not changed yet: raised alongside the button fix but not asked for.
 
 - Whether Requirement #16 actually launches — open. If it doesn't, the Firestore data model/Security Rules/pages can stay in place unused rather than needing to be ripped out; nothing about it is destructive to remove either way.
 - The member email-link sign-in email currently sends from Firebase's default shared address. Firebase Authentication's console lets you customize the sender name, reply-to address, and subject line on the default template without any extra setup — worth doing regardless, and a lower bar than Supabase's default mailer required. Sending from the guild's own domain (`heartlandfermentersguild.org`) instead of Firebase's shared address needs the separate [custom-domain-for-Auth-emails](https://firebase.google.com/docs/auth/email-custom-domain) flow (domain verification + DNS records) — deferred, planned for later, not done yet.

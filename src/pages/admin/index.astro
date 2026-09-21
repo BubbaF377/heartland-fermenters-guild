@@ -996,11 +996,13 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     cursor: not-allowed;
   }
 
+  /* 0.55 so the outline reaches 3:1 against both the page and the recipe
+     rows' darker background; 0.3 measured 1.9:1. */
   button.secondary,
   .button-link.secondary {
     background: transparent;
     color: var(--brown-deep);
-    border: 1px solid rgba(44, 30, 18, 0.3);
+    border: 1px solid rgba(44, 30, 18, 0.55);
     margin-top: 0;
   }
 
@@ -1077,8 +1079,6 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     padding: 0.45rem 1rem;
     background: transparent;
     color: var(--brown-deep);
-    /* 0.55, not the 0.3 other secondary buttons use: 0.3 measures 1.9:1
-       against the page, under the 3:1 an interactive boundary needs. */
     border: 1px solid rgba(44, 30, 18, 0.55);
     border-radius: 999px;
     font-size: 1rem;
@@ -1132,10 +1132,14 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     gap: 0.6rem;
   }
 
+  /* Wraps on narrow screens: the info column keeps at least ~12rem, and the
+     action buttons drop to their own line beneath it instead of squeezing the
+     title down to nothing and overlapping the text. */
   .recipe-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.6rem 0.85rem;
     padding: 0.6rem 0.85rem;
     background: var(--cream);
     border: 1px solid rgba(44, 30, 18, 0.15);
@@ -1157,7 +1161,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
   }
 
   .recipe-row-info {
-    flex: 1;
+    flex: 1 1 12rem;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -1183,6 +1187,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     color: var(--brown);
     opacity: 0.85;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem;
   }
@@ -1214,7 +1219,9 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
   .recipe-row-actions {
     flex: none;
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
+    margin-left: auto;
   }
 
   .recipe-row-actions button,

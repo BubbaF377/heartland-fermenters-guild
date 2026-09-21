@@ -116,4 +116,21 @@ test.describe('Admin — Recipes and Members tabs', () => {
     await page.keyboard.press('Home');
     await expect(stored).toHaveAttribute('aria-selected', 'true');
   });
+
+  test('at phone width, list rows wrap their buttons below the title instead of overlapping it', async ({ page }) => {
+    await page.setViewportSize({ width: 400, height: 800 });
+    await loginAsAdmin(page, { recipes: [pendingRecipe] });
+    await openAdminTab(page, 'Pending Recipes');
+
+    const row = page.locator('#pending-list .recipe-row');
+    const title = await row.locator('.recipe-row-title').boundingBox();
+    const actions = await row.locator('.recipe-row-actions').boundingBox();
+    // Buttons start below the title's line, and the title isn't squeezed.
+    expect(actions.y).toBeGreaterThanOrEqual(title.y + title.height);
+    const titleIsCut = await row.locator('.recipe-row-title').evaluate((el) => el.scrollWidth > el.clientWidth);
+    expect(titleIsCut).toBe(false);
+    // Nothing spills past the row.
+    const rowBox = await row.boundingBox();
+    expect(actions.x + actions.width).toBeLessThanOrEqual(rowBox.x + rowBox.width + 1);
+  });
 });
