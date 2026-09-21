@@ -55,7 +55,7 @@ Hard requirements as they get locked in, separate from the discovery narrative a
 
     **History.** 2026-09-21: the images-only, under-10 MB upload limit was added with the Firebase migration; before it, any authenticated upload was accepted.
 
-    2026-09-21: narrowed from any image type to JPG, PNG, and WebP. HEIC (iPhones' native format) and similar formats can't be displayed by most browsers; iOS converts to JPEG automatically when the file picker only offers these types.
+    2026-09-21: narrowed from any image type to JPG, PNG, and WebP. HEIC (iPhones' native format) and similar formats can't be displayed by most browsers. iPhones are expected to convert to JPEG automatically when the file picker only offers these types, so iPhone users shouldn't be blocked — **unverified**: widely reported iOS behavior, not yet tried on a device. An iPhone upload through `/admin/` or `/submit/` would settle it; if iOS doesn't convert, iPhone photos in the default HEIC format get refused with the format message.
 
 12. The admin recipe form (Requirement #8) grows to capture the new fields:
     - An optional photo upload (file input). The field states what a photo needs to be: JPG, PNG, or WebP, up to 10 MB, landscape and at least 1200 px wide, with the dish near the center, since the recipe page crops photos to a wide frame. A file that doesn't meet the type or size limit is refused as soon as it's picked, with the reason, rather than failing the save later; the member submission form (Requirement #16) behaves the same. The upload to Firebase Storage happens as part of submit, before the Firestore write — if the upload fails, the form shows an error and the recipe is not saved, rather than saving a recipe with a broken photo reference.

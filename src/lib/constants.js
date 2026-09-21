@@ -27,8 +27,9 @@ export const RECIPE_PHOTOS_PATH = 'recipe-photos';
 // Photo requirements, shown next to every photo field and checked the moment a
 // file is picked. storage.rules enforces the same types and size server-side —
 // keep the two in step. Only formats every browser can display: HEIC (iPhones'
-// native format) is left out, and iOS converts it to JPEG automatically when the
-// file picker only offers these types.
+// native format) is left out. iOS is expected to convert HEIC to JPEG when the
+// file picker only offers these types — unverified on a device; see
+// docs/PRODUCT.md Requirement #11's History.
 export const PHOTO_TYPES = {
   'image/jpeg': 'JPG',
   'image/png': 'PNG',
