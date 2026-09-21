@@ -159,6 +159,20 @@ describe('active_members', () => {
     await assertFails(setDoc(doc(member().firestore(), 'active_members', 'friend@example.com'), { active: true }));
     await assertFails(getDocs(collection(publicUser().firestore(), 'active_members')));
   });
+
+  test('roster entries only hold name, phone, active, and created_at', async () => {
+    const db = admin().firestore();
+    await assertSucceeds(
+      setDoc(doc(db, 'active_members', 'sam@example.com'), {
+        name: 'Sam Lee',
+        phone: null,
+        active: true,
+        created_at: serverTimestamp(),
+      }),
+    );
+    await assertFails(setDoc(doc(db, 'active_members', 'x@example.com'), { active: true, role: 'admin' }));
+    await assertFails(setDoc(doc(db, 'active_members', 'y@example.com'), { active: 'yes' }));
+  });
 });
 
 describe('recipe photos (Storage)', () => {

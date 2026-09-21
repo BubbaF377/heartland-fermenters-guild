@@ -124,7 +124,7 @@ serve pre-built static files — there's no way to pre-build a page per recipe
 that updates without a redeploy, and recipes are meant to appear instantly once
 approved). `/admin/` is the password-gated panel: a Pending Recipes queue
 (Approve/Reject), the Recipes list (Edit/Deactivate/Delete), a Members list (add by
-email, Deactivate/Reactivate), and the add-a-recipe form. `/submit/` is where an
+name, email, and optional phone; Deactivate/Reactivate), and the add-a-recipe form. `/submit/` is where an
 active member logs in by email (a one-time login link, no password to set) and submits a
 recipe, which lands as `pending` — invisible on the public site until an admin
 approves it from `/admin/`.

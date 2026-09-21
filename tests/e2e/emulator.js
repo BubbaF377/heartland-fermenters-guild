@@ -77,9 +77,9 @@ export async function seedRecipes(recipes) {
 
 export async function seedMembers(members) {
   await asAdminBypass(async (context) => {
-    for (const { email, active, created_at } of members) {
+    for (const { email, created_at, ...fields } of members) {
       await setDoc(doc(context.firestore(), 'active_members', email), {
-        active,
+        ...fields,
         created_at: Timestamp.fromDate(new Date(created_at)),
       });
     }

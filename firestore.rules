@@ -71,9 +71,13 @@ service cloud.firestore {
     }
 
     // Member roster, keyed by lowercased email. Admin-only — members never read
-    // it themselves, they only pass isActiveMember() above.
+    // it themselves, they only pass isActiveMember() above. Members added before
+    // name/phone were collected have neither field, so both stay optional here.
     match /active_members/{email} {
-      allow read, write: if isAdmin();
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'phone', 'active', 'created_at'])
+        && request.resource.data.active is bool;
     }
   }
 }

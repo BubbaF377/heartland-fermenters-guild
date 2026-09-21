@@ -38,8 +38,16 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       <p id="members-status" class="status">Loading members&hellip;</p>
       <ul id="members-list" class="recipe-list" hidden></ul>
       <form id="add-member-form">
-        <label for="member-email">Add a member</label>
-        <input type="email" id="member-email" name="email" required placeholder="member@example.com" />
+        <h3>Add a member</h3>
+        <label for="member-name">Member name</label>
+        <input type="text" id="member-name" name="name" required autocomplete="off" />
+
+        <label for="member-email">Member email <span class="hint">(what they log in with)</span></label>
+        <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
+
+        <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
+        <input type="tel" id="member-phone" name="phone" autocomplete="off" />
+
         <button type="submit">Add Member</button>
       </form>
       <p id="add-member-status" class="status" hidden></p>
@@ -511,7 +519,11 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       info.className = 'recipe-row-info';
       const title = document.createElement('div');
       title.className = 'recipe-row-title';
-      title.textContent = member.email;
+      // Members added before names were collected only have an email.
+      title.textContent = member.name || member.email;
+      const contact = document.createElement('div');
+      contact.className = 'member-contact';
+      contact.textContent = [member.name ? member.email : null, member.phone].filter(Boolean).join(' · ');
       const meta = document.createElement('div');
       meta.className = 'recipe-row-meta';
       const badge = document.createElement('span');
@@ -524,7 +536,9 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         day: 'numeric',
       });
       meta.append(badge, date);
-      info.append(title, meta);
+      info.append(title);
+      if (contact.textContent) info.append(contact);
+      info.append(meta);
 
       const actions = document.createElement('div');
       actions.className = 'recipe-row-actions';
@@ -553,7 +567,10 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       event.preventDefault();
       addMemberStatus.hidden = true;
 
-      const email = String(new FormData(addMemberForm).get('email') || '').trim().toLowerCase();
+      const formData = new FormData(addMemberForm);
+      const name = String(formData.get('name') || '').trim();
+      const email = String(formData.get('email') || '').trim().toLowerCase();
+      const phone = String(formData.get('phone') || '').trim() || null;
       const submitButton = addMemberForm.querySelector('button[type="submit"]');
       submitButton.disabled = true;
 
@@ -562,10 +579,10 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         if ((await getDoc(memberRef)).exists()) {
           throw Object.assign(new Error('Already a member'), { code: 'already-exists' });
         }
-        await setDoc(memberRef, { active: true, created_at: serverTimestamp() });
+        await setDoc(memberRef, { name, phone, active: true, created_at: serverTimestamp() });
 
         addMemberStatus.className = 'status success';
-        addMemberStatus.textContent = `Added ${email}.`;
+        addMemberStatus.textContent = `Added ${name} (${email}).`;
         addMemberStatus.hidden = false;
         addMemberForm.reset();
         loadMembers();
@@ -690,6 +707,15 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
   .admin-page h2 {
     font-size: 1.5rem;
     margin: 1.5rem 0 1rem;
+  }
+
+  #add-member-form {
+    margin-top: 1rem;
+  }
+
+  #add-member-form h3 {
+    font-size: 1.15rem;
+    margin: 0;
   }
 
   form {
@@ -859,6 +885,12 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .member-contact {
+    font-size: 0.85rem;
+    color: var(--brown);
+    overflow-wrap: anywhere;
   }
 
   .recipe-row-meta {
