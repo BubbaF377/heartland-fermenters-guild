@@ -115,7 +115,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
           <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
 
           <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
-          <input type="tel" id="member-phone" name="phone" autocomplete="off" />
+          <input type="tel" id="member-phone" name="phone" autocomplete="off" placeholder="(402) 555-0134" />
 
           <div class="form-actions">
             <button type="submit" id="member-save-button">Add Member</button>
@@ -152,7 +152,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       storage,
       uploadRecipePhoto,
     } from '../../lib/firebase.js';
-    import { ADMIN_EMAIL, RECIPE_PHOTOS_PATH, slugify } from '../../lib/constants.js';
+    import { ADMIN_EMAIL, RECIPE_PHOTOS_PATH, formatPhone, phoneDigits, slugify } from '../../lib/constants.js';
     import {
       wireStageEditor,
       wirePhotoInput,
@@ -583,7 +583,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       title.textContent = member.name || member.email;
       const contact = document.createElement('div');
       contact.className = 'member-contact';
-      contact.textContent = [member.name ? member.email : null, member.phone].filter(Boolean).join(' · ');
+      contact.textContent = [member.name ? member.email : null, formatPhone(member.phone)].filter(Boolean).join(' · ');
       const meta = document.createElement('div');
       meta.className = 'recipe-row-meta';
       const badge = document.createElement('span');
@@ -636,7 +636,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       editingMember = member;
       addMemberForm.elements.name.value = member.name || '';
       addMemberForm.elements.email.value = member.email;
-      addMemberForm.elements.phone.value = member.phone || '';
+      addMemberForm.elements.phone.value = formatPhone(member.phone);
       memberFormHeading.textContent = 'Edit member';
       memberSaveButton.textContent = 'Save Changes';
       memberCancelButton.hidden = false;
@@ -653,6 +653,13 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     }
 
     memberCancelButton.addEventListener('click', stopEditingMember);
+
+    // Tidy a valid phone into (402) 555-0134 as soon as the admin leaves the
+    // field, so what they see matches how it will be shown. An invalid one is
+    // left as typed; saving explains what's wrong with it.
+    addMemberForm.elements.phone.addEventListener('blur', (event) => {
+      if (phoneDigits(event.target.value)) event.target.value = formatPhone(event.target.value);
+    });
 
     function alreadyAMember() {
       return Object.assign(new Error('Already a member'), { code: 'already-exists' });
@@ -688,10 +695,19 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       addMemberStatus.hidden = true;
 
       const formData = new FormData(addMemberForm);
+      const phone = phoneDigits(formData.get('phone'));
+      if (phone === null) {
+        addMemberStatus.className = 'status error';
+        addMemberStatus.textContent = 'The phone number needs 10 digits, for example (402) 555-0134.';
+        addMemberStatus.hidden = false;
+        addMemberForm.elements.phone.focus();
+        return;
+      }
+      // Stored as bare digits (or null when left blank); formatPhone handles display.
       const fields = {
         name: String(formData.get('name') || '').trim(),
         email: String(formData.get('email') || '').trim().toLowerCase(),
-        phone: String(formData.get('phone') || '').trim() || null,
+        phone: phone || null,
       };
       const isEditing = editingMember !== null;
       memberSaveButton.disabled = true;

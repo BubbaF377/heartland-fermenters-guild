@@ -55,6 +55,31 @@ export function photoFileProblem(file) {
   return null;
 }
 
+// Member phone numbers. Any common way of writing a 10-digit US number is
+// accepted — 4025550134, (402) 555-0134, 402-555-0134, 402.555.0134, and with
+// a leading 1 or +1 — and stored as the bare 10 digits. A leading 1 can't be
+// confused with part of the number, since US area codes never start with 1.
+//
+// Returns the 10 digits, '' for an empty field (the phone is optional), or
+// null when the input isn't a 10-digit number (too few/many digits, letters).
+export function phoneDigits(input) {
+  const text = String(input ?? '').trim();
+  if (!text) return '';
+  if (/[^\d\s().+-]/.test(text)) return null;
+  let digits = text.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1);
+  return digits.length === 10 ? digits : null;
+}
+
+// Formats a stored phone as (402) 555-0134. Phones saved before digits-only
+// storage, typed however the admin typed them, are formatted too when they
+// hold a 10-digit number, and otherwise shown exactly as stored.
+export function formatPhone(value) {
+  const digits = phoneDigits(value);
+  if (!digits) return value || '';
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 // localStorage key the recipe forms' Preview button hands the unsaved recipe to
 // /recipes/view?preview=1 through.
 export const RECIPE_PREVIEW_STORAGE_KEY = 'hfg-recipe-preview';

@@ -9,7 +9,7 @@ async function loginToMembersTab(page, seed) {
 const activeMember = {
   name: 'Jamie Rivera',
   email: 'jamie@example.com',
-  phone: '(402) 555-0134',
+  phone: '4025550134', // stored as bare digits
   active: true,
   created_at: '2026-08-20T00:00:00Z',
 };
@@ -28,7 +28,7 @@ test.describe('Admin — members', () => {
     const rows = page.locator('#members-list .recipe-row');
     await expect(rows).toHaveCount(2);
     await expect(rows.nth(0).locator('.recipe-row-title')).toHaveText(activeMember.name);
-    await expect(rows.nth(0).locator('.member-contact')).toHaveText(`${activeMember.email} · ${activeMember.phone}`);
+    await expect(rows.nth(0).locator('.member-contact')).toHaveText(`${activeMember.email} · (402) 555-0134`);
     await expect(rows.nth(0)).toContainText('Active');
     // No name on file: the email stands in as the title, with no contact line.
     await expect(rows.nth(1).locator('.recipe-row-title')).toHaveText(inactiveMember.email);
@@ -47,7 +47,7 @@ test.describe('Admin — members', () => {
 
     await page.getByLabel('Member name').fill('Jamie Rivera');
     await page.getByLabel(/^Member email/).fill('Jamie@Example.com');
-    await page.getByLabel(/^Member phone/).fill('(402) 555-0134');
+    await page.getByLabel(/^Member phone/).fill('402.555.0134');
     await page.getByRole('button', { name: 'Add Member' }).click();
 
     await expect(page.locator('#add-member-status')).toContainText('Added Jamie Rivera (jamie@example.com).');
@@ -55,7 +55,7 @@ test.describe('Admin — members', () => {
     await expect(page.locator('#members-list .recipe-row-title')).toHaveText('Jamie Rivera');
     expect(await getMember('jamie@example.com')).toMatchObject({
       name: 'Jamie Rivera',
-      phone: '(402) 555-0134',
+      phone: '4025550134',
       active: true,
     });
     // The form clears for the next member.
@@ -112,7 +112,7 @@ test.describe('Admin — edit a member', () => {
     await expect(page.getByRole('heading', { name: 'Edit member' })).toBeVisible();
     await expect(page.getByLabel('Member name')).toHaveValue(activeMember.name);
     await expect(page.getByLabel(/^Member email/)).toHaveValue(activeMember.email);
-    await expect(page.getByLabel(/^Member phone/)).toHaveValue(activeMember.phone);
+    await expect(page.getByLabel(/^Member phone/)).toHaveValue('(402) 555-0134');
     await expect(page.getByRole('button', { name: 'Save Changes' })).toBeVisible();
   });
 
@@ -128,7 +128,7 @@ test.describe('Admin — edit a member', () => {
     await expect(page.locator('#members-list .recipe-row-title')).toHaveText('Jamie Rivera-Cole');
     expect(await getMember(activeMember.email)).toMatchObject({
       name: 'Jamie Rivera-Cole',
-      phone: '(402) 555-0199',
+      phone: '4025550199',
       active: true,
     });
     // Back to adding.
@@ -141,12 +141,12 @@ test.describe('Admin — edit a member', () => {
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
     await page.getByLabel('Member name').fill('Alex Kim');
-    await page.getByLabel(/^Member phone/).fill('555-0100');
+    await page.getByLabel(/^Member phone/).fill('4025550100');
     await page.getByRole('button', { name: 'Save Changes' }).click();
 
     await expect(page.locator('#members-list .recipe-row-title')).toHaveText('Alex Kim');
     // Editing doesn't reactivate a deactivated member.
-    expect(await getMember(inactiveMember.email)).toMatchObject({ name: 'Alex Kim', phone: '555-0100', active: false });
+    expect(await getMember(inactiveMember.email)).toMatchObject({ name: 'Alex Kim', phone: '4025550100', active: false });
   });
 
   test('changing the email moves the record, keeping its status and date added', async ({ page }) => {
@@ -192,5 +192,59 @@ test.describe('Admin — edit a member', () => {
     await expect(page.getByRole('button', { name: 'Add Member' })).toBeVisible();
     await expect(page.getByLabel('Member name')).toHaveValue('');
     expect(await getMember(activeMember.email)).toMatchObject({ name: activeMember.name });
+  });
+});
+
+test.describe('Admin — member phone numbers', () => {
+  for (const typed of ['4025550134', '(402) 555-0134', '402-555-0134']) {
+    test(`accepts "${typed}", stores the digits, and shows (402) 555-0134`, async ({ page }) => {
+      await loginToMembersTab(page);
+      await page.getByLabel('Member name').fill('Jamie Rivera');
+      await page.getByLabel(/^Member email/).fill('jamie@example.com');
+      await page.getByLabel(/^Member phone/).fill(typed);
+      await page.getByRole('button', { name: 'Add Member' }).click();
+
+      await expect(page.locator('#members-list .member-contact')).toHaveText('jamie@example.com · (402) 555-0134');
+      expect(await getMember('jamie@example.com')).toMatchObject({ phone: '4025550134' });
+    });
+  }
+
+  test('a valid phone is tidied into (402) 555-0134 when leaving the field', async ({ page }) => {
+    await loginToMembersTab(page);
+    const phone = page.getByLabel(/^Member phone/);
+    await phone.fill('402-555-0134');
+    await page.getByLabel('Member name').focus();
+    await expect(phone).toHaveValue('(402) 555-0134');
+
+    // An invalid one is left as typed.
+    await phone.fill('555-0134');
+    await page.getByLabel('Member name').focus();
+    await expect(phone).toHaveValue('555-0134');
+  });
+
+  test('a phone that is not 10 digits is refused and nothing is saved', async ({ page }) => {
+    await loginToMembersTab(page);
+    await page.getByLabel('Member name').fill('Jamie Rivera');
+    await page.getByLabel(/^Member email/).fill('jamie@example.com');
+    await page.getByLabel(/^Member phone/).fill('555-0134');
+    await page.getByRole('button', { name: 'Add Member' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText(
+      'The phone number needs 10 digits, for example (402) 555-0134.',
+    );
+    await expect(page.getByLabel(/^Member phone/)).toBeFocused();
+    expect(await getMember('jamie@example.com')).toBeNull();
+  });
+
+  test('phones saved before digits-only storage still display sensibly', async ({ page }) => {
+    await loginToMembersTab(page, {
+      members: [
+        { name: 'Formatted Before', email: 'a@example.com', phone: '402.555.0134', active: true, created_at: '2026-08-20T00:00:00Z' },
+        { name: 'Short Before', email: 'b@example.com', phone: '555-0100', active: true, created_at: '2026-08-10T00:00:00Z' },
+      ],
+    });
+    const contacts = page.locator('#members-list .member-contact');
+    await expect(contacts.nth(0)).toHaveText('a@example.com · (402) 555-0134');
+    await expect(contacts.nth(1)).toHaveText('b@example.com · 555-0100');
   });
 });

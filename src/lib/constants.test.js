@@ -7,6 +7,8 @@ import {
   timeStageChipLabel,
   extractYouTubeId,
   photoFileProblem,
+  phoneDigits,
+  formatPhone,
 } from './constants.js';
 
 describe('slugify', () => {
@@ -209,5 +211,65 @@ describe('photoFileProblem', () => {
   it('rejects files over 10 MB, saying how big the file was', () => {
     expect(photoFileProblem(file('image/jpeg', 10 * MB + 1))).toMatch(/10\.0 MB — the limit is 10 MB/);
     expect(photoFileProblem(file('image/jpeg', 14.25 * MB))).toMatch(/14\.3 MB/);
+  });
+});
+
+describe('phoneDigits', () => {
+  it('accepts the common ways of writing a 10-digit number', () => {
+    for (const input of [
+      '4025550134',
+      '(402) 555-0134',
+      '402-555-0134',
+      '402.555.0134',
+      '402 555 0134',
+      '(402)555-0134',
+      '  402-555-0134  ',
+    ]) {
+      expect(phoneDigits(input), input).toBe('4025550134');
+    }
+  });
+
+  it('accepts a leading 1 or +1 country code', () => {
+    expect(phoneDigits('1-402-555-0134')).toBe('4025550134');
+    expect(phoneDigits('+1 (402) 555-0134')).toBe('4025550134');
+    expect(phoneDigits('14025550134')).toBe('4025550134');
+  });
+
+  it('returns an empty string for an empty field, since the phone is optional', () => {
+    expect(phoneDigits('')).toBe('');
+    expect(phoneDigits('   ')).toBe('');
+    expect(phoneDigits(null)).toBe('');
+    expect(phoneDigits(undefined)).toBe('');
+  });
+
+  it('rejects anything that is not 10 digits', () => {
+    expect(phoneDigits('555-0134')).toBeNull();
+    expect(phoneDigits('402-555-013')).toBeNull();
+    expect(phoneDigits('402-555-01345')).toBeNull();
+    expect(phoneDigits('24025550134')).toBeNull(); // 11 digits, not a leading 1
+    expect(phoneDigits('402-555-0134 ext 5')).toBeNull();
+    expect(phoneDigits('402-JKL-0134')).toBeNull();
+  });
+});
+
+describe('formatPhone', () => {
+  it('formats a stored 10-digit number as (123) 456-7890', () => {
+    expect(formatPhone('4025550134')).toBe('(402) 555-0134');
+  });
+
+  it('formats older phones saved as typed, when they hold 10 digits', () => {
+    expect(formatPhone('402.555.0134')).toBe('(402) 555-0134');
+    expect(formatPhone('+1 402 555 0134')).toBe('(402) 555-0134');
+  });
+
+  it('shows anything else exactly as stored', () => {
+    expect(formatPhone('555-0100')).toBe('555-0100');
+    expect(formatPhone('call the shop')).toBe('call the shop');
+  });
+
+  it('returns an empty string when there is no phone', () => {
+    expect(formatPhone(null)).toBe('');
+    expect(formatPhone(undefined)).toBe('');
+    expect(formatPhone('')).toBe('');
   });
 });
