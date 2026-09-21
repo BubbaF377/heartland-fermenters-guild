@@ -139,8 +139,8 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
             <label for="member-name">Member name</label>
             <input type="text" id="member-name" name="name" required autocomplete="off" />
 
-            <label for="member-email">Member email <span class="hint">(what they log in with)</span></label>
-            <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
+            <label for="member-email">Member email <span class="hint">(optional — needed to log in and submit recipes)</span></label>
+            <input type="email" id="member-email" name="email" autocomplete="off" placeholder="member@example.com" />
 
             <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
             <input type="tel" id="member-phone" name="phone" autocomplete="off" placeholder="(402) 555-0134" />
@@ -626,14 +626,17 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       membersList.hidden = true;
       membersList.innerHTML = '';
 
-      // Each member document's ID is their (lowercased) email — that's what
+      // A member with an email is stored under that (lowercased) email — it's what
       // firestore.rules looks up to decide whether a signed-in email may submit.
+      // One without (say, a sign-up sheet with just a phone) gets a generated
+      // ID instead; see memberIdFor.
       let data;
       try {
         const snapshot = await getDocsFromServer(query(collection(db, 'active_members'), orderBy('created_at', 'desc')));
         data = snapshot.docs.map((snap) => ({
           ...snap.data(),
-          email: snap.id,
+          id: snap.id,
+          email: isEmailId(snap.id) ? snap.id : null,
           created_at: snap.data().created_at?.toDate?.() ?? new Date(),
         }));
       } catch {
@@ -654,7 +657,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     function buildMemberRow(member) {
       const li = document.createElement('li');
       li.className = 'recipe-row';
-      li.dataset.id = member.email;
+      li.dataset.id = member.id;
 
       const info = document.createElement('div');
       info.className = 'recipe-row-info';
@@ -676,7 +679,16 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         month: 'short',
         day: 'numeric',
       });
-      meta.append(badge, date);
+      meta.append(badge);
+      if (!member.email) {
+        // Without an email there's nothing to log in with.
+        const noEmail = document.createElement('span');
+        noEmail.className = 'status-flag';
+        noEmail.textContent = 'No email';
+        noEmail.title = "Can't log in or submit recipes until an email is added";
+        meta.append(noEmail);
+      }
+      meta.append(date);
       info.append(title);
       if (contact.textContent) info.append(contact);
       info.append(meta);
@@ -701,7 +713,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
 
     async function toggleMemberActive(member) {
       try {
-        await updateDoc(doc(db, 'active_members', member.email), { active: !member.active });
+        await updateDoc(doc(db, 'active_members', member.id), { active: !member.active });
       } catch {
         alert('Could not update this member — please try again.');
         return;
@@ -716,7 +728,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     function startEditingMember(member) {
       editingMember = member;
       addMemberForm.elements.name.value = member.name || '';
-      addMemberForm.elements.email.value = member.email;
+      addMemberForm.elements.email.value = member.email || '';
       addMemberForm.elements.phone.value = formatPhone(member.phone);
       memberFormHeading.textContent = 'Edit Member';
       memberFormTab.textContent = 'Edit Member';
@@ -754,23 +766,39 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       return Object.assign(new Error('Already a member'), { code: 'already-exists' });
     }
 
+    // Real emails always contain "@" and generated IDs never do, so the two can't
+    // collide — and since sign-in only ever looks up a signed-in email, a member
+    // stored under a generated ID can't log in until an email is added.
+    function isEmailId(id) {
+      return id.includes('@');
+    }
+
+    // The document ID a member is stored under: their email when they have one,
+    // otherwise a generated ID (kept as-is if the member already has one).
+    function memberIdFor(email, existingId = null) {
+      if (email) return email;
+      if (existingId && !isEmailId(existingId)) return existingId;
+      return `no-email-${crypto.randomUUID()}`;
+    }
+
     async function addMember({ name, email, phone }) {
-      const memberRef = doc(db, 'active_members', email);
-      if ((await getDoc(memberRef)).exists()) throw alreadyAMember();
+      const memberRef = doc(db, 'active_members', memberIdFor(email));
+      if (email && (await getDoc(memberRef)).exists()) throw alreadyAMember();
       await setDoc(memberRef, { name, phone, active: true, created_at: serverTimestamp() });
     }
 
-    // A member's email is their document ID — it's what firestore.rules looks up
-    // when they sign in — so changing it means moving the record: recreate it
-    // under the new email (keeping active and created_at) and delete the old
-    // one. One transaction, so a clash with an existing member changes nothing.
+    // Adding, changing, or removing a member's email changes which ID they're
+    // stored under, so it moves the record: recreate it under the new ID
+    // (keeping active and created_at) and delete the old one. One transaction,
+    // so a clash with an existing member's email changes nothing.
     async function saveMemberEdits(member, { name, email, phone }) {
-      const oldRef = doc(db, 'active_members', member.email);
-      if (email === member.email) {
+      const oldRef = doc(db, 'active_members', member.id);
+      const newId = memberIdFor(email, member.id);
+      if (newId === member.id) {
         await updateDoc(oldRef, { name, phone });
         return;
       }
-      const newRef = doc(db, 'active_members', email);
+      const newRef = doc(db, 'active_members', newId);
       await runTransaction(db, async (tx) => {
         const oldSnap = await tx.get(oldRef);
         if ((await tx.get(newRef)).exists()) throw alreadyAMember();
@@ -798,6 +826,13 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         email: String(formData.get('email') || '').trim().toLowerCase(),
         phone: phone || null,
       };
+      if (!fields.email && !fields.phone) {
+        addMemberStatus.className = 'status error';
+        addMemberStatus.textContent = 'Add an email or a phone number, so the member can be reached.';
+        addMemberStatus.hidden = false;
+        addMemberForm.elements.email.focus();
+        return;
+      }
       const isEditing = editingMember !== null;
       memberSaveButton.disabled = true;
 
@@ -808,10 +843,11 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
           await addMember(fields);
         }
 
+        const contact = fields.email || formatPhone(fields.phone);
         addMemberStatus.className = 'status success';
         addMemberStatus.textContent = isEditing
-          ? `Saved changes to ${fields.name} (${fields.email}).`
-          : `Added ${fields.name} (${fields.email}).`;
+          ? `Saved changes to ${fields.name} (${contact}).`
+          : `Added ${fields.name} (${contact}).`;
         addMemberStatus.hidden = false;
         stopEditingMember();
         loadMembers();

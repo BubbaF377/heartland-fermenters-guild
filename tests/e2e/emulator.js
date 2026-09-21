@@ -75,10 +75,12 @@ export async function seedRecipes(recipes) {
   });
 }
 
+// A member is stored under their email, or under `id` when they have none
+// (the admin page generates a no-email-… ID for those).
 export async function seedMembers(members) {
   await asAdminBypass(async (context) => {
-    for (const { email, created_at, ...fields } of members) {
-      await setDoc(doc(context.firestore(), 'active_members', email), {
+    for (const { email, id, created_at, ...fields } of members) {
+      await setDoc(doc(context.firestore(), 'active_members', email ?? id), {
         ...fields,
         created_at: Timestamp.fromDate(new Date(created_at)),
       });
@@ -101,10 +103,19 @@ export async function listRecipeSlugs() {
   });
 }
 
-export async function getMember(email) {
+// Looks a member up by their document ID: their email, or a no-email-… ID.
+export async function getMember(id) {
   return asAdminBypass(async (context) => {
-    const snap = await getDoc(doc(context.firestore(), 'active_members', email));
+    const snap = await getDoc(doc(context.firestore(), 'active_members', id));
     return snap.exists() ? snap.data() : null;
+  });
+}
+
+// Every roster entry, with its document ID as `id`.
+export async function listMembers() {
+  return asAdminBypass(async (context) => {
+    const snapshot = await getDocs(collection(context.firestore(), 'active_members'));
+    return snapshot.docs.map((snap) => ({ id: snap.id, ...snap.data() }));
   });
 }
 

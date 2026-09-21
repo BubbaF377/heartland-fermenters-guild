@@ -1,4 +1,4 @@
-import { test, expect, getMember, loginAsAdmin, openAdminTab } from './emulator.js';
+import { test, expect, getMember, listMembers, loginAsAdmin, openAdminTab } from './emulator.js';
 
 // Members live on their own tab of the admin page, which opens on Member List.
 async function loginToMembersTab(page, seed) {
@@ -68,7 +68,7 @@ test.describe('Admin — members', () => {
     await expect(page.getByLabel('Member name')).toHaveValue('');
   });
 
-  test('phone is optional; name and email are required', async ({ page }) => {
+  test('name is required; phone is optional when there\'s an email', async ({ page }) => {
     await loginToMemberForm(page);
 
     await page.getByLabel(/^Member email/).fill('sam@example.com');
@@ -255,5 +255,116 @@ test.describe('Admin — member phone numbers', () => {
     const contacts = page.locator('#members-list .member-contact');
     await expect(contacts.nth(0)).toHaveText('a@example.com · (402) 555-0134');
     await expect(contacts.nth(1)).toHaveText('b@example.com · 555-0100');
+  });
+});
+
+test.describe('Admin — members without an email', () => {
+  // Someone who signed a sheet with just their name and phone.
+  const phoneOnlyMember = {
+    id: 'no-email-seeded-1',
+    name: 'Pat Moore',
+    phone: '4025550177',
+    active: true,
+    created_at: '2026-08-15T00:00:00Z',
+  };
+
+  test('a member can be added with a name and phone only', async ({ page }) => {
+    await loginToMemberForm(page);
+    await page.getByLabel('Member name').fill('Pat Moore');
+    await page.getByLabel(/^Member phone/).fill('402-555-0177');
+    await page.getByRole('button', { name: 'Add Member' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText('Added Pat Moore ((402) 555-0177).');
+    const [stored] = await listMembers();
+    expect(stored).toMatchObject({ name: 'Pat Moore', phone: '4025550177', active: true });
+    // Stored under a generated ID, never anything that looks like an email.
+    expect(stored.id).toMatch(/^no-email-/);
+    expect(stored.id).not.toContain('@');
+  });
+
+  test('a member needs an email or a phone', async ({ page }) => {
+    await loginToMemberForm(page);
+    await page.getByLabel('Member name').fill('Pat Moore');
+    await page.getByRole('button', { name: 'Add Member' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText(
+      'Add an email or a phone number, so the member can be reached.',
+    );
+    await expect(page.getByLabel(/^Member email/)).toBeFocused();
+    expect(await listMembers()).toEqual([]);
+  });
+
+  test('the list marks a member without an email, and shows their phone', async ({ page }) => {
+    await loginToMembersTab(page, { members: [phoneOnlyMember, activeMember] });
+    const rows = page.locator('#members-list .recipe-row');
+
+    const pat = rows.filter({ hasText: 'Pat Moore' });
+    await expect(pat.locator('.member-contact')).toHaveText('(402) 555-0177');
+    await expect(pat.locator('.recipe-row-meta')).toContainText('No email');
+
+    const jamie = rows.filter({ hasText: activeMember.name });
+    await expect(jamie.locator('.recipe-row-meta')).not.toContainText('No email');
+  });
+
+  test('a member without an email can be edited and deactivated', async ({ page }) => {
+    await loginToMembersTab(page, { members: [phoneOnlyMember] });
+    const row = page.locator('#members-list .recipe-row');
+
+    await row.getByRole('button', { name: 'Deactivate' }).click();
+    await expect(row).toContainText('Deactivated');
+    expect(await getMember(phoneOnlyMember.id)).toMatchObject({ active: false });
+
+    await row.getByRole('button', { name: 'Edit' }).click();
+    await expect(page.getByLabel(/^Member email/)).toHaveValue('');
+    await page.getByLabel('Member name').fill('Pat Moore-Hill');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText('Saved changes to Pat Moore-Hill ((402) 555-0177).');
+    // Same record, same generated ID.
+    expect(await getMember(phoneOnlyMember.id)).toMatchObject({ name: 'Pat Moore-Hill', active: false });
+    expect(await listMembers()).toHaveLength(1);
+  });
+
+  test('adding an email later moves the member to it, keeping status and date added', async ({ page }) => {
+    await loginToMembersTab(page, { members: [{ ...phoneOnlyMember, active: false }] });
+    const before = await getMember(phoneOnlyMember.id);
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel(/^Member email/).fill('Pat@Example.com');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText('Saved changes to Pat Moore (pat@example.com).');
+    expect(await getMember(phoneOnlyMember.id)).toBeNull();
+    const moved = await getMember('pat@example.com');
+    expect(moved).toMatchObject({ name: 'Pat Moore', phone: '4025550177', active: false });
+    expect(moved.created_at.toMillis()).toBe(before.created_at.toMillis());
+    await expect(page.locator('#members-list .recipe-row-meta')).not.toContainText('No email');
+  });
+
+  test('adding an email that another member already has is refused and changes nothing', async ({ page }) => {
+    await loginToMembersTab(page, { members: [phoneOnlyMember, activeMember] });
+    await page.locator('#members-list .recipe-row').filter({ hasText: 'Pat Moore' }).getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel(/^Member email/).fill(activeMember.email);
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText('Another member already has that email.');
+    expect(await getMember(phoneOnlyMember.id)).toMatchObject({ name: 'Pat Moore' });
+    expect(await getMember(activeMember.email)).toMatchObject({ name: activeMember.name });
+  });
+
+  test('removing a member\'s email keeps them on the roster under a generated ID', async ({ page }) => {
+    await loginToMembersTab(page, { members: [activeMember] });
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel(/^Member email/).fill('');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toHaveText('Saved changes to Jamie Rivera ((402) 555-0134).');
+    expect(await getMember(activeMember.email)).toBeNull();
+    const [stored] = await listMembers();
+    expect(stored.id).toMatch(/^no-email-/);
+    expect(stored).toMatchObject({ name: activeMember.name, phone: activeMember.phone, active: true });
+    await expect(page.locator('#members-list .recipe-row-meta')).toContainText('No email');
   });
 });
