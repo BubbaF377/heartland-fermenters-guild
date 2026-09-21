@@ -1,5 +1,11 @@
 import { test, expect, getMember, loginAsAdmin } from './emulator.js';
 
+// Members live on their own tab of the admin page.
+async function loginToMembersTab(page, seed) {
+  await loginAsAdmin(page, seed);
+  await page.getByRole('tab', { name: 'Members' }).click();
+}
+
 const activeMember = {
   name: 'Jamie Rivera',
   email: 'jamie@example.com',
@@ -17,7 +23,7 @@ const inactiveMember = {
 
 test.describe('Admin — members', () => {
   test('lists members with their active status', async ({ page }) => {
-    await loginAsAdmin(page, { members: [activeMember, inactiveMember] });
+    await loginToMembersTab(page, { members: [activeMember, inactiveMember] });
 
     const rows = page.locator('#members-list .recipe-row');
     await expect(rows).toHaveCount(2);
@@ -31,13 +37,13 @@ test.describe('Admin — members', () => {
   });
 
   test('shows a message when there are no members yet', async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginToMembersTab(page);
     await expect(page.locator('#members-status')).toContainText(/no members yet/i);
     await expect(page.locator('#members-list .recipe-row')).toHaveCount(0);
   });
 
   test('adding a member stores their name, lowercased email, and phone, as active', async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginToMembersTab(page);
 
     await page.getByLabel('Member name').fill('Jamie Rivera');
     await page.getByLabel(/^Member email/).fill('Jamie@Example.com');
@@ -57,7 +63,7 @@ test.describe('Admin — members', () => {
   });
 
   test('phone is optional; name and email are required', async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginToMembersTab(page);
 
     await page.getByLabel(/^Member email/).fill('sam@example.com');
     await page.getByRole('button', { name: 'Add Member' }).click();
@@ -71,7 +77,7 @@ test.describe('Admin — members', () => {
   });
 
   test('adding a duplicate email shows a specific error and leaves the member as-is', async ({ page }) => {
-    await loginAsAdmin(page, { members: [inactiveMember] });
+    await loginToMembersTab(page, { members: [inactiveMember] });
 
     await page.getByLabel('Member name').fill('Someone Else');
     await page.getByLabel(/^Member email/).fill(inactiveMember.email);
@@ -84,7 +90,7 @@ test.describe('Admin — members', () => {
   });
 
   test('Deactivate and Reactivate toggle a member\'s active flag', async ({ page }) => {
-    await loginAsAdmin(page, { members: [activeMember] });
+    await loginToMembersTab(page, { members: [activeMember] });
     const row = page.locator('#members-list .recipe-row');
 
     await row.getByRole('button', { name: 'Deactivate' }).click();
@@ -100,7 +106,7 @@ test.describe('Admin — members', () => {
 
 test.describe('Admin — edit a member', () => {
   test('Edit loads the member into the form in edit mode', async ({ page }) => {
-    await loginAsAdmin(page, { members: [activeMember] });
+    await loginToMembersTab(page, { members: [activeMember] });
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
     await expect(page.getByRole('heading', { name: 'Edit member' })).toBeVisible();
@@ -111,7 +117,7 @@ test.describe('Admin — edit a member', () => {
   });
 
   test('changing the name and phone updates the same record', async ({ page }) => {
-    await loginAsAdmin(page, { members: [activeMember] });
+    await loginToMembersTab(page, { members: [activeMember] });
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
     await page.getByLabel('Member name').fill('Jamie Rivera-Cole');
@@ -131,7 +137,7 @@ test.describe('Admin — edit a member', () => {
   });
 
   test('a member added by email alone can be given a name and phone', async ({ page }) => {
-    await loginAsAdmin(page, { members: [inactiveMember] });
+    await loginToMembersTab(page, { members: [inactiveMember] });
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
     await page.getByLabel('Member name').fill('Alex Kim');
@@ -144,7 +150,7 @@ test.describe('Admin — edit a member', () => {
   });
 
   test('changing the email moves the record, keeping its status and date added', async ({ page }) => {
-    await loginAsAdmin(page, { members: [inactiveMember] });
+    await loginToMembersTab(page, { members: [inactiveMember] });
     const before = await getMember(inactiveMember.email);
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
 
@@ -161,7 +167,7 @@ test.describe('Admin — edit a member', () => {
   });
 
   test('changing the email to another member\'s email is refused and changes nothing', async ({ page }) => {
-    await loginAsAdmin(page, { members: [activeMember, inactiveMember] });
+    await loginToMembersTab(page, { members: [activeMember, inactiveMember] });
     await page.locator('#members-list .recipe-row').nth(1).getByRole('button', { name: 'Edit' }).click();
 
     await page.getByLabel('Member name').fill('Alex Kim');
@@ -176,7 +182,7 @@ test.describe('Admin — edit a member', () => {
   });
 
   test('Cancel returns to adding without saving', async ({ page }) => {
-    await loginAsAdmin(page, { members: [activeMember] });
+    await loginToMembersTab(page, { members: [activeMember] });
     await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
     await page.getByLabel('Member name').fill('Not Saved');
 

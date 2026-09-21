@@ -97,6 +97,8 @@ Hard requirements as they get locked in, separate from the discovery narrative a
 
 17. Both recipe forms — admin's add/edit form (Requirement #12) and the member submission form (Requirement #16) — have a **Preview** button that opens the unsaved recipe in a new tab, rendered by the real recipe page, so what's previewed is exactly what visitors will see. Previewing saves and uploads nothing: a newly chosen photo shows without being uploaded. When editing, the preview shows the recipe's current photo and original date. A banner marks the page as an unsaved preview, and previewing again updates the same tab.
 
+18. The admin page (`/admin/`) is split into two tabs, **Recipes** and **Members**. Recipes holds the pending-submission queue, the recipe list, and the add/edit recipe form (Requirements #12, #14, #16); Members holds the member list and the add/edit member form (Requirement #16). It opens on Recipes, so pending submissions are the first thing an admin sees. The Members tab is remembered in the address (`/admin/#members`), so a reload or bookmark lands back on it. The tabs work from the keyboard (arrow keys, Home, End) and are announced as tabs by screen readers.
+
 ## Open questions
 
 - Whether Requirement #16 actually launches — open. If it doesn't, the Firestore data model/Security Rules/pages can stay in place unused rather than needing to be ripped out; nothing about it is destructive to remove either way.

@@ -26,91 +26,104 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         <button id="logout-button" type="button" class="secondary">Log out</button>
       </div>
 
-      <h2>Pending Recipes</h2>
-      <p id="pending-list-status" class="status">Loading&hellip;</p>
-      <ul id="pending-list" class="recipe-list" hidden></ul>
+      <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+        <button type="button" role="tab" id="tab-recipes" aria-controls="panel-recipes" aria-selected="true">
+          Recipes
+        </button>
+        <button type="button" role="tab" id="tab-members" aria-controls="panel-members" aria-selected="false" tabindex="-1">
+          Members
+        </button>
+      </div>
 
-      <h2>Recipes</h2>
-      <p id="recipe-list-status" class="status">Loading recipes&hellip;</p>
-      <ul id="recipe-list" class="recipe-list" hidden></ul>
+      <div id="panel-recipes" role="tabpanel" aria-labelledby="tab-recipes">
+        <h2>Pending Recipes</h2>
+        <p id="pending-list-status" class="status">Loading&hellip;</p>
+        <ul id="pending-list" class="recipe-list" hidden></ul>
 
-      <h2>Members</h2>
-      <p id="members-status" class="status">Loading members&hellip;</p>
-      <ul id="members-list" class="recipe-list" hidden></ul>
-      <form id="add-member-form">
-        <h3 id="member-form-heading">Add a member</h3>
-        <label for="member-name">Member name</label>
-        <input type="text" id="member-name" name="name" required autocomplete="off" />
+        <h2>Recipes</h2>
+        <p id="recipe-list-status" class="status">Loading recipes&hellip;</p>
+        <ul id="recipe-list" class="recipe-list" hidden></ul>
 
-        <label for="member-email">Member email <span class="hint">(what they log in with)</span></label>
-        <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
+        <h2 id="recipe-form-heading">Add a Recipe</h2>
+        <form id="recipe-form">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" required />
 
-        <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
-        <input type="tel" id="member-phone" name="phone" autocomplete="off" />
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            {RECIPE_CATEGORIES.map((category) => <option value={category}>{category}</option>)}
+          </select>
 
-        <div class="form-actions">
-          <button type="submit" id="member-save-button">Add Member</button>
-          <button type="button" id="member-cancel-button" class="secondary" hidden>Cancel</button>
-        </div>
-      </form>
-      <p id="add-member-status" class="status" hidden></p>
+          <label for="summary">Short summary</label>
+          <textarea id="summary" name="summary" rows="2"></textarea>
 
-      <h2 id="recipe-form-heading">Add a Recipe</h2>
-      <form id="recipe-form">
-        <label for="title">Title</label>
-        <input type="text" id="title" name="title" required />
+          <label for="photo">Photo <span class="hint">(optional)</span></label>
+          <input
+            type="file"
+            id="photo"
+            name="photo"
+            accept={Object.keys(PHOTO_TYPES).join(',')}
+            aria-describedby="photo-requirements"
+          />
+          <p id="photo-requirements" class="field-note">
+            {PHOTO_TYPE_NAMES}, up to {MAX_PHOTO_MB} MB. Landscape photos work best, at least 1200&nbsp;px
+            wide. The recipe page crops photos to a wide frame, so keep the dish near the center.
+          </p>
+          <p id="photo-error" class="field-error" role="alert" hidden></p>
 
-        <label for="category">Category</label>
-        <select id="category" name="category" required>
-          {RECIPE_CATEGORIES.map((category) => <option value={category}>{category}</option>)}
-        </select>
+          <label for="video_url">How-to video <span class="hint">(optional — a YouTube link)</span></label>
+          <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." />
 
-        <label for="summary">Short summary</label>
-        <textarea id="summary" name="summary" rows="2"></textarea>
+          <label for="yield_text">Yield / servings <span class="hint">(optional)</span></label>
+          <input type="text" id="yield_text" name="yield_text" placeholder="e.g. About 1 quart" />
 
-        <label for="photo">Photo <span class="hint">(optional)</span></label>
-        <input
-          type="file"
-          id="photo"
-          name="photo"
-          accept={Object.keys(PHOTO_TYPES).join(',')}
-          aria-describedby="photo-requirements"
-        />
-        <p id="photo-requirements" class="field-note">
-          {PHOTO_TYPE_NAMES}, up to {MAX_PHOTO_MB} MB. Landscape photos work best, at least 1200&nbsp;px
-          wide. The recipe page crops photos to a wide frame, so keep the dish near the center.
-        </p>
-        <p id="photo-error" class="field-error" role="alert" hidden></p>
+          <label id="time-stages-label">Time stages <span class="hint">(optional — e.g. Prep, Ferment, Bake)</span></label>
+          <div id="time-stages-list" aria-labelledby="time-stages-label"></div>
+          <button type="button" id="add-stage-button" class="secondary stage-add">+ Add stage</button>
 
-        <label for="video_url">How-to video <span class="hint">(optional — a YouTube link)</span></label>
-        <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." />
+          <label for="ingredients">Ingredients <span class="hint">(one per line)</span></label>
+          <textarea id="ingredients" name="ingredients" rows="6" required></textarea>
 
-        <label for="yield_text">Yield / servings <span class="hint">(optional)</span></label>
-        <input type="text" id="yield_text" name="yield_text" placeholder="e.g. About 1 quart" />
+          <label for="instructions">Instructions <span class="hint">(one step per line)</span></label>
+          <textarea id="instructions" name="instructions" rows="8" required></textarea>
 
-        <label id="time-stages-label">Time stages <span class="hint">(optional — e.g. Prep, Ferment, Bake)</span></label>
-        <div id="time-stages-list" aria-labelledby="time-stages-label"></div>
-        <button type="button" id="add-stage-button" class="secondary stage-add">+ Add stage</button>
+          <label for="notes">Notes &amp; tips <span class="hint">(optional)</span></label>
+          <textarea id="notes" name="notes" rows="3"></textarea>
 
-        <label for="ingredients">Ingredients <span class="hint">(one per line)</span></label>
-        <textarea id="ingredients" name="ingredients" rows="6" required></textarea>
+          <label for="submitted_by">Your name <span class="hint">(optional)</span></label>
+          <input type="text" id="submitted_by" name="submitted_by" />
 
-        <label for="instructions">Instructions <span class="hint">(one step per line)</span></label>
-        <textarea id="instructions" name="instructions" rows="8" required></textarea>
+          <div class="form-actions">
+            <button type="submit" id="save-button">Save Recipe</button>
+            <button type="button" id="preview-button" class="secondary">Preview</button>
+            <button type="button" id="cancel-edit-button" class="secondary" hidden>Cancel</button>
+          </div>
+        </form>
+        <p id="recipe-status" class="status" hidden></p>
+      </div>
 
-        <label for="notes">Notes &amp; tips <span class="hint">(optional)</span></label>
-        <textarea id="notes" name="notes" rows="3"></textarea>
+      <div id="panel-members" role="tabpanel" aria-labelledby="tab-members" hidden>
+        <h2>Members</h2>
+        <p id="members-status" class="status">Loading members&hellip;</p>
+        <ul id="members-list" class="recipe-list" hidden></ul>
+        <form id="add-member-form">
+          <h3 id="member-form-heading">Add a member</h3>
+          <label for="member-name">Member name</label>
+          <input type="text" id="member-name" name="name" required autocomplete="off" />
 
-        <label for="submitted_by">Your name <span class="hint">(optional)</span></label>
-        <input type="text" id="submitted_by" name="submitted_by" />
+          <label for="member-email">Member email <span class="hint">(what they log in with)</span></label>
+          <input type="email" id="member-email" name="email" required autocomplete="off" placeholder="member@example.com" />
 
-        <div class="form-actions">
-          <button type="submit" id="save-button">Save Recipe</button>
-          <button type="button" id="preview-button" class="secondary">Preview</button>
-          <button type="button" id="cancel-edit-button" class="secondary" hidden>Cancel</button>
-        </div>
-      </form>
-      <p id="recipe-status" class="status" hidden></p>
+          <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
+          <input type="tel" id="member-phone" name="phone" autocomplete="off" />
+
+          <div class="form-actions">
+            <button type="submit" id="member-save-button">Add Member</button>
+            <button type="button" id="member-cancel-button" class="secondary" hidden>Cancel</button>
+          </div>
+        </form>
+        <p id="add-member-status" class="status" hidden></p>
+      </div>
     </section>
   </main>
 
@@ -189,6 +202,46 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       addStageButton,
       categorySelect,
     });
+
+    // --- Tabs: Recipes and Members ---
+
+    // Standard ARIA tabs: only the selected tab is in the Tab order, and the
+    // arrow keys (plus Home/End) move between tabs and select as they go. The
+    // Members tab is remembered in the URL (#members), so a reload or a
+    // bookmark lands back on it.
+    const tabs = [...document.querySelectorAll('.admin-tabs [role="tab"]')];
+
+    function selectTab(tab, { focus = false } = {}) {
+      for (const each of tabs) {
+        const selected = each === tab;
+        each.setAttribute('aria-selected', String(selected));
+        each.tabIndex = selected ? 0 : -1;
+        document.getElementById(each.getAttribute('aria-controls')).hidden = !selected;
+      }
+      if (focus) tab.focus();
+      const hash = tab.id === 'tab-members' ? '#members' : '';
+      if (window.location.hash !== hash) {
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
+      }
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => selectTab(tab));
+      tab.addEventListener('keydown', (event) => {
+        const index = tabs.indexOf(tab);
+        const next = {
+          ArrowRight: tabs[(index + 1) % tabs.length],
+          ArrowLeft: tabs[(index - 1 + tabs.length) % tabs.length],
+          Home: tabs[0],
+          End: tabs[tabs.length - 1],
+        }[event.key];
+        if (!next) return;
+        event.preventDefault();
+        selectTab(next, { focus: true });
+      });
+    }
+
+    selectTab(window.location.hash === '#members' ? document.getElementById('tab-members') : tabs[0]);
 
     // --- Recipe + pending-recipe lists (Requirements #14, #16) ---
 
@@ -769,7 +822,10 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
   apply to them.
 -->
 <style is:global>
+  /* width: 100% because the page body is a flex column: without it, margin: auto
+     shrinks the column to its content, so it narrowed on the Members tab. */
   .admin-page {
+    width: 100%;
     max-width: 620px;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 4rem;
@@ -888,6 +944,41 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
   .admin-bar p {
     margin: 0;
     color: var(--brown);
+  }
+
+  .admin-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 1.25rem;
+    border-bottom: 1px solid rgba(44, 30, 18, 0.2);
+  }
+
+  /* Overrides the page's filled green button style: tabs read as a strip. */
+  .admin-tabs button[role='tab'] {
+    margin: 0 0 -1px;
+    padding: 0.6rem 1.1rem;
+    background: transparent;
+    color: var(--brown);
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 6px 6px 0 0;
+    font-size: 1.05rem;
+  }
+
+  .admin-tabs button[role='tab']:hover {
+    background: var(--cream);
+    color: var(--brown-deep);
+  }
+
+  .admin-tabs button[role='tab'][aria-selected='true'] {
+    color: var(--ink);
+    border-bottom-color: var(--green-deep);
+  }
+
+  .admin-tabs button[role='tab']:focus-visible {
+    background: var(--cream);
+    outline: 2px solid var(--green-deep);
+    outline-offset: -2px;
   }
 
   .field-note {
