@@ -60,13 +60,13 @@ import Layout from '../../layouts/Layout.astro';
   </main>
 
   <script>
-    import { supabase } from '../../lib/supabase.js';
+    import { doc, getDoc } from 'firebase/firestore';
+    import { auth, db, photoDownloadUrl, recipeFromSnap } from '../../lib/firebase.js';
     import {
       linesToList,
       linesToPairs,
       timeStageChipLabel,
       extractYouTubeId,
-      RECIPE_PHOTOS_BUCKET,
     } from '../../lib/constants.js';
 
     const statusEl = document.getElementById('recipe-status');
@@ -115,22 +115,29 @@ import Layout from '../../layouts/Layout.astro';
         return;
       }
 
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
+      // Wait for a persisted login to be restored first — admin's Preview of a
+      // pending recipe only works once the request carries the admin session.
+      await auth.authStateReady();
 
-      if (error) {
+      let snap;
+      try {
+        snap = await getDoc(doc(db, 'recipes', slug));
+      } catch (err) {
+        // A pending or deactivated recipe is unreadable to the public (see
+        // firestore.rules) — that reads the same as "doesn't exist" here.
         statusEl.textContent =
-          'Could not load this recipe right now. Please try again in a moment.';
+          err?.code === 'permission-denied'
+            ? "This recipe couldn't be found."
+            : 'Could not load this recipe right now. Please try again in a moment.';
         return;
       }
 
-      if (!data) {
+      if (!snap.exists()) {
         statusEl.textContent = "This recipe couldn't be found.";
         return;
       }
+
+      const data = recipeFromSnap(snap);
 
       document.title = `${data.title} — Heartland Fermenters Guild`;
       categoryEl.textContent = data.category;
@@ -155,12 +162,13 @@ import Layout from '../../layouts/Layout.astro';
 
       // Photo and video are independent — a recipe can have either, both, or neither.
       if (data.photo_path) {
-        const { data: photoUrlData } = supabase.storage
-          .from(RECIPE_PHOTOS_BUCKET)
-          .getPublicUrl(data.photo_path);
-        photoImgEl.src = photoUrlData.publicUrl;
         photoImgEl.alt = data.title;
-        photoEl.hidden = false;
+        photoDownloadUrl(data.photo_path)
+          .then((url) => {
+            photoImgEl.src = url;
+            photoEl.hidden = false;
+          })
+          .catch(() => {});
       }
 
       const videoId = extractYouTubeId(data.video_url);

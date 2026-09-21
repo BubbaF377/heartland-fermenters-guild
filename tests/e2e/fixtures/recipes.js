@@ -1,9 +1,8 @@
-// Canned recipe rows reused across specs — one with every optional field set, one
+// Canned recipes reused across specs — one with every optional field set, one
 // with only the required fields, so tests can check both "field is shown" and
 // "field is correctly omitted" without each spec building its own fixture data.
 
 export const fullRecipe = {
-  id: 'recipe-full',
   slug: 'classic-sourdough-boule',
   title: 'Classic Sourdough Boule',
   category: 'Bread & Sourdough',
@@ -21,7 +20,6 @@ export const fullRecipe = {
 };
 
 export const minimalRecipe = {
-  id: 'recipe-minimal',
   slug: 'quick-kombucha',
   title: 'Quick Kombucha',
   category: 'Kombucha',
@@ -40,7 +38,6 @@ export const minimalRecipe = {
 
 export const deactivatedRecipe = {
   ...fullRecipe,
-  id: 'recipe-deactivated',
   slug: 'retired-recipe',
   title: 'Retired Recipe',
   status: 'deactivated',
@@ -48,7 +45,6 @@ export const deactivatedRecipe = {
 
 export const pendingRecipe = {
   ...fullRecipe,
-  id: 'recipe-pending',
   slug: 'new-submission',
   title: 'New Submission',
   submitted_by: 'Alex',

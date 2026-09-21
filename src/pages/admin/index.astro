@@ -92,9 +92,31 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
   </main>
 
   <script>
-    import { supabase } from '../../lib/supabase.js';
-    import { ADMIN_EMAIL, slugify, RECIPE_PHOTOS_BUCKET } from '../../lib/constants.js';
-    import { wireStageEditor, collectRecipeFields, populateRecipeForm, uploadRecipePhoto } from '../../lib/recipe-form.js';
+    import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+    import {
+      collection,
+      deleteDoc,
+      doc,
+      getDoc,
+      getDocsFromServer,
+      orderBy,
+      query,
+      serverTimestamp,
+      setDoc,
+      updateDoc,
+    } from 'firebase/firestore';
+    import { deleteObject, ref } from 'firebase/storage';
+    import {
+      auth,
+      createRecipeWithUniqueSlug,
+      db,
+      recipeFromSnap,
+      setPhotoSrc,
+      storage,
+      uploadRecipePhoto,
+    } from '../../lib/firebase.js';
+    import { ADMIN_EMAIL, RECIPE_PHOTOS_PATH, slugify } from '../../lib/constants.js';
+    import { wireStageEditor, collectRecipeFields, populateRecipeForm } from '../../lib/recipe-form.js';
 
     const loginSection = document.getElementById('login-section');
     const adminSection = document.getElementById('admin-section');
@@ -119,10 +141,9 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     const saveButton = document.getElementById('save-button');
     const cancelEditButton = document.getElementById('cancel-edit-button');
 
-    // null in create mode; while editing, these hold the recipe's id and its
-    // current slug/photo_path (the slug never changes on edit — see startEditing
-    // — and the photo_path is resubmitted unchanged unless a new file is chosen).
-    let editingId = null;
+    // null in create mode; while editing, these hold the recipe's slug (its
+    // document ID, which never changes on edit — see startEditing) and its current
+    // photo_path (resubmitted unchanged unless a new file is chosen).
     let editingSlug = null;
     let editingPhotoPath = null;
 
@@ -134,17 +155,16 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
 
     // --- Recipe + pending-recipe lists (Requirements #14, #16) ---
 
-    // Supabase fires onAuthStateChange multiple times for a single page load with
-    // a persisted session (INITIAL_SESSION, then SIGNED_IN), and showLoggedIn also
-    // runs once more from the explicit getSession() check below — so this can be
-    // called several times in close succession. Each call clears the lists before
+    // An auth-state change (login, logout, a token refresh swapping sessions) can
+    // land while a previous load is still in flight — so this can be called
+    // several times in close succession. Each call clears the lists before
     // its await, so without a guard, overlapping calls each clear then later append
     // their own copy, rendering the same rows multiple times. This id makes only
     // the most recently started call allowed to render; a call superseded by a
     // newer one discards its results instead of appending stale duplicates.
     let recipeListRequestId = 0;
 
-    // One fetch (the admin-read-all RLS policy covers every status) split
+    // One fetch (firestore.rules lets admin list every status) split
     // client-side into the pending queue and the published/deactivated list,
     // rather than two round-trips.
     async function loadRecipeList() {
@@ -160,22 +180,22 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       recipeList.hidden = true;
       recipeList.innerHTML = '';
 
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (requestId !== recipeListRequestId) return;
-
-      if (error) {
+      let data;
+      try {
+        const snapshot = await getDocsFromServer(query(collection(db, 'recipes'), orderBy('created_at', 'desc')));
+        data = snapshot.docs.map(recipeFromSnap);
+      } catch {
+        if (requestId !== recipeListRequestId) return;
         const message = 'Could not load recipes right now. Please try again in a moment.';
         pendingListStatus.textContent = message;
         recipeListStatus.textContent = message;
         return;
       }
 
-      const pending = (data || []).filter((recipe) => recipe.status === 'pending');
-      const others = (data || []).filter((recipe) => recipe.status !== 'pending');
+      if (requestId !== recipeListRequestId) return;
+
+      const pending = data.filter((recipe) => recipe.status === 'pending');
+      const others = data.filter((recipe) => recipe.status !== 'pending');
 
       if (pending.length === 0) {
         pendingListStatus.textContent = 'No pending submissions.';
@@ -194,19 +214,12 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       }
     }
 
-    function recipePhotoUrl(recipe) {
-      if (!recipe.photo_path) return null;
-      const { data } = supabase.storage.from(RECIPE_PHOTOS_BUCKET).getPublicUrl(recipe.photo_path);
-      return data.publicUrl;
-    }
-
     function buildThumb(recipe) {
-      const photoUrl = recipePhotoUrl(recipe);
-      if (!photoUrl) return null;
+      if (!recipe.photo_path) return null;
       const thumb = document.createElement('div');
       thumb.className = 'recipe-row-thumb';
       const img = document.createElement('img');
-      img.src = photoUrl;
+      setPhotoSrc(img, recipe.photo_path);
       img.alt = '';
       thumb.append(img);
       return thumb;
@@ -215,7 +228,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     function buildRecipeRow(recipe) {
       const li = document.createElement('li');
       li.className = 'recipe-row';
-      li.dataset.id = recipe.id;
+      li.dataset.id = recipe.slug;
 
       const thumb = buildThumb(recipe);
       if (thumb) li.append(thumb);
@@ -272,7 +285,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     function buildPendingRow(recipe) {
       const li = document.createElement('li');
       li.className = 'recipe-row';
-      li.dataset.id = recipe.id;
+      li.dataset.id = recipe.slug;
 
       const thumb = buildThumb(recipe);
       if (thumb) li.append(thumb);
@@ -316,7 +329,6 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     function startEditing(recipe) {
-      editingId = recipe.id;
       editingSlug = recipe.slug;
       editingPhotoPath = recipe.photo_path;
 
@@ -334,7 +346,6 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     function stopEditing() {
-      editingId = null;
       editingSlug = null;
       editingPhotoPath = null;
       recipeForm.reset();
@@ -350,19 +361,20 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     cancelEditButton.addEventListener('click', stopEditing);
 
     // Shared by Delete (an existing published/deactivated recipe) and Reject (a
-    // pending submission) — both are "remove this row and its photo for good."
+    // pending submission) — both are "remove this recipe and its photo for good."
     // Best-effort on the photo: an orphaned Storage object is a much smaller
     // problem than a delete that silently fails, so a storage error here doesn't
-    // stop the row itself from being removed.
-    async function removeRecipeRow(recipe, confirmMessage, failureMessage) {
+    // stop the document itself from being removed.
+    async function removeRecipe(recipe, confirmMessage, failureMessage) {
       if (!confirm(confirmMessage)) return false;
 
       if (recipe.photo_path) {
-        await supabase.storage.from(RECIPE_PHOTOS_BUCKET).remove([recipe.photo_path]);
+        await deleteObject(ref(storage, `${RECIPE_PHOTOS_PATH}/${recipe.photo_path}`)).catch(() => {});
       }
 
-      const { error } = await supabase.from('recipes').delete().eq('id', recipe.id);
-      if (error) {
+      try {
+        await deleteDoc(doc(db, 'recipes', recipe.slug));
+      } catch {
         alert(failureMessage);
         return false;
       }
@@ -370,18 +382,18 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     async function deleteRecipe(recipe) {
-      const removed = await removeRecipeRow(
+      const removed = await removeRecipe(
         recipe,
         `Delete "${recipe.title}"? This can't be undone.`,
         'Could not delete this recipe — please try again.',
       );
       if (!removed) return;
-      if (editingId === recipe.id) stopEditing();
+      if (editingSlug === recipe.slug) stopEditing();
       loadRecipeList();
     }
 
     async function rejectRecipe(recipe) {
-      const removed = await removeRecipeRow(
+      const removed = await removeRecipe(
         recipe,
         `Reject "${recipe.title}"? This permanently deletes the submission and can't be undone.`,
         'Could not reject this submission — please try again.',
@@ -390,9 +402,17 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       loadRecipeList();
     }
 
+    async function setRecipeStatus(recipe, status) {
+      try {
+        await updateDoc(doc(db, 'recipes', recipe.slug), { status });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     async function approveRecipe(recipe) {
-      const { error } = await supabase.from('recipes').update({ status: 'published' }).eq('id', recipe.id);
-      if (error) {
+      if (!(await setRecipeStatus(recipe, 'published'))) {
         alert('Could not approve this recipe — please try again.');
         return;
       }
@@ -401,8 +421,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
 
     async function toggleRecipeStatus(recipe) {
       const newStatus = recipe.status === 'deactivated' ? 'published' : 'deactivated';
-      const { error } = await supabase.from('recipes').update({ status: newStatus }).eq('id', recipe.id);
-      if (error) {
+      if (!(await setRecipeStatus(recipe, newStatus))) {
         alert('Could not update this recipe — please try again.');
         return;
       }
@@ -417,17 +436,22 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       membersList.hidden = true;
       membersList.innerHTML = '';
 
-      const { data, error } = await supabase
-        .from('active_members')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
+      // Each member document's ID is their (lowercased) email — that's what
+      // firestore.rules looks up to decide whether a signed-in email may submit.
+      let data;
+      try {
+        const snapshot = await getDocsFromServer(query(collection(db, 'active_members'), orderBy('created_at', 'desc')));
+        data = snapshot.docs.map((snap) => ({
+          ...snap.data(),
+          email: snap.id,
+          created_at: snap.data().created_at?.toDate?.() ?? new Date(),
+        }));
+      } catch {
         membersStatus.textContent = 'Could not load members right now. Please try again in a moment.';
         return;
       }
 
-      if (!data || data.length === 0) {
+      if (data.length === 0) {
         membersStatus.textContent = 'No members yet.';
         return;
       }
@@ -440,7 +464,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     function buildMemberRow(member) {
       const li = document.createElement('li');
       li.className = 'recipe-row';
-      li.dataset.id = member.id;
+      li.dataset.id = member.email;
 
       const info = document.createElement('div');
       info.className = 'recipe-row-info';
@@ -475,11 +499,9 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     async function toggleMemberActive(member) {
-      const { error } = await supabase
-        .from('active_members')
-        .update({ active: !member.active })
-        .eq('id', member.id);
-      if (error) {
+      try {
+        await updateDoc(doc(db, 'active_members', member.email), { active: !member.active });
+      } catch {
         alert('Could not update this member — please try again.');
         return;
       }
@@ -495,8 +517,11 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       submitButton.disabled = true;
 
       try {
-        const { error } = await supabase.from('active_members').insert({ email });
-        if (error) throw error;
+        const memberRef = doc(db, 'active_members', email);
+        if ((await getDoc(memberRef)).exists()) {
+          throw Object.assign(new Error('Already a member'), { code: 'already-exists' });
+        }
+        await setDoc(memberRef, { active: true, created_at: serverTimestamp() });
 
         addMemberStatus.className = 'status success';
         addMemberStatus.textContent = `Added ${email}.`;
@@ -506,7 +531,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       } catch (err) {
         addMemberStatus.className = 'status error';
         addMemberStatus.textContent =
-          err && err.code === '23505' ? 'That email is already a member.' : 'Could not add this member — please try again.';
+          err && err.code === 'already-exists' ? 'That email is already a member.' : 'Could not add this member — please try again.';
         addMemberStatus.hidden = false;
       } finally {
         submitButton.disabled = false;
@@ -525,27 +550,22 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     // Reflect whatever the current session actually is (a returning admin stays
-    // logged in via Supabase's persisted session; signing out elsewhere reflects here).
-    supabase.auth.onAuthStateChange((_event, session) => {
-      showLoggedIn(Boolean(session));
+    // logged in via Firebase's persisted session; signing out elsewhere reflects
+    // here). Only the admin account counts — a member signed in via /submit/ in the
+    // same browser still sees the password form here, not an admin panel whose
+    // every request firestore.rules would reject.
+    onAuthStateChanged(auth, (user) => {
+      showLoggedIn(user?.email === ADMIN_EMAIL);
     });
-
-    const {
-      data: { session: initialSession },
-    } = await supabase.auth.getSession();
-    showLoggedIn(Boolean(initialSession));
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       loginError.hidden = true;
 
-      const password = new FormData(loginForm).get('password');
-      const { error } = await supabase.auth.signInWithPassword({
-        email: ADMIN_EMAIL,
-        password,
-      });
-
-      if (error) {
+      const password = String(new FormData(loginForm).get('password') || '');
+      try {
+        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+      } catch {
         loginError.textContent = 'Incorrect password.';
         loginError.hidden = false;
         return;
@@ -555,25 +575,8 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     });
 
     logoutButton.addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await signOut(auth);
     });
-
-    // A title's slug might collide with an existing recipe; try title, title-2,
-    // title-3, ... until a free one is found, rather than failing the whole submit.
-    async function findAvailableSlug(baseSlug) {
-      for (let attempt = 0; attempt < 25; attempt++) {
-        const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
-        const { data, error } = await supabase
-          .from('recipes')
-          .select('slug')
-          .eq('slug', candidate)
-          .maybeSingle();
-
-        if (error) throw error;
-        if (!data) return candidate;
-      }
-      throw new Error('Could not find an available slug — too many recipes with a similar title.');
-    }
 
     recipeForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -581,31 +584,32 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
 
       const fields = collectRecipeFields(recipeForm, stagesList);
       const photoFile = photoInput.files[0] || null;
-      const isEditing = editingId !== null;
+      const isEditing = editingSlug !== null;
 
       saveButton.disabled = true;
 
       try {
-        // The slug never changes on edit — it's baked into already-shared
-        // /recipes/view?slug=... links — so it's only (re)computed when creating.
-        const slug = isEditing ? editingSlug : await findAvailableSlug(slugify(fields.title) || 'recipe');
+        // The slug never changes on edit — it's the document ID, baked into
+        // already-shared /recipes/view?slug=... links — so it's only computed
+        // when creating (inside createRecipeWithUniqueSlug, which also handles
+        // collisions).
+        const baseSlug = isEditing ? editingSlug : slugify(fields.title) || 'recipe';
 
-        // Upload happens before the database write — if it fails, the form shows
+        // Upload happens before the Firestore write — if it fails, the form shows
         // an error and nothing is saved, rather than saving a broken photo
         // reference. If editing and no new file was chosen, the recipe's
         // existing photo_path is resubmitted unchanged.
-        const photoPath = photoFile ? await uploadRecipePhoto(supabase, photoFile, slug) : isEditing ? editingPhotoPath : null;
+        const photoPath = photoFile ? await uploadRecipePhoto(photoFile, baseSlug) : isEditing ? editingPhotoPath : null;
+        const payload = { ...fields, photo_path: photoPath };
 
-        // Admin-created/edited recipes don't touch `status` here — a new recipe
-        // gets the table's 'published' default, and editing an existing one
+        // A new admin recipe is published immediately; editing an existing one
         // (published or deactivated) leaves whatever status it already has alone.
-        const payload = { ...fields, slug, photo_path: photoPath };
-
-        const { error } = isEditing
-          ? await supabase.from('recipes').update(payload).eq('id', editingId)
-          : await supabase.from('recipes').insert(payload);
-
-        if (error) throw error;
+        let slug = editingSlug;
+        if (isEditing) {
+          await updateDoc(doc(db, 'recipes', editingSlug), payload);
+        } else {
+          slug = await createRecipeWithUniqueSlug(baseSlug, { ...payload, status: 'published' });
+        }
 
         recipeStatus.className = 'status success';
         recipeStatus.innerHTML = `${isEditing ? 'Updated' : 'Saved'}. <a href="/recipes/view?slug=${encodeURIComponent(slug)}">View the recipe</a>.`;

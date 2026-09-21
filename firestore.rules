@@ -1,0 +1,79 @@
+rules_version = '2';
+
+// Heartland Fermenters Guild — Firestore Security Rules (replaces the old
+// supabase/schema.sql RLS policies). Deployed with `firebase deploy --only
+// firestore:rules`; tested against the emulator in tests/rules/.
+//
+// Three identities: the public (signed out), the one shared admin account
+// (email/password), and guild members (email-link sign-in, checked against the
+// active_members roster). See docs/PRODUCT.md Requirements #7, #8, and #16.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Must match ADMIN_EMAIL in src/lib/constants.js. The admin account has to be
+    // created in the Firebase console *before* this goes live — until it exists,
+    // anyone could register that email address themselves.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'admin@heartlandfermentersguild.org';
+    }
+
+    // email_verified matters: the email/password provider (enabled for admin) lets
+    // anyone create an unverified account for *any* address, including a member's.
+    // Only email-link sign-in proves the caller actually owns the inbox.
+    //
+    // Rules run with full read access, so this can check the roster without
+    // members (or the public) being allowed to read active_members themselves.
+    function isActiveMember() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/active_members/$(request.auth.token.email))
+        && get(/databases/$(database)/documents/active_members/$(request.auth.token.email)).data.active == true;
+    }
+
+    function recipeFields() {
+      return ['title', 'category', 'summary', 'video_url', 'yield_text', 'time_stages',
+              'ingredients', 'instructions', 'notes', 'submitted_by', 'photo_path',
+              'status', 'created_at'];
+    }
+
+    function validStatus(data) {
+      return data.status in ['pending', 'published', 'deactivated'];
+    }
+
+    // Recipe documents are keyed by slug (the document ID) — see
+    // createRecipeWithUniqueSlug in src/lib/firebase.js.
+    match /recipes/{slug} {
+      // A single recipe: published ones are public. `resource == null` lets
+      // anyone confirm a slug is unused (needed for a member's slug-collision
+      // check); a read denied here means "exists, but isn't published."
+      allow get: if isAdmin()
+        || resource == null
+        || resource.data.status == 'published';
+
+      // Queries are checked, not filtered: a non-admin list query is only allowed
+      // if it itself asks for status == 'published' (the /recipes/ page does).
+      allow list: if isAdmin() || resource.data.status == 'published';
+
+      allow create: if request.resource.data.keys().hasOnly(recipeFields())
+        && request.resource.data.created_at == request.time
+        && (
+          (isAdmin() && validStatus(request.resource.data))
+          // A member may only ever create a pending recipe — never publish directly.
+          || (isActiveMember() && request.resource.data.status == 'pending')
+        );
+
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(recipeFields())
+        && validStatus(request.resource.data);
+
+      allow delete: if isAdmin();
+    }
+
+    // Member roster, keyed by lowercased email. Admin-only — members never read
+    // it themselves, they only pass isActiveMember() above.
+    match /active_members/{email} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

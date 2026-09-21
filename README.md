@@ -12,6 +12,25 @@ npm run build     # outputs to ./dist
 npm run preview   # serve the production build locally
 ```
 
+`npm run dev` talks to the real Firebase project. To work against local, throwaway
+data instead, run `npm run dev:emulators`. It starts the Firebase Local Emulator
+Suite (Auth, Firestore, Storage, plus its web UI at http://127.0.0.1:4000 for
+poking at data and reading "sent" login emails) and serves the site pointed at it.
+The emulators need **Java 21+** installed (`brew install openjdk@21` on macOS).
+
+## Tests
+
+```sh
+npm run test:unit    # Vitest: pure helpers in src/lib/constants.js
+npm run test:rules   # firestore.rules + storage.rules, against the emulators
+npm run test:e2e     # Playwright: built site against the emulators
+npm test             # all three
+```
+
+`test:rules` and `test:e2e` start the emulators themselves, so they need Java too.
+No real Firebase project or secrets are involved. CI (`.github/workflows/test.yml`)
+runs all three on every PR and push to `main`.
+
 ## Deployment
 
 Deploy only triggers on a `v*.*.*` release tag (`.github/workflows/deploy.yml`), or
@@ -50,60 +69,63 @@ redirect to the apex domain as well.
 
 DNS propagation can take anywhere from a few minutes to 24 hours.
 
-## Recipes, admin & members (Supabase) setup
+## Recipes, admin & members (Firebase) setup
 
-Recipes live in a [Supabase](https://supabase.com) Postgres database, read directly by
-the browser (no server of our own to run). Two ways content reaches it: a
-password-gated admin can add/edit/delete/deactivate a recipe directly, or an active
-guild member can submit one for admin approval. One-time setup:
+Recipes live in [Firebase](https://firebase.google.com): Cloud Firestore for the
+data, Firebase Authentication for logins, and Cloud Storage for recipe photos. The
+browser reads and writes them directly, so there's no server of our own to run.
+Content reaches the site two ways: a password-gated admin can add, edit, delete, or
+deactivate a recipe directly, or an active guild member can submit one for admin
+approval. One-time setup:
 
-1. **Create a Supabase project** (free tier is plenty) at [supabase.com](https://supabase.com).
-2. **Create the tables, functions, and access rules**: open the project's SQL Editor
-   and run `supabase/schema.sql` from this repo. It creates the `recipes` table
-   (photo/video/yield/time-stages/notes/status columns), the `active_members` roster
-   table, the `is_admin()`/`is_active_member()` helper functions RLS policies use to
-   tell admin, members, and the public apart, Row Level Security across all of it, and
-   the public `recipe-photos` Storage bucket with matching policies. The whole file is
-   safe to run against an already-set-up project — every `create policy` is preceded
-   by a matching `drop policy if exists`, so re-running it (e.g. after pulling a schema
-   change) replaces policies cleanly instead of erroring on ones that already exist.
-3. **Allow the magic-link redirect URL**: **Authentication → URL Configuration →
-   Redirect URLs**, add both `http://localhost:4321/submit/` (local dev) and
-   `https://heartlandfermentersguild.org/submit/` (production). Supabase rejects an
-   OTP/magic-link redirect that isn't on this allowlist, so a member's login link
-   won't work correctly without it.
-4. **Create the one shared admin login**: there's no per-person account system for
-   admin — anyone who knows the password has full admin access, per the requirement.
-   In the dashboard, go to **Authentication → Users → Add user**, set the email to
-   `admin@heartlandfermentersguild.org` (this exact address — it's hardcoded as the
-   login identifier in `src/lib/constants.js`, not a secret itself), pick a password,
-   and share that password with whoever should have admin access. Changing who can log
-   in later just means changing this one password (**Authentication → Users →
-   \[the user\] → Reset password**).
-5. **Check the magic-link email template**: members log in via Supabase's email OTP
-   (`signInWithOtp`), which this project hadn't used before this feature. In
-   **Authentication → Email Templates → Magic Link**, confirm the template reads as a
-   login link (not "Confirm signup" wording) — Supabase's default template usually
-   works as-is, but it's worth a look before members start using it.
-6. **Get your API keys**: **Settings → API Keys**. Copy the **Project URL** and the
-   **Publishable key** (`sb_publishable_...` — safe to expose in client-side code; real
-   protection comes from the RLS policies above, not from keeping this key secret).
-7. **Set them for local development**: copy `.env.example` to `.env` and fill in both
-   values.
-8. **Set them for the GitHub Actions build**: repo **Settings → Secrets and variables →
-   Actions → Variables tab** (variables, not secrets — these values aren't sensitive),
-   add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `deploy.yml` already
-   reads them from there.
+1. **Create a Firebase project** in the [Firebase console](https://console.firebase.google.com).
+   Google Analytics isn't needed.
+2. **Upgrade to the Blaze (pay-as-you-go) plan and set a budget alert.** Cloud Storage
+   (recipe photos) isn't available on the free Spark plan. Blaze keeps the same
+   no-cost usage allowance, and a guild-sized site should stay well inside it. In the
+   Google Cloud console under **Billing → Budgets & alerts**, add a budget (e.g. $1)
+   so any unexpected charge sends an email.
+3. **Create the Firestore database** (**Build → Firestore Database → Create
+   database**, production mode) and **the Storage bucket** (**Build → Storage → Get
+   started**). Pick a US location for both.
+4. **Turn on sign-in methods**: **Build → Authentication → Sign-in method**. Enable
+   **Email/Password** and, inside it, **Email link (passwordless sign-in)**. Then on the
+   **Settings** tab, under **Authorized domains**, add `heartlandfermentersguild.org` so members'
+   login links can return there (`localhost` is already listed).
+5. **Create the one shared admin login, before deploying the rules.** Admin has no
+   per-person accounts: anyone who knows the password has full admin access, per the
+   requirement. Under **Authentication → Users → Add user**, use
+   `admin@heartlandfermentersguild.org`. That exact address is hardcoded in
+   `src/lib/constants.js`, `firestore.rules`, and `storage.rules`; it isn't a secret.
+   Pick a password and share it with whoever should have admin access. To change who
+   can log in later, change this password. Create this user first: the rules grant
+   admin to whoever holds that email, so until the account exists, anyone could
+   register it.
+6. **Copy the web config into the code.** Under **Project settings → General → Your
+   apps**, add a Web app. Copy its config values into `PRODUCTION_CONFIG` in
+   `src/lib/firebase.js` (already done for the `heartland-fermenters-guild` project).
+   These values only identify the project and are safe to commit. Access control comes from the rules below, so nothing needs to go into
+   `.env` or GitHub Actions secrets.
+7. **Deploy the rules and index**: run `npx firebase login`, then
+   `npx firebase deploy --only firestore,storage` (`.firebaserc` points it at the
+   `heartland-fermenters-guild` project). This
+   uploads `firestore.rules`, `storage.rules`, and the composite index in
+   `firestore.indexes.json` that the public recipe list's query needs. Re-run it
+   whenever any of those files change. They are not deployed by the GitHub Pages
+   workflow.
+8. **Optional: brand the login email.** Under **Authentication → Templates**, set the
+   sender name, reply-to address, and subject. Sending from the guild's own domain
+   takes a separate custom-domain setup (see docs/PRODUCT.md, Open questions).
 
-Once that's done: `/recipes/` lists every **published** recipe from the table,
+Once that's done: `/recipes/` lists every **published** recipe,
 `/recipes/view?slug=...` renders one from a shared template (a query-string slug
 rather than a path segment like `/recipes/my-recipe/`, since GitHub Pages can only
-serve pre-built static files — there's no way to pre-build a page per database row
+serve pre-built static files — there's no way to pre-build a page per recipe
 that updates without a redeploy, and recipes are meant to appear instantly once
 approved). `/admin/` is the password-gated panel: a Pending Recipes queue
 (Approve/Reject), the Recipes list (Edit/Deactivate/Delete), a Members list (add by
 email, Deactivate/Reactivate), and the add-a-recipe form. `/submit/` is where an
-active member logs in by email (a magic link, no password to set) and submits a
+active member logs in by email (a one-time login link, no password to set) and submits a
 recipe, which lands as `pending` — invisible on the public site until an admin
 approves it from `/admin/`.
 
@@ -112,20 +134,25 @@ approves it from `/admin/`.
 ```
 src/
   layouts/Layout.astro     shared <head>, nav, footer, fonts, global styles
-  lib/constants.js         admin email, recipe categories, time-stage suggestions, slugify/list/YouTube-ID helpers (no Supabase import)
-  lib/supabase.js          Supabase client (client-side only — needs env vars set)
-  lib/recipe-form.js       shared recipe-form logic (stage editor, field reading, photo upload) used by admin and /submit/
+  lib/constants.js         admin email, recipe categories, time-stage suggestions, slugify/list/YouTube-ID helpers (no Firebase import)
+  lib/firebase.js          Firebase app + web config, emulator switch, photo/slug-safe-create helpers (client-side only)
+  lib/recipe-form.js       shared recipe-form logic (stage editor, field reading) used by admin and /submit/
   pages/index.astro        the landing page
-  pages/recipes/index.astro  recipe list (published only, fetches from Supabase client-side)
-  pages/recipes/view.astro   single-recipe template (?slug=... from Supabase)
+  pages/recipes/index.astro  recipe list (published only, fetched from Firestore client-side)
+  pages/recipes/view.astro   single-recipe template (?slug=... = the Firestore document ID)
   pages/admin/index.astro  password login; pending-recipe review, recipes, and members management
-  pages/submit/index.astro  member magic-link login + recipe submission (lands as pending)
+  pages/submit/index.astro  member email-link login + recipe submission (lands as pending)
   pages/404.astro          not-found page
 public/
   assets/                 logo, header banner, favicons
   CNAME                   custom domain for GitHub Pages
   robots.txt
-supabase/schema.sql       recipes + active_members tables, RLS policies, is_admin()/is_active_member() functions, recipe-photos Storage bucket
+firestore.rules           who can read/write recipes and the active_members roster (isAdmin()/isActiveMember())
+storage.rules             who can view/upload/delete recipe photos
+firestore.indexes.json    composite index for the public recipe list query
+firebase.json             ties the above together + emulator ports
+tests/e2e/                Playwright specs; emulator.js seeds/reads the emulators
+tests/rules/              Security Rules tests
 .github/workflows/deploy.yml   CI build + deploy (tag-only)
 .github/workflows/test.yml     CI test suite (every PR/push to main)
 ```
@@ -133,9 +160,9 @@ supabase/schema.sql       recipes + active_members tables, RLS policies, is_admi
 ## Roadmap
 
 - [x] Landing page: header image, welcome text, guild links
-- [x] Recipes section (Supabase-backed, template-driven)
+- [x] Recipes section (Firebase-backed, template-driven)
 - [x] Password-gated admin: add/edit/delete/deactivate recipes
-- [x] Member accounts (email magic link) that can submit a recipe for admin approval
+- [x] Member accounts (email login link) that can submit a recipe for admin approval
       — experimental, may not launch (see docs/PRODUCT.md Requirement #16)
 - [ ] Full info site (About, Events)
 - [ ] Auth-protected members-only *content* section (gating actual pages, beyond recipe submission)

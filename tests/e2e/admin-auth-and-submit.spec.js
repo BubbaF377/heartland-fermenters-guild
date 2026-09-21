@@ -1,9 +1,12 @@
-import { test, expect } from '@playwright/test';
-import { mockAuth, mockRecipesTable, mockPhotoUpload, loginAsAdmin } from './mock-supabase.js';
+import { test, expect, createAdminUser, getRecipe, loginAsAdmin, photoExists, seedRecipes, signInAsMember, seedMembers, ADMIN_PASSWORD } from './emulator.js';
+import { minimalRecipe } from './fixtures/recipes.js';
 
 test.describe('Admin — login', () => {
+  test.beforeEach(async () => {
+    await createAdminUser();
+  });
+
   test('wrong password shows an error and keeps the login form visible', async ({ page }) => {
-    await mockAuth(page, { succeeds: false });
     await page.goto('/admin/');
 
     await page.getByLabel('Password').fill('wrong-password');
@@ -14,14 +17,23 @@ test.describe('Admin — login', () => {
   });
 
   test('correct password reveals the add-a-recipe form', async ({ page }) => {
-    await mockAuth(page, { succeeds: true });
     await page.goto('/admin/');
 
-    await page.getByLabel('Password').fill('correct-password');
+    await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Log in' }).click();
 
     await expect(page.getByRole('heading', { name: 'Add a Recipe' })).toBeVisible();
     await expect(page.locator('#login-section')).toBeHidden();
+  });
+
+  test('a signed-in member visiting /admin/ still sees the password form, not the admin panel', async ({ page }) => {
+    await seedMembers([{ email: 'jamie@example.com', active: true, created_at: '2026-08-20T00:00:00Z' }]);
+    await signInAsMember(page, 'jamie@example.com');
+
+    await page.goto('/admin/');
+
+    await expect(page.locator('#login-section')).toBeVisible();
+    await expect(page.locator('#admin-section')).toBeHidden();
   });
 });
 
@@ -36,16 +48,7 @@ test.describe('Admin — add a recipe', () => {
     await page.getByLabel(/^Instructions/).fill('Mix.\nBake.');
   }
 
-  test('submits the expected payload, including photo upload', async ({ page }) => {
-    let insertedBody = null;
-    await mockRecipesTable(page, {
-      bySlug: {},
-      onInsert: (body) => {
-        insertedBody = body;
-      },
-    });
-    await mockPhotoUpload(page, { succeeds: true });
-
+  test('saves a published recipe with every field, including the uploaded photo', async ({ page }) => {
     await fillRequiredFields(page);
     await page.getByLabel(/^How-to video/).fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     await page.getByLabel(/^Yield/).fill('1 loaf');
@@ -59,20 +62,22 @@ test.describe('Admin — add a recipe', () => {
     await page.getByRole('button', { name: 'Save Recipe' }).click();
 
     await expect(page.locator('#recipe-status')).toContainText(/saved/i);
-    expect(insertedBody).toMatchObject({
+    const saved = await getRecipe('test-sourdough');
+    expect(saved).toMatchObject({
       title: 'Test Sourdough',
+      status: 'published',
       video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       yield_text: '1 loaf',
       notes: 'Test note.',
       ingredients: 'Flour\nWater\nSalt',
       instructions: 'Mix.\nBake.',
+      time_stages: null,
     });
-    expect(insertedBody.photo_path).toMatch(/\.jpg$/);
-    expect(insertedBody.slug).toBe('test-sourdough');
+    expect(saved.photo_path).toMatch(/^test-sourdough-\d+\.jpg$/);
+    expect(await photoExists(saved.photo_path)).toBe(true);
   });
 
   test('the "View the recipe" success link points at the new slug', async ({ page }) => {
-    await mockRecipesTable(page, { bySlug: {} });
     await fillRequiredFields(page);
     await page.getByRole('button', { name: 'Save Recipe' }).click();
 
@@ -82,34 +87,31 @@ test.describe('Admin — add a recipe', () => {
     );
   });
 
-  test('retries with a suffixed slug when the base slug is already taken', async ({ page }) => {
-    let insertedBody = null;
-    await mockRecipesTable(page, {
-      // "test-sourdough" is taken; "test-sourdough-2" is not.
-      bySlug: { 'test-sourdough': { slug: 'test-sourdough' } },
-      onInsert: (body) => {
-        insertedBody = body;
-      },
-    });
+  test('uses a suffixed slug when the base slug is already taken, leaving the existing recipe untouched', async ({ page }) => {
+    await seedRecipes([{ ...minimalRecipe, slug: 'test-sourdough', title: 'The Original' }]);
 
     await fillRequiredFields(page);
     await page.getByRole('button', { name: 'Save Recipe' }).click();
 
     await expect(page.locator('#recipe-status')).toContainText(/saved/i);
-    expect(insertedBody.slug).toBe('test-sourdough-2');
+    expect((await getRecipe('test-sourdough')).title).toBe('The Original');
+    expect((await getRecipe('test-sourdough-2')).title).toBe('Test Sourdough');
   });
 
-  test('shows an error and re-enables the submit button when saving fails', async ({ page }) => {
-    await mockRecipesTable(page, {
-      bySlug: {},
-      onInsert: () => ({ status: 500, body: { message: 'boom' } }),
-    });
-
+  test('a rejected photo upload shows an error, saves nothing, and re-enables the button', async ({ page }) => {
+    // storage.rules only accept images — a non-image upload is refused, which
+    // must stop the recipe from being saved with a broken photo reference.
     await fillRequiredFields(page);
+    await page.setInputFiles('#photo', {
+      name: 'notes.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('not an image'),
+    });
     const submitButton = page.getByRole('button', { name: 'Save Recipe' });
     await submitButton.click();
 
     await expect(page.locator('#recipe-status')).toContainText(/could not save the recipe/i);
     await expect(submitButton).toBeEnabled();
+    expect(await getRecipe('test-sourdough')).toBeNull();
   });
 });

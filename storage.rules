@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// Heartland Fermenters Guild — Firebase Storage Security Rules for recipe photos
+// (Requirement #11). Same public-read / restricted-write split as firestore.rules,
+// with the same admin and active-member checks (the member check reads the
+// Firestore roster via a cross-service lookup).
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Must match ADMIN_EMAIL in src/lib/constants.js.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'admin@heartlandfermentersguild.org';
+    }
+
+    // See firestore.rules for why email_verified is required.
+    function isActiveMember() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && firestore.exists(/databases/(default)/documents/active_members/$(request.auth.token.email))
+        && firestore.get(/databases/(default)/documents/active_members/$(request.auth.token.email)).data.active == true;
+    }
+
+    match /recipe-photos/{photo} {
+      // Anyone can view a recipe's photo without logging in.
+      allow read: if true;
+
+      // Admin, or an active member attaching a photo to their submission. Images
+      // only, and capped in size — a member upload is exactly the content the
+      // pending-review gate (Requirement #16) exists to moderate.
+      allow create: if (isAdmin() || isActiveMember())
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 10 * 1024 * 1024;
+
+      // Deleting a recipe best-effort removes its photo too — admin-only, since
+      // only admin can delete a recipe in the first place.
+      allow delete: if isAdmin();
+    }
+  }
+}

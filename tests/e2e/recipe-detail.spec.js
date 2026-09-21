@@ -1,6 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { mockRecipesTable } from './mock-supabase.js';
-import { fullRecipe, minimalRecipe } from './fixtures/recipes.js';
+import { test, expect, seedRecipes, loginAsAdmin } from './emulator.js';
+import { fullRecipe, minimalRecipe, pendingRecipe, deactivatedRecipe } from './fixtures/recipes.js';
 
 function expectedDate(createdAt) {
   // Mirrors the app's own formatting exactly, so this doesn't hardcode a date
@@ -14,7 +13,7 @@ function expectedDate(createdAt) {
 
 test.describe('Recipe detail page', () => {
   test('renders title, category, summary, ingredients, and instructions', async ({ page }) => {
-    await mockRecipesTable(page, { bySlug: { [fullRecipe.slug]: fullRecipe } });
+    await seedRecipes([fullRecipe]);
     await page.goto(`/recipes/view?slug=${fullRecipe.slug}`);
 
     await expect(page.locator('#recipe-title')).toHaveText(fullRecipe.title);
@@ -25,7 +24,7 @@ test.describe('Recipe detail page', () => {
   });
 
   test('renames Prep and Ferment stage chips, leaves other labels as typed', async ({ page }) => {
-    await mockRecipesTable(page, { bySlug: { [fullRecipe.slug]: fullRecipe } });
+    await seedRecipes([fullRecipe]);
     await page.goto(`/recipes/view?slug=${fullRecipe.slug}`);
 
     const strip = page.locator('#recipe-meta-strip');
@@ -37,7 +36,7 @@ test.describe('Recipe detail page', () => {
   });
 
   test('shows the yield chip and the "Makes ..." line in the ingredients column', async ({ page }) => {
-    await mockRecipesTable(page, { bySlug: { [fullRecipe.slug]: fullRecipe } });
+    await seedRecipes([fullRecipe]);
     await page.goto(`/recipes/view?slug=${fullRecipe.slug}`);
 
     await expect(page.locator('#recipe-meta-strip')).toContainText(fullRecipe.yield_text);
@@ -45,9 +44,7 @@ test.describe('Recipe detail page', () => {
   });
 
   test('shows the submitted-by/date chip, with and without a submitter name', async ({ page }) => {
-    await mockRecipesTable(page, {
-      bySlug: { [fullRecipe.slug]: fullRecipe, [minimalRecipe.slug]: minimalRecipe },
-    });
+    await seedRecipes([fullRecipe, minimalRecipe]);
 
     await page.goto(`/recipes/view?slug=${fullRecipe.slug}`);
     await expect(page.locator('#recipe-meta-strip')).toContainText(
@@ -59,9 +56,7 @@ test.describe('Recipe detail page', () => {
   });
 
   test('shows notes only when present', async ({ page }) => {
-    await mockRecipesTable(page, {
-      bySlug: { [fullRecipe.slug]: fullRecipe, [minimalRecipe.slug]: minimalRecipe },
-    });
+    await seedRecipes([fullRecipe, minimalRecipe]);
 
     await page.goto(`/recipes/view?slug=${fullRecipe.slug}`);
     await expect(page.locator('#recipe-notes')).toBeVisible();
@@ -77,14 +72,7 @@ test.describe('Recipe detail page', () => {
     const videoOnly = { ...fullRecipe, slug: 'video-only', photo_path: null };
     const neither = minimalRecipe;
 
-    await mockRecipesTable(page, {
-      bySlug: {
-        [both.slug]: both,
-        [photoOnly.slug]: photoOnly,
-        [videoOnly.slug]: videoOnly,
-        [neither.slug]: neither,
-      },
-    });
+    await seedRecipes([both, photoOnly, videoOnly, neither]);
 
     await page.goto(`/recipes/view?slug=${both.slug}`);
     await expect(page.locator('#recipe-photo')).toBeVisible();
@@ -109,8 +97,24 @@ test.describe('Recipe detail page', () => {
   });
 
   test('shows a not-found message for an unknown slug', async ({ page }) => {
-    await mockRecipesTable(page, { bySlug: {} });
     await page.goto('/recipes/view?slug=does-not-exist');
     await expect(page.locator('#recipe-status')).toContainText(/couldn.t be found/i);
+  });
+
+  test('a pending or deactivated recipe reads as not found for the public', async ({ page }) => {
+    await seedRecipes([pendingRecipe, deactivatedRecipe]);
+
+    await page.goto(`/recipes/view?slug=${pendingRecipe.slug}`);
+    await expect(page.locator('#recipe-status')).toContainText(/couldn.t be found/i);
+
+    await page.goto(`/recipes/view?slug=${deactivatedRecipe.slug}`);
+    await expect(page.locator('#recipe-status')).toContainText(/couldn.t be found/i);
+  });
+
+  test('a logged-in admin can preview a pending recipe', async ({ page }) => {
+    await loginAsAdmin(page, { recipes: [pendingRecipe] });
+
+    await page.goto(`/recipes/view?slug=${pendingRecipe.slug}`);
+    await expect(page.locator('#recipe-title')).toHaveText(pendingRecipe.title);
   });
 });

@@ -74,14 +74,22 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
   </main>
 
   <script>
-    import { supabase } from '../../lib/supabase.js';
+    import {
+      isSignInWithEmailLink,
+      onAuthStateChanged,
+      sendSignInLinkToEmail,
+      signInWithEmailLink,
+      signOut,
+    } from 'firebase/auth';
+    import { auth, createRecipeWithUniqueSlug, uploadRecipePhoto } from '../../lib/firebase.js';
     import { slugify } from '../../lib/constants.js';
-    import { wireStageEditor, collectRecipeFields, uploadRecipePhoto } from '../../lib/recipe-form.js';
+    import { wireStageEditor, collectRecipeFields } from '../../lib/recipe-form.js';
 
     const loginSection = document.getElementById('login-section');
     const submitSection = document.getElementById('submit-section');
     const loginForm = document.getElementById('login-form');
     const loginStatus = document.getElementById('login-status');
+    const loginButton = loginForm.querySelector('button[type="submit"]');
     const loggedInAs = document.getElementById('logged-in-as');
     const logoutButton = document.getElementById('logout-button');
     const recipeForm = document.getElementById('recipe-form');
@@ -92,7 +100,19 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     const photoInput = document.getElementById('photo');
     const saveButton = document.getElementById('save-button');
 
+    // Firebase's email-link sign-in needs the email again when the link is opened,
+    // to prove the person clicking it is the one it was sent to. Remembered here
+    // when the link is requested; if the link is opened in a different browser,
+    // the member is asked to type it again instead.
+    const EMAIL_STORAGE_KEY = 'hfg-member-login-email';
+
     const { reset: resetStageSuggestions } = wireStageEditor({ stagesList, addStageButton, categorySelect });
+
+    function showStatus(el, isError, message) {
+      el.className = isError ? 'status error' : 'status success';
+      el.textContent = message;
+      el.hidden = false;
+    }
 
     function showLoggedIn(isLoggedIn, email) {
       loginSection.hidden = isLoggedIn;
@@ -101,60 +121,84 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     // Reflect whatever the current session actually is (a returning member stays
-    // logged in via Supabase's persisted session — including right after clicking
-    // their magic link, which lands back here already authenticated).
-    supabase.auth.onAuthStateChange((_event, session) => {
-      showLoggedIn(Boolean(session), session?.user?.email);
+    // logged in via Firebase's persisted session).
+    onAuthStateChanged(auth, (user) => {
+      showLoggedIn(Boolean(user), user?.email);
     });
 
-    const {
-      data: { session: initialSession },
-    } = await supabase.auth.getSession();
-    showLoggedIn(Boolean(initialSession), initialSession?.user?.email);
+    // Set when this page was opened from an emailed login link (it carries the
+    // one-time code in its query string). Cleared once the link has been used.
+    let pendingLoginLink = isSignInWithEmailLink(auth, window.location.href) ? window.location.href : null;
+
+    async function completeLinkSignIn(email) {
+      try {
+        await signInWithEmailLink(auth, email, pendingLoginLink);
+        try {
+          window.localStorage.removeItem(EMAIL_STORAGE_KEY);
+        } catch {}
+        pendingLoginLink = null;
+        loginButton.textContent = 'Email me a login link';
+        // Drop the one-time code from the address bar so a refresh or a copied
+        // URL doesn't try to reuse an already-spent link.
+        window.history.replaceState(null, '', window.location.pathname);
+      } catch {
+        showStatus(
+          loginStatus,
+          true,
+          "That login link didn't work — it may have expired, already been used, or been sent to a different email. Request a new one below.",
+        );
+      }
+    }
+
+    if (pendingLoginLink) {
+      let savedEmail = null;
+      try {
+        savedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
+      } catch {}
+
+      if (savedEmail) {
+        await completeLinkSignIn(savedEmail);
+      } else {
+        loginButton.textContent = 'Log in';
+        showStatus(loginStatus, false, 'Confirm the email address this login link was sent to.');
+      }
+    }
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       loginStatus.hidden = true;
 
       const email = String(new FormData(loginForm).get('email') || '').trim();
-      const submitButton = loginForm.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
+      loginButton.disabled = true;
 
-      // Authentication itself is open to any email — that's how magic-link login
-      // works. Whether this email is actually an active member is checked by the
-      // database when they try to submit, not here.
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${window.location.origin}/submit/` },
-      });
+      if (pendingLoginLink) {
+        await completeLinkSignIn(email);
+        loginButton.disabled = false;
+        return;
+      }
 
-      loginStatus.className = error ? 'status error' : 'status success';
-      loginStatus.textContent = error
-        ? 'Could not send a login link — please try again.'
-        : `Check ${email} for a login link.`;
-      loginStatus.hidden = false;
-      submitButton.disabled = false;
+      // Authentication itself is open to any email — that's how email-link login
+      // works. Whether this email is actually an active member is checked by
+      // firestore.rules when they try to submit, not here.
+      try {
+        await sendSignInLinkToEmail(auth, email, {
+          url: `${window.location.origin}/submit/`,
+          handleCodeInApp: true,
+        });
+        try {
+          window.localStorage.setItem(EMAIL_STORAGE_KEY, email);
+        } catch {}
+        showStatus(loginStatus, false, `Check ${email} for a login link.`);
+      } catch {
+        showStatus(loginStatus, true, 'Could not send a login link — please try again.');
+      } finally {
+        loginButton.disabled = false;
+      }
     });
 
     logoutButton.addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await signOut(auth);
     });
-
-    // Checks for a slug collision only among *published* recipes — a member's
-    // authenticated session can't see pending/deactivated rows (RLS scopes public
-    // reads to status='published' for everyone but admin), so a same-titled pending
-    // or deactivated recipe wouldn't be caught here. Rare on a small site, and the
-    // worst case is a duplicate-slug insert error surfaced as the generic failure
-    // message below, not a security issue — not worth a dedicated RPC just for this.
-    async function findAvailableSlug(baseSlug) {
-      for (let attempt = 0; attempt < 25; attempt++) {
-        const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
-        const { data, error } = await supabase.from('recipes').select('slug').eq('slug', candidate).maybeSingle();
-        if (error) throw error;
-        if (!data) return candidate;
-      }
-      throw new Error('Could not find an available slug — too many recipes with a similar title.');
-    }
 
     recipeForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -166,32 +210,28 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       saveButton.disabled = true;
 
       try {
-        const slug = await findAvailableSlug(slugify(fields.title) || 'recipe');
-        const photoPath = photoFile ? await uploadRecipePhoto(supabase, photoFile, slug) : null;
+        const baseSlug = slugify(fields.title) || 'recipe';
+        const photoPath = photoFile ? await uploadRecipePhoto(photoFile, baseSlug) : null;
 
-        const { error } = await supabase.from('recipes').insert({
-          ...fields,
-          slug,
-          photo_path: photoPath,
-          status: 'pending',
-        });
+        // Slug collisions with pending/deactivated recipes are detected too, even
+        // though a member can't read those — see createRecipeWithUniqueSlug.
+        await createRecipeWithUniqueSlug(baseSlug, { ...fields, photo_path: photoPath, status: 'pending' });
 
-        if (error) throw error;
-
-        recipeStatus.className = 'status success';
-        recipeStatus.textContent = 'Thanks! Your recipe was submitted and is now waiting for admin review.';
-        recipeStatus.hidden = false;
+        showStatus(recipeStatus, false, 'Thanks! Your recipe was submitted and is now waiting for admin review.');
         recipeForm.reset();
         resetStageSuggestions();
       } catch (err) {
-        recipeStatus.className = 'status error';
-        // 42501 is Postgres's row-level-security-violation code — the most likely
-        // cause here is that this email isn't (or is no longer) an active member.
-        recipeStatus.textContent =
-          err && err.code === '42501'
+        // The most likely cause of a denied write (Firestore create, or the photo
+        // upload before it) is that this email isn't, or is no longer, an active
+        // member — see firestore.rules / storage.rules.
+        const denied = err?.code === 'permission-denied' || err?.code === 'storage/unauthorized';
+        showStatus(
+          recipeStatus,
+          true,
+          denied
             ? "Could not submit — this email isn't on the active member list. Contact makers@heartlandfermentersguild.org to be added."
-            : 'Could not submit your recipe right now — please try again in a moment.';
-        recipeStatus.hidden = false;
+            : 'Could not submit your recipe right now — please try again in a moment.',
+        );
       } finally {
         saveButton.disabled = false;
       }

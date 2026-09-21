@@ -23,12 +23,6 @@ jobs:
         uses: actions/checkout@v7
       - name: Install, build, and upload your site
         uses: withastro/action@v6
-        env:
-          # Repo *variables*, not secrets — Supabase's publishable key is designed to
-          # be public (protected by Row Level Security, not secrecy). Set these under
-          # Settings → Secrets and variables → Actions → Variables. See README.md.
-          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
-          PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
   deploy:
     needs: build

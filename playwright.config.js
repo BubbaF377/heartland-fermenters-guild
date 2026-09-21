@@ -4,18 +4,26 @@ import { defineConfig, devices } from '@playwright/test';
 // production build behave differently (see the <script type="module"> bundling
 // gotcha in project history), so testing against dev would validate the wrong thing.
 //
-// PUBLIC_SUPABASE_URL/PUBLIC_SUPABASE_PUBLISHABLE_KEY just need to be syntactically
-// valid at build time: createClient() throws synchronously if the URL is unset, which
-// would break every page's script before Playwright's route mocks ever get a chance
-// to intercept anything. No real network calls happen — every spec mocks Supabase.
+// The site is built with PUBLIC_FIREBASE_EMULATORS=true so every page talks to the
+// Firebase Local Emulator Suite, which `npm run test:e2e` starts around this run
+// (see package.json) — no real Firebase project involved. Specs share that one set
+// of emulators and wipe it before each test (tests/e2e/emulator.js), so they run
+// one at a time rather than in parallel.
+//
+// Its own port, never reused: a `npm run dev` left running on 4321 talks to the
+// *real* Firebase project, and reusing it once pointed the whole suite at
+// production. If 4329 is taken, the run fails instead.
+const PORT = 4329;
+
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:4321',
+    baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
   },
   projects: [
@@ -25,13 +33,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4321',
-    url: 'http://localhost:4321',
-    reuseExistingServer: !process.env.CI,
+    command: `npm run build && npm run preview -- --port ${PORT}`,
+    url: `http://localhost:${PORT}`,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
-      PUBLIC_SUPABASE_URL: 'https://test-project.supabase.co',
-      PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_key_for_e2e',
+      PUBLIC_FIREBASE_EMULATORS: 'true',
     },
   },
 });

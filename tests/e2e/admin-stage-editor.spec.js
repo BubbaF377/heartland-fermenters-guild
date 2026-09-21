@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { loginAsAdmin } from './mock-supabase.js';
+import { test, expect, loginAsAdmin } from './emulator.js';
 import { TIME_STAGE_SUGGESTIONS } from '../../src/lib/constants.js';
 
 test.describe('Admin — time-stage editor', () => {

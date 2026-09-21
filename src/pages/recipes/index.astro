@@ -18,8 +18,8 @@ import Layout from '../../layouts/Layout.astro';
   </main>
 
   <script>
-    import { supabase } from '../../lib/supabase.js';
-    import { RECIPE_PHOTOS_BUCKET } from '../../lib/constants.js';
+    import { collection, getDocsFromServer, orderBy, query, where } from 'firebase/firestore';
+    import { db, recipeFromSnap, setPhotoSrc } from '../../lib/firebase.js';
 
     const statusEl = document.getElementById('recipes-status');
     const gridEl = document.getElementById('recipes-grid');
@@ -37,13 +37,10 @@ import Layout from '../../layouts/Layout.astro';
         a.href = `/recipes/view?slug=${encodeURIComponent(recipe.slug)}`;
 
         if (recipe.photo_path) {
-          const { data: photoUrlData } = supabase.storage
-            .from(RECIPE_PHOTOS_BUCKET)
-            .getPublicUrl(recipe.photo_path);
           const thumb = document.createElement('div');
           thumb.className = 'card-thumb';
           const img = document.createElement('img');
-          img.src = photoUrlData.publicUrl;
+          setPhotoSrc(img, recipe.photo_path);
           img.alt = '';
           thumb.append(img);
           a.append(thumb);
@@ -80,18 +77,31 @@ import Layout from '../../layouts/Layout.astro';
     }
 
     async function loadRecipes() {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('slug, title, category, summary, photo_path, submitted_by, created_at')
-        .order('created_at', { ascending: false });
-
-      if (error) {
+      // The status filter isn't optional: Firestore Security Rules don't silently
+      // narrow a query to the documents the caller may read (Postgres RLS did) —
+      // they reject any public list query that doesn't itself ask for only
+      // published recipes. See firestore.rules.
+      //
+      // FromServer: plain getDocs() quietly answers from the (empty) local cache
+      // when the network is down, which would show "No recipes yet" instead of
+      // an error.
+      let data;
+      try {
+        const snapshot = await getDocsFromServer(
+          query(
+            collection(db, 'recipes'),
+            where('status', '==', 'published'),
+            orderBy('created_at', 'desc'),
+          ),
+        );
+        data = snapshot.docs.map(recipeFromSnap);
+      } catch {
         statusEl.textContent =
           'Could not load recipes right now. Please try again in a moment.';
         return;
       }
 
-      if (!data || data.length === 0) {
+      if (data.length === 0) {
         statusEl.textContent = 'No recipes yet — check back soon.';
         return;
       }

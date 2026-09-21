@@ -3,7 +3,7 @@
 // (src/pages/submit/index.astro), so the two don't duplicate the time-stage editor
 // and field-reading logic. Client-side only (touches the DOM) — not imported from
 // Astro frontmatter.
-import { RECIPE_PHOTOS_BUCKET, TIME_STAGE_SUGGESTIONS, linesToPairs, pairsToLines } from './constants.js';
+import { TIME_STAGE_SUGGESTIONS, linesToPairs, pairsToLines } from './constants.js';
 
 export function addStageRow(stagesList, label = '', value = '') {
   const row = document.createElement('div');
@@ -81,8 +81,8 @@ export function wireStageEditor({ stagesList, addStageButton, categorySelect }) 
   };
 }
 
-// Reads every recipe field out of the form into a payload shaped to match the
-// `recipes` table's columns directly (minus slug/photo_path/status, which the
+// Reads every recipe field out of the form into a payload shaped to match a
+// `recipes` document's fields directly (minus photo_path/status, which the
 // caller supplies — creating vs. editing vs. a member submission each compute
 // those differently).
 export function collectRecipeFields(form, stagesList) {
@@ -101,7 +101,7 @@ export function collectRecipeFields(form, stagesList) {
   };
 }
 
-// Populates a form (and its stage-editor rows) from an existing recipe row — used
+// Populates a form (and its stage-editor rows) from an existing recipe — used
 // by the admin's Edit action. There's no submission-page equivalent since a member
 // only ever creates a fresh recipe, never edits an existing one.
 export function populateRecipeForm(form, stagesList, recipe) {
@@ -117,16 +117,4 @@ export function populateRecipeForm(form, stagesList, recipe) {
 
   stagesList.innerHTML = '';
   linesToPairs(recipe.time_stages).forEach(({ label, value }) => addStageRow(stagesList, label, value));
-}
-
-// Uploads a chosen photo file, named from the recipe's slug so it's traceable, and
-// returns the stored path. Throws on failure — the caller decides how to surface
-// that (both admin and the submission form treat a failed upload as "don't save
-// the recipe," rather than saving one with a broken photo reference).
-export async function uploadRecipePhoto(supabase, photoFile, slug) {
-  const ext = photoFile.name.includes('.') ? photoFile.name.split('.').pop() : 'jpg';
-  const photoPath = `${slug}-${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from(RECIPE_PHOTOS_BUCKET).upload(photoPath, photoFile);
-  if (error) throw error;
-  return photoPath;
 }

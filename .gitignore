@@ -21,3 +21,6 @@ npm-debug.log*
 test-results/
 playwright-report/
 blob-report/
+
+# Firebase emulator logs
+*-debug.log

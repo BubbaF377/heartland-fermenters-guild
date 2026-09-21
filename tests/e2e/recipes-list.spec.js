@@ -1,10 +1,9 @@
-import { test, expect } from '@playwright/test';
-import { mockRecipesTable } from './mock-supabase.js';
-import { fullRecipe, minimalRecipe } from './fixtures/recipes.js';
+import { test, expect, seedRecipes } from './emulator.js';
+import { fullRecipe, minimalRecipe, pendingRecipe, deactivatedRecipe } from './fixtures/recipes.js';
 
 test.describe('Recipes list page', () => {
   test('renders a card per recipe with title, category, summary, and meta', async ({ page }) => {
-    await mockRecipesTable(page, { list: [fullRecipe, minimalRecipe] });
+    await seedRecipes([fullRecipe, minimalRecipe]);
     await page.goto('/recipes/');
 
     const cards = page.locator('.recipe-card');
@@ -18,7 +17,7 @@ test.describe('Recipes list page', () => {
   });
 
   test('shows a photo thumbnail only for recipes with a photo', async ({ page }) => {
-    await mockRecipesTable(page, { list: [fullRecipe, minimalRecipe] });
+    await seedRecipes([fullRecipe, minimalRecipe]);
     await page.goto('/recipes/');
 
     const cards = page.locator('.recipe-card');
@@ -26,8 +25,16 @@ test.describe('Recipes list page', () => {
     await expect(cards.nth(1).locator('.card-thumb')).toHaveCount(0);
   });
 
+  test('shows only published recipes — never pending or deactivated ones', async ({ page }) => {
+    await seedRecipes([fullRecipe, pendingRecipe, deactivatedRecipe]);
+    await page.goto('/recipes/');
+
+    const cards = page.locator('.recipe-card');
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first()).toContainText(fullRecipe.title);
+  });
+
   test('shows an empty-state message when there are no recipes', async ({ page }) => {
-    await mockRecipesTable(page, { list: [] });
     await page.goto('/recipes/');
 
     await expect(page.locator('#recipes-status')).toContainText(/no recipes yet/i);
@@ -37,7 +44,6 @@ test.describe('Recipes list page', () => {
   test('footer stays pinned to the bottom of the viewport when the page is short', async ({ page }) => {
     // A short page (e.g. the empty-recipes state) shouldn't leave the footer
     // stranded right under the content — it should sit at the viewport bottom.
-    await mockRecipesTable(page, { list: [] });
     await page.goto('/recipes/');
 
     const viewport = page.viewportSize();
@@ -46,16 +52,14 @@ test.describe('Recipes list page', () => {
   });
 
   test('shows an error message when the recipes fetch fails', async ({ page }) => {
-    await page.route('https://test-project.supabase.co/rest/v1/recipes**', (route) =>
-      route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'boom' }) }),
-    );
+    await page.route('http://127.0.0.1:8180/**', (route) => route.abort());
     await page.goto('/recipes/');
 
     await expect(page.locator('#recipes-status')).toContainText(/could not load recipes/i);
   });
 
   test('recipe card links to the detail page for its slug', async ({ page }) => {
-    await mockRecipesTable(page, { list: [fullRecipe] });
+    await seedRecipes([fullRecipe]);
     await page.goto('/recipes/');
 
     await expect(page.locator('.recipe-card').first()).toHaveAttribute(
