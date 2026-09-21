@@ -38,7 +38,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       <p id="members-status" class="status">Loading members&hellip;</p>
       <ul id="members-list" class="recipe-list" hidden></ul>
       <form id="add-member-form">
-        <h3>Add a member</h3>
+        <h3 id="member-form-heading">Add a member</h3>
         <label for="member-name">Member name</label>
         <input type="text" id="member-name" name="name" required autocomplete="off" />
 
@@ -48,7 +48,10 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
         <label for="member-phone">Member phone <span class="hint">(optional)</span></label>
         <input type="tel" id="member-phone" name="phone" autocomplete="off" />
 
-        <button type="submit">Add Member</button>
+        <div class="form-actions">
+          <button type="submit" id="member-save-button">Add Member</button>
+          <button type="button" id="member-cancel-button" class="secondary" hidden>Cancel</button>
+        </div>
       </form>
       <p id="add-member-status" class="status" hidden></p>
 
@@ -121,6 +124,7 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       getDocsFromServer,
       orderBy,
       query,
+      runTransaction,
       serverTimestamp,
       setDoc,
       updateDoc,
@@ -165,6 +169,9 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
     const membersList = document.getElementById('members-list');
     const addMemberForm = document.getElementById('add-member-form');
     const addMemberStatus = document.getElementById('add-member-status');
+    const memberFormHeading = document.getElementById('member-form-heading');
+    const memberSaveButton = document.getElementById('member-save-button');
+    const memberCancelButton = document.getElementById('member-cancel-button');
     const formHeading = document.getElementById('recipe-form-heading');
     const saveButton = document.getElementById('save-button');
     const cancelEditButton = document.getElementById('cancel-edit-button');
@@ -542,12 +549,17 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
 
       const actions = document.createElement('div');
       actions.className = 'recipe-row-actions';
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'secondary';
+      editButton.textContent = 'Edit';
+      editButton.addEventListener('click', () => startEditingMember(member));
       const toggleButton = document.createElement('button');
       toggleButton.type = 'button';
       toggleButton.className = 'secondary';
       toggleButton.textContent = member.active ? 'Deactivate' : 'Reactivate';
       toggleButton.addEventListener('click', () => toggleMemberActive(member));
-      actions.append(toggleButton);
+      actions.append(editButton, toggleButton);
 
       li.append(info, actions);
       return li;
@@ -563,36 +575,100 @@ import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '
       loadMembers();
     }
 
+    // null when adding; while editing, the member loaded into the form (see
+    // startEditingMember). The same form does both, like the recipe form.
+    let editingMember = null;
+
+    function startEditingMember(member) {
+      editingMember = member;
+      addMemberForm.elements.name.value = member.name || '';
+      addMemberForm.elements.email.value = member.email;
+      addMemberForm.elements.phone.value = member.phone || '';
+      memberFormHeading.textContent = 'Edit member';
+      memberSaveButton.textContent = 'Save Changes';
+      memberCancelButton.hidden = false;
+      addMemberStatus.hidden = true;
+      addMemberForm.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function stopEditingMember() {
+      editingMember = null;
+      addMemberForm.reset();
+      memberFormHeading.textContent = 'Add a member';
+      memberSaveButton.textContent = 'Add Member';
+      memberCancelButton.hidden = true;
+    }
+
+    memberCancelButton.addEventListener('click', stopEditingMember);
+
+    function alreadyAMember() {
+      return Object.assign(new Error('Already a member'), { code: 'already-exists' });
+    }
+
+    async function addMember({ name, email, phone }) {
+      const memberRef = doc(db, 'active_members', email);
+      if ((await getDoc(memberRef)).exists()) throw alreadyAMember();
+      await setDoc(memberRef, { name, phone, active: true, created_at: serverTimestamp() });
+    }
+
+    // A member's email is their document ID — it's what firestore.rules looks up
+    // when they sign in — so changing it means moving the record: recreate it
+    // under the new email (keeping active and created_at) and delete the old
+    // one. One transaction, so a clash with an existing member changes nothing.
+    async function saveMemberEdits(member, { name, email, phone }) {
+      const oldRef = doc(db, 'active_members', member.email);
+      if (email === member.email) {
+        await updateDoc(oldRef, { name, phone });
+        return;
+      }
+      const newRef = doc(db, 'active_members', email);
+      await runTransaction(db, async (tx) => {
+        const oldSnap = await tx.get(oldRef);
+        if ((await tx.get(newRef)).exists()) throw alreadyAMember();
+        tx.set(newRef, { ...oldSnap.data(), name, phone });
+        tx.delete(oldRef);
+      });
+    }
+
     addMemberForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       addMemberStatus.hidden = true;
 
       const formData = new FormData(addMemberForm);
-      const name = String(formData.get('name') || '').trim();
-      const email = String(formData.get('email') || '').trim().toLowerCase();
-      const phone = String(formData.get('phone') || '').trim() || null;
-      const submitButton = addMemberForm.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
+      const fields = {
+        name: String(formData.get('name') || '').trim(),
+        email: String(formData.get('email') || '').trim().toLowerCase(),
+        phone: String(formData.get('phone') || '').trim() || null,
+      };
+      const isEditing = editingMember !== null;
+      memberSaveButton.disabled = true;
 
       try {
-        const memberRef = doc(db, 'active_members', email);
-        if ((await getDoc(memberRef)).exists()) {
-          throw Object.assign(new Error('Already a member'), { code: 'already-exists' });
+        if (isEditing) {
+          await saveMemberEdits(editingMember, fields);
+        } else {
+          await addMember(fields);
         }
-        await setDoc(memberRef, { name, phone, active: true, created_at: serverTimestamp() });
 
         addMemberStatus.className = 'status success';
-        addMemberStatus.textContent = `Added ${name} (${email}).`;
+        addMemberStatus.textContent = isEditing
+          ? `Saved changes to ${fields.name} (${fields.email}).`
+          : `Added ${fields.name} (${fields.email}).`;
         addMemberStatus.hidden = false;
-        addMemberForm.reset();
+        stopEditingMember();
         loadMembers();
       } catch (err) {
         addMemberStatus.className = 'status error';
-        addMemberStatus.textContent =
-          err && err.code === 'already-exists' ? 'That email is already a member.' : 'Could not add this member — please try again.';
+        if (err && err.code === 'already-exists') {
+          addMemberStatus.textContent = isEditing
+            ? 'Another member already has that email.'
+            : 'That email is already a member.';
+        } else {
+          addMemberStatus.textContent = `Could not ${isEditing ? 'save this member' : 'add this member'} — please try again.`;
+        }
         addMemberStatus.hidden = false;
       } finally {
-        submitButton.disabled = false;
+        memberSaveButton.disabled = false;
       }
     });
 

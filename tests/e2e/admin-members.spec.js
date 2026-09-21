@@ -97,3 +97,94 @@ test.describe('Admin — members', () => {
     expect(await getMember(activeMember.email)).toMatchObject({ active: true });
   });
 });
+
+test.describe('Admin — edit a member', () => {
+  test('Edit loads the member into the form in edit mode', async ({ page }) => {
+    await loginAsAdmin(page, { members: [activeMember] });
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Edit member' })).toBeVisible();
+    await expect(page.getByLabel('Member name')).toHaveValue(activeMember.name);
+    await expect(page.getByLabel(/^Member email/)).toHaveValue(activeMember.email);
+    await expect(page.getByLabel(/^Member phone/)).toHaveValue(activeMember.phone);
+    await expect(page.getByRole('button', { name: 'Save Changes' })).toBeVisible();
+  });
+
+  test('changing the name and phone updates the same record', async ({ page }) => {
+    await loginAsAdmin(page, { members: [activeMember] });
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel('Member name').fill('Jamie Rivera-Cole');
+    await page.getByLabel(/^Member phone/).fill('(402) 555-0199');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toContainText('Saved changes to Jamie Rivera-Cole');
+    await expect(page.locator('#members-list .recipe-row-title')).toHaveText('Jamie Rivera-Cole');
+    expect(await getMember(activeMember.email)).toMatchObject({
+      name: 'Jamie Rivera-Cole',
+      phone: '(402) 555-0199',
+      active: true,
+    });
+    // Back to adding.
+    await expect(page.getByRole('heading', { name: 'Add a member' })).toBeVisible();
+    await expect(page.getByLabel('Member name')).toHaveValue('');
+  });
+
+  test('a member added by email alone can be given a name and phone', async ({ page }) => {
+    await loginAsAdmin(page, { members: [inactiveMember] });
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel('Member name').fill('Alex Kim');
+    await page.getByLabel(/^Member phone/).fill('555-0100');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#members-list .recipe-row-title')).toHaveText('Alex Kim');
+    // Editing doesn't reactivate a deactivated member.
+    expect(await getMember(inactiveMember.email)).toMatchObject({ name: 'Alex Kim', phone: '555-0100', active: false });
+  });
+
+  test('changing the email moves the record, keeping its status and date added', async ({ page }) => {
+    await loginAsAdmin(page, { members: [inactiveMember] });
+    const before = await getMember(inactiveMember.email);
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel('Member name').fill('Alex Kim');
+    await page.getByLabel(/^Member email/).fill('Alex.Kim@Example.com');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toContainText('Saved changes to Alex Kim (alex.kim@example.com).');
+    await expect(page.locator('#members-list .recipe-row')).toHaveCount(1);
+    expect(await getMember(inactiveMember.email)).toBeNull();
+    const moved = await getMember('alex.kim@example.com');
+    expect(moved).toMatchObject({ name: 'Alex Kim', active: false });
+    expect(moved.created_at.toMillis()).toBe(before.created_at.toMillis());
+  });
+
+  test('changing the email to another member\'s email is refused and changes nothing', async ({ page }) => {
+    await loginAsAdmin(page, { members: [activeMember, inactiveMember] });
+    await page.locator('#members-list .recipe-row').nth(1).getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByLabel('Member name').fill('Alex Kim');
+    await page.getByLabel(/^Member email/).fill(activeMember.email);
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+
+    await expect(page.locator('#add-member-status')).toContainText('Another member already has that email.');
+    // Still in edit mode, so the admin can fix the email and try again.
+    await expect(page.getByRole('heading', { name: 'Edit member' })).toBeVisible();
+    expect(await getMember(activeMember.email)).toMatchObject({ name: activeMember.name, active: true });
+    expect(await getMember(inactiveMember.email)).toMatchObject({ active: false });
+  });
+
+  test('Cancel returns to adding without saving', async ({ page }) => {
+    await loginAsAdmin(page, { members: [activeMember] });
+    await page.locator('#members-list .recipe-row').getByRole('button', { name: 'Edit' }).click();
+    await page.getByLabel('Member name').fill('Not Saved');
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Add a member' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add Member' })).toBeVisible();
+    await expect(page.getByLabel('Member name')).toHaveValue('');
+    expect(await getMember(activeMember.email)).toMatchObject({ name: activeMember.name });
+  });
+});

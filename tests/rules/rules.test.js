@@ -173,6 +173,13 @@ describe('active_members', () => {
     await assertFails(setDoc(doc(db, 'active_members', 'x@example.com'), { active: true, role: 'admin' }));
     await assertFails(setDoc(doc(db, 'active_members', 'y@example.com'), { active: 'yes' }));
   });
+
+  test('admin can edit a roster entry, but not add fields to it', async () => {
+    const db = admin().firestore();
+    await assertSucceeds(updateDoc(doc(db, 'active_members', MEMBER), { name: 'Jamie Rivera', phone: '555-0100' }));
+    await assertFails(updateDoc(doc(db, 'active_members', MEMBER), { role: 'admin' }));
+    await assertFails(updateDoc(doc(member().firestore(), 'active_members', MEMBER), { name: 'Self-edit' }));
+  });
 });
 
 describe('recipe photos (Storage)', () => {
