@@ -25,12 +25,14 @@ service firebase.storage {
       // Anyone can view a recipe's photo without logging in.
       allow read: if true;
 
-      // Admin, or an active member attaching a photo to their submission. Images
-      // only, and capped in size — a member upload is exactly the content the
-      // pending-review gate (Requirement #16) exists to moderate.
+      // Admin, or an active member attaching a photo to their submission. Only
+      // formats every browser can display, capped in size — a member upload is
+      // exactly the content the pending-review gate (Requirement #16) exists to
+      // moderate. Must match PHOTO_TYPES / MAX_PHOTO_MB in src/lib/constants.js,
+      // which the forms check before uploading.
       allow create: if (isAdmin() || isActiveMember())
-        && request.resource.contentType.matches('image/.*')
-        && request.resource.size < 10 * 1024 * 1024;
+        && request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp']
+        && request.resource.size <= 10 * 1024 * 1024;
 
       // Deleting a recipe best-effort removes its photo too — admin-only, since
       // only admin can delete a recipe in the first place.

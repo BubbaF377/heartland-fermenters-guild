@@ -177,8 +177,24 @@ describe('recipe photos (Storage)', () => {
     await assertFails(upload(impostor(), 'e.png'));
   });
 
-  test('non-image uploads are refused, even for admin', async () => {
+  test('only JPG, PNG, and WebP are accepted, even for admin', async () => {
+    await assertSucceeds(upload(admin(), 'ok.jpg', 'image/jpeg'));
+    await assertSucceeds(upload(admin(), 'ok.webp', 'image/webp'));
     await assertFails(upload(admin(), 'f.txt', 'text/plain'));
+    await assertFails(upload(admin(), 'g.heic', 'image/heic'));
+    await assertFails(upload(admin(), 'h.gif', 'image/gif'));
+  });
+
+  test('uploads over 10 MB are refused', async () => {
+    const big = new Uint8Array(10 * 1024 * 1024 + 1);
+    await assertSucceeds(
+      uploadBytes(ref(admin().storage(BUCKET), 'recipe-photos/limit.png'), new Uint8Array(10 * 1024 * 1024), {
+        contentType: 'image/png',
+      }),
+    );
+    await assertFails(
+      uploadBytes(ref(admin().storage(BUCKET), 'recipe-photos/big.png'), big, { contentType: 'image/png' }),
+    );
   });
 
   test('only admin can delete a photo', async () => {

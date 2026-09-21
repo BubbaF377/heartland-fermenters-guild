@@ -3,7 +3,12 @@
 // (src/pages/submit/index.astro), so the two don't duplicate the time-stage editor
 // and field-reading logic. Client-side only (touches the DOM) — not imported from
 // Astro frontmatter.
-import { TIME_STAGE_SUGGESTIONS, linesToPairs, pairsToLines } from './constants.js';
+import {
+  TIME_STAGE_SUGGESTIONS,
+  linesToPairs,
+  pairsToLines,
+  photoFileProblem,
+} from './constants.js';
 
 export function addStageRow(stagesList, label = '', value = '') {
   const row = document.createElement('div');
@@ -117,4 +122,23 @@ export function populateRecipeForm(form, stagesList, recipe) {
 
   stagesList.innerHTML = '';
   linesToPairs(recipe.time_stages).forEach(({ label, value }) => addStageRow(stagesList, label, value));
+}
+
+// Checks a photo the moment it's picked (type and size — see photoFileProblem),
+// so a file storage.rules would refuse is explained up front rather than failing
+// the whole save later. An unusable file is cleared from the input, so a submit
+// can't carry it along by accident.
+export function wirePhotoInput(photoInput, errorEl) {
+  function showProblem(problem) {
+    errorEl.textContent = problem || '';
+    errorEl.hidden = !problem;
+  }
+
+  photoInput.addEventListener('change', () => {
+    const problem = photoFileProblem(photoInput.files[0]);
+    showProblem(problem);
+    if (problem) photoInput.value = '';
+  });
+
+  photoInput.form?.addEventListener('reset', () => showProblem(null));
 }

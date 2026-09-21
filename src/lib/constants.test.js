@@ -6,6 +6,7 @@ import {
   pairsToLines,
   timeStageChipLabel,
   extractYouTubeId,
+  photoFileProblem,
 } from './constants.js';
 
 describe('slugify', () => {
@@ -180,5 +181,33 @@ describe('extractYouTubeId', () => {
     expect(extractYouTubeId(null)).toBeNull();
     expect(extractYouTubeId(undefined)).toBeNull();
     expect(extractYouTubeId('')).toBeNull();
+  });
+});
+
+describe('photoFileProblem', () => {
+  const MB = 1024 * 1024;
+  const file = (type, size) => ({ type, size });
+
+  it('accepts no file at all, since the photo is optional', () => {
+    expect(photoFileProblem(null)).toBeNull();
+    expect(photoFileProblem(undefined)).toBeNull();
+  });
+
+  it('accepts JPG, PNG, and WebP up to 10 MB', () => {
+    expect(photoFileProblem(file('image/jpeg', 3 * MB))).toBeNull();
+    expect(photoFileProblem(file('image/png', 10 * MB))).toBeNull();
+    expect(photoFileProblem(file('image/webp', 1))).toBeNull();
+  });
+
+  it('rejects other formats, including images most browsers cannot display', () => {
+    expect(photoFileProblem(file('image/heic', MB))).toMatch(/isn't a JPG, PNG, or WebP/);
+    expect(photoFileProblem(file('image/gif', MB))).toMatch(/isn't a JPG, PNG, or WebP/);
+    expect(photoFileProblem(file('application/pdf', MB))).toMatch(/isn't a JPG, PNG, or WebP/);
+    expect(photoFileProblem(file('', MB))).toMatch(/isn't a JPG, PNG, or WebP/);
+  });
+
+  it('rejects files over 10 MB, saying how big the file was', () => {
+    expect(photoFileProblem(file('image/jpeg', 10 * MB + 1))).toMatch(/10\.0 MB — the limit is 10 MB/);
+    expect(photoFileProblem(file('image/jpeg', 14.25 * MB))).toMatch(/14\.3 MB/);
   });
 });

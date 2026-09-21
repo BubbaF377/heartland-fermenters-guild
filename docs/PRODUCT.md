@@ -49,20 +49,24 @@ Hard requirements as they get locked in, separate from the discovery narrative a
 
     These are starting suggestions only, never enforced — the stored value is whatever list of stages the submitter actually ends up with, in whatever order they leave them in.
 
-11. An optional recipe photo, uploaded to Firebase Storage under a `recipe-photos/` path; the recipe document stores the uploaded object's storage path (`photo_path`), not a bare public URL, so the display URL is derived at render time via Firebase Storage's `getDownloadURL()`. Upload is limited to the admin (Requirement #8) and active members submitting a recipe (Requirement #16): the Storage Security Rules only accept writes under `recipe-photos/` from those two, images only, under 10 MB, while read access is public (anyone can view a recipe's photo without logging in).
+11. An optional recipe photo, uploaded to Firebase Storage under a `recipe-photos/` path; the recipe document stores the uploaded object's storage path (`photo_path`), not a bare public URL, so the display URL is derived at render time via Firebase Storage's `getDownloadURL()`. Upload is limited to the admin (Requirement #8) and active members submitting a recipe (Requirement #16): the Storage Security Rules only accept writes under `recipe-photos/` from those two, and only JPG, PNG, or WebP files up to 10 MB — formats every browser can display — while read access is public (anyone can view a recipe's photo without logging in).
 
     An optional how-to video, stored as a plain YouTube URL (`video_url`) exactly as pasted by whoever submits the recipe (a `youtube.com/watch?v=...` or `youtu.be/...` link) — the recipe page extracts the video ID at render time to build the embed, rather than asking the submitter to know how to do that themselves. No Firebase Storage involved for video; it's just a link to something already hosted on YouTube.
 
     **History.** 2026-09-21: the images-only, under-10 MB upload limit was added with the Firebase migration; before it, any authenticated upload was accepted.
 
+    2026-09-21: narrowed from any image type to JPG, PNG, and WebP. HEIC (iPhones' native format) and similar formats can't be displayed by most browsers; iOS converts to JPEG automatically when the file picker only offers these types.
+
 12. The admin recipe form (Requirement #8) grows to capture the new fields:
-    - An optional photo upload (file input). The upload to Firebase Storage happens as part of submit, before the Firestore write — if the upload fails, the form shows an error and the recipe is not saved, rather than saving a recipe with a broken photo reference.
+    - An optional photo upload (file input). The field states what a photo needs to be: JPG, PNG, or WebP, up to 10 MB, landscape and at least 1200 px wide, with the dish near the center, since the recipe page crops photos to a wide frame. A file that doesn't meet the type or size limit is refused as soon as it's picked, with the reason, rather than failing the save later; the member submission form (Requirement #16) behaves the same. The upload to Firebase Storage happens as part of submit, before the Firestore write — if the upload fails, the form shows an error and the recipe is not saved, rather than saving a recipe with a broken photo reference.
     - An optional video URL text input, with placeholder text showing the expected format.
     - A freeform yield/servings text input (optional).
     - An optional notes/tips textarea.
     - A dynamic time-stages section: a repeatable row list (a label input plus a duration input per row, each with a way to remove that row, and a way to add a new blank row). Selecting a category auto-populates this section with that category's suggested starting stages (Requirement #10) — but only when the section is still empty, so switching categories after the submitter has already started filling in stages never overwrites what they've typed. On submit, the rows collapse into the newline-separated `time_stages` value.
 
     Existing fields (title, category, summary, ingredients, instructions, submitted-by) are unchanged.
+
+    **History.** 2026-09-21: added the stated photo requirements and the check when a file is picked. Before, the field accepted any image and gave no guidance.
 
 13. Two ideas that came out of the wireframe review are deliberately deferred rather than built now, since neither needs a schema change to add later: a "related recipes" strip on the recipe detail page (other recipes in the same category, queried against the existing `category` field), and category filter pills on the recipe list page (client-side filtering, also against the existing `category` field).
 

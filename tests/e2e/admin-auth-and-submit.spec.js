@@ -98,15 +98,44 @@ test.describe('Admin — add a recipe', () => {
     expect((await getRecipe('test-sourdough-2')).title).toBe('Test Sourdough');
   });
 
-  test('a rejected photo upload shows an error, saves nothing, and re-enables the button', async ({ page }) => {
-    // storage.rules only accept images — a non-image upload is refused, which
-    // must stop the recipe from being saved with a broken photo reference.
-    await fillRequiredFields(page);
-    await page.setInputFiles('#photo', {
-      name: 'notes.txt',
-      mimeType: 'text/plain',
-      buffer: Buffer.from('not an image'),
+  test('shows the photo requirements next to the photo field', async ({ page }) => {
+    await expect(page.locator('#photo-requirements')).toContainText('JPG, PNG, or WebP, up to 10 MB');
+    await expect(page.locator('#photo')).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp');
+  });
+
+  test('picking an unsupported or oversized photo explains why and clears the file', async ({ page }) => {
+    const photoInput = page.locator('#photo');
+    const photoError = page.locator('#photo-error');
+
+    await photoInput.setInputFiles({ name: 'dish.heic', mimeType: 'image/heic', buffer: Buffer.from('x') });
+    await expect(photoError).toContainText(/isn't a JPG, PNG, or WebP image/);
+    expect(await photoInput.evaluate((input) => input.files.length)).toBe(0);
+
+    await photoInput.setInputFiles({
+      name: 'huge.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.alloc(11 * 1024 * 1024),
     });
+    await expect(photoError).toContainText(/11\.0 MB — the limit is 10 MB/);
+    expect(await photoInput.evaluate((input) => input.files.length)).toBe(0);
+
+    // A good file clears the message.
+    await photoInput.setInputFiles({ name: 'ok.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('fine') });
+    await expect(photoError).toBeHidden();
+  });
+
+  test('a failed photo upload shows an error, saves nothing, and re-enables the button', async ({ page }) => {
+    // A refusal rather than a dropped connection: the Storage SDK retries network
+    // errors for minutes before giving up, but fails immediately on a 403.
+    await page.route('http://127.0.0.1:9199/**', (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 403, message: 'Permission denied.' } }),
+      }),
+    );
+    await fillRequiredFields(page);
+    await page.setInputFiles('#photo', { name: 'test.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('img') });
     const submitButton = page.getByRole('button', { name: 'Save Recipe' });
     await submitButton.click();
 

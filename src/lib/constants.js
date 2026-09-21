@@ -24,6 +24,36 @@ export const RECIPE_CATEGORIES = [
 // readable per storage.rules). A recipe's photo_path is relative to it.
 export const RECIPE_PHOTOS_PATH = 'recipe-photos';
 
+// Photo requirements, shown next to every photo field and checked the moment a
+// file is picked. storage.rules enforces the same types and size server-side —
+// keep the two in step. Only formats every browser can display: HEIC (iPhones'
+// native format) is left out, and iOS converts it to JPEG automatically when the
+// file picker only offers these types.
+export const PHOTO_TYPES = {
+  'image/jpeg': 'JPG',
+  'image/png': 'PNG',
+  'image/webp': 'WebP',
+};
+export const MAX_PHOTO_MB = 10;
+
+const photoTypeNames = Object.values(PHOTO_TYPES);
+// "JPG, PNG, or WebP" — for hint text and error messages.
+export const PHOTO_TYPE_NAMES = `${photoTypeNames.slice(0, -1).join(', ')}, or ${photoTypeNames.at(-1)}`;
+
+// Returns a message explaining why `file` can't be used as a recipe photo, or
+// null if it's fine (or there's no file at all — the photo is optional).
+export function photoFileProblem(file) {
+  if (!file) return null;
+  if (!(file.type in PHOTO_TYPES)) {
+    return `That file isn't a ${PHOTO_TYPE_NAMES} image — please choose a different photo.`;
+  }
+  if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+    return `That photo is ${sizeMb} MB — the limit is ${MAX_PHOTO_MB} MB. Try a smaller copy (most phones can share or export a reduced size).`;
+  }
+  return null;
+}
+
 // Requirement #10: suggested starting time stages per category, used only to
 // pre-populate the admin form's stage editor — never enforced. "Other" has no
 // suggestions since it covers everything that doesn't fit the named categories.

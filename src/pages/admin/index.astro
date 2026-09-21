@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { RECIPE_CATEGORIES } from '../../lib/constants.js';
+import { MAX_PHOTO_MB, PHOTO_TYPES, PHOTO_TYPE_NAMES, RECIPE_CATEGORIES } from '../../lib/constants.js';
 ---
 
 <Layout
@@ -58,7 +58,18 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
         <textarea id="summary" name="summary" rows="2"></textarea>
 
         <label for="photo">Photo <span class="hint">(optional)</span></label>
-        <input type="file" id="photo" name="photo" accept="image/*" />
+        <input
+          type="file"
+          id="photo"
+          name="photo"
+          accept={Object.keys(PHOTO_TYPES).join(',')}
+          aria-describedby="photo-requirements"
+        />
+        <p id="photo-requirements" class="field-note">
+          {PHOTO_TYPE_NAMES}, up to {MAX_PHOTO_MB} MB. Landscape photos work best, at least 1200&nbsp;px
+          wide. The recipe page crops photos to a wide frame, so keep the dish near the center.
+        </p>
+        <p id="photo-error" class="field-error" role="alert" hidden></p>
 
         <label for="video_url">How-to video <span class="hint">(optional — a YouTube link)</span></label>
         <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." />
@@ -116,7 +127,12 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
       uploadRecipePhoto,
     } from '../../lib/firebase.js';
     import { ADMIN_EMAIL, RECIPE_PHOTOS_PATH, slugify } from '../../lib/constants.js';
-    import { wireStageEditor, collectRecipeFields, populateRecipeForm } from '../../lib/recipe-form.js';
+    import {
+      wireStageEditor,
+      wirePhotoInput,
+      collectRecipeFields,
+      populateRecipeForm,
+    } from '../../lib/recipe-form.js';
 
     const loginSection = document.getElementById('login-section');
     const adminSection = document.getElementById('admin-section');
@@ -129,6 +145,7 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     const stagesList = document.getElementById('time-stages-list');
     const addStageButton = document.getElementById('add-stage-button');
     const photoInput = document.getElementById('photo');
+    const photoError = document.getElementById('photo-error');
     const pendingListStatus = document.getElementById('pending-list-status');
     const pendingList = document.getElementById('pending-list');
     const recipeListStatus = document.getElementById('recipe-list-status');
@@ -359,6 +376,8 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
     }
 
     cancelEditButton.addEventListener('click', stopEditing);
+
+    wirePhotoInput(photoInput, photoError);
 
     // Shared by Delete (an existing published/deactivated recipe) and Reject (a
     // pending submission) — both are "remove this recipe and its photo for good."
@@ -745,6 +764,19 @@ import { RECIPE_CATEGORIES } from '../../lib/constants.js';
   .admin-bar p {
     margin: 0;
     color: var(--brown);
+  }
+
+  .field-note {
+    margin: 0.2rem 0 0;
+    font-size: 0.85rem;
+    color: var(--brown);
+  }
+
+  .field-error {
+    margin: 0.2rem 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--wine);
   }
 
   .form-actions {
