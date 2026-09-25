@@ -144,18 +144,39 @@ unaffected. One-time setup, on the same Blaze project:
    (`src/lib/resource-ai.js`). Google's pricing page says free-tier content
    is used to improve its products; confirm the project is billed on the paid tier
    (Blaze) so visitors' questions aren't.
-2. **Set the rate limit**: in AI Logic's settings, lower the per-user request limit to
-   something conservative. See docs/PRODUCT.md, Open questions, for the numbers.
+2. **Set the rate limit**: in Google Cloud, **APIs & Services → Firebase AI Logic API →
+   Quotas & System Limits**, filter for **Generate content requests per minute per
+   project per user** (not the look-alike "Bidi generate content…"), and set it to
+   **5**. It's listed once per region, 44 rows including one with no region, and the
+   console edits them one at a time, so each row needs changing. The limit is per
+   minute only; the prepaid Gemini credits in Google AI Studio are the real spending
+   cap.
 3. **Register App Check with reCAPTCHA Enterprise**: **Build → App Check → Apps →**
-   the web app → **reCAPTCHA Enterprise**, with `heartlandfermentersguild.org` as the
-   domain. Paste the site key into `RECAPTCHA_ENTERPRISE_SITE_KEY` in
-   `src/lib/resource-ai.js`, commit, and release.
+   the web app → **reCAPTCHA Enterprise**, with `heartlandfermentersguild.org` and
+   `www.heartlandfermentersguild.org` as the key's domains (score-based, no checkbox
+   challenge). The site key goes in `RECAPTCHA_ENTERPRISE_SITE_KEY` in
+   `src/lib/resource-ai.js` (already done). It's public, like the web config.
 4. **Enforce App Check on AI Logic only**: **App Check → APIs → Firebase AI Logic →
-   Enforce**, after the release from step 3 is live (enforcing first breaks Ask for
-   everyone still on the old build). Leave Firestore and Storage unenforced: the
-   recipes, admin, and submit pages don't initialize App Check.
-5. **Check the budget alert** from step 2 of the Firebase setup above covers the whole
-   project (so Gemini spend is included), not only specific services.
+   Enforce**. This isn't optional: AI Logic refuses every request ("Firebase AI Logic
+   has been deactivated in this project. To resume … you must enforce Firebase App
+   Check") until it's enforced, *and* until requests use limited-use App Check tokens
+   (`useLimitedUseAppCheckTokens: true` in `src/lib/resource-ai.js`; ordinary tokens
+   still get that error). Leave Firestore and Storage unenforced: the recipes,
+   admin, and submit pages don't initialize App Check.
+
+   **For local development**, reCAPTCHA won't vouch for `localhost`, so `npm run dev`
+   sends an App Check *debug token* instead. Put one (any UUID) in `.env.local` as
+   `PUBLIC_APPCHECK_DEBUG_TOKEN=...` and register the same value under **App Check →
+   Apps → ⋮ → Manage debug tokens**. `.env.local` is gitignored; keep it that way,
+   since a debug token gets past App Check from anywhere. Production builds never
+   send one.
+5. **Cap Gemini spending in AI Studio.** The Gemini Developer API bills through
+   [AI Studio](https://aistudio.google.com/billing) on prepaid credits, separately from
+   the Firebase Blaze plan and its budget alert. Set a **Monthly spend cap** (AI Studio
+   → **Spend** → **Edit spend cap**), and leave auto-reload off so running out of
+   credits stays a hard stop. There are no low-balance alerts; check the balance now
+   and then. In testing, AI Logic's per-user rate limit from step 2 didn't trip (see
+   docs/PRODUCT.md), so this cap is the backstop that counts.
 
 ## Project structure
 

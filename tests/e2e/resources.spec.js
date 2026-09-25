@@ -25,6 +25,13 @@ test.describe('Resources page', () => {
     await page.goto('/resources/');
   });
 
+  test('explains what the list is, and is not', async ({ page }) => {
+    const intro = page.locator('.intro').first();
+    await expect(intro).toContainText('technique, history, and science');
+    await expect(intro).toContainText('recipe collections and social-media influencers');
+    await expect(intro.getByRole('link', { name: 'Recipes' })).toHaveAttribute('href', '/recipes/');
+  });
+
   test('lists every resource and is linked from the nav', async ({ page }) => {
     await expect(cards(page)).toHaveCount(resources.length);
     await expect(page.locator('#results-summary')).toHaveText(`Showing all ${resources.length} resources`);
@@ -230,6 +237,32 @@ test.describe('Resources page', () => {
     await expect(page.locator('#ask-status')).not.toContainText('boom');
     await expect(page.locator('#ask-button')).toBeEnabled();
     await expect(cards(page)).toHaveCount(resources.length);
+  });
+
+  test('hitting the rate limit asks the visitor to slow down', async ({ page }) => {
+    await page.route(AI_ENDPOINT, (route) =>
+      route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: '{"error":{"code":429,"message":"Quota exceeded for quota metric \'Generate content requests\'","status":"RESOURCE_EXHAUSTED"}}',
+      }),
+    );
+    await page.fill('#ask-input', 'kombucha');
+    await page.click('#ask-button');
+    await expect(page.locator('#ask-status')).toContainText(/wait a minute/i);
+  });
+
+  test('running out of prepaid credits shows the general failure, not "slow down"', async ({ page }) => {
+    await page.route(AI_ENDPOINT, (route) =>
+      route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: '{"error":{"code":429,"message":"Your prepayment credits are depleted.","status":"RESOURCE_EXHAUSTED"}}',
+      }),
+    );
+    await page.fill('#ask-input', 'kombucha');
+    await page.click('#ask-button');
+    await expect(page.locator('#ask-status')).toHaveText(/isn't working right now/);
   });
 
   test('a reply in the wrong shape is treated as a failure', async ({ page }) => {

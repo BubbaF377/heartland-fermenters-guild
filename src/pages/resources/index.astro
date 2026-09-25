@@ -21,9 +21,11 @@ const count = (tag) => tagCounts[tag] ?? 0;
   <main class="resources-page">
     <h1>Resources</h1>
     <p class="intro">
-      Places to learn more about fermentation, picked by the guild. Ask a question in plain English, or search
-      and filter the list yourself.
+      A curated list of websites and YouTube channels the guild recommends for learning fermentation
+      technique, history, and science. It deliberately leaves out recipe collections and social-media
+      influencers &mdash; for recipes from guild members, see <a href="/recipes/">Recipes</a>.
     </p>
+    <p class="intro intro-how">Ask a question in plain English, or search and filter the list yourself.</p>
 
     <form id="ask-form" class="ask-panel">
       <label for="ask-input" class="ask-label">Ask in plain English</label>
@@ -173,7 +175,7 @@ const count = (tag) => tagCounts[tag] ?? 0;
 
   <script>
     import resources from '../../data/fermentation-resources.json';
-    import { filterResources } from '../../lib/resources.js';
+    import { filterResources, isRateLimitError } from '../../lib/resources.js';
 
     const byId = (id) => document.getElementById(id);
     const listEl = byId('resource-list');
@@ -295,6 +297,8 @@ const count = (tag) => tagCounts[tag] ?? 0;
 
     const AI_FAILED =
       "Sorry — the plain-English search isn't working right now. Try searching the list or using the filters instead.";
+    const AI_RATE_LIMITED =
+      "You've asked several questions in a short time. Please wait a minute and try again — or search and filter the list in the meantime.";
 
     askForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -317,8 +321,8 @@ const count = (tag) => tagCounts[tag] ?? 0;
         aiBanner.hidden = false;
         askStatus.textContent = '';
         render();
-      } catch {
-        askStatus.textContent = AI_FAILED;
+      } catch (err) {
+        askStatus.textContent = isRateLimitError(err) ? AI_RATE_LIMITED : AI_FAILED;
       } finally {
         askButton.disabled = false;
       }
@@ -342,9 +346,13 @@ const count = (tag) => tagCounts[tag] ?? 0;
   }
 
   .intro {
-    max-width: 640px;
+    max-width: 680px;
     color: var(--brown);
-    margin: 0.75rem 0 1.75rem;
+    margin: 0.75rem 0 0;
+  }
+
+  .intro-how {
+    margin: 0.5rem 0 1.75rem;
   }
 
   input[type='text'],

@@ -117,6 +117,17 @@ export function resourcesForPrompt(resources) {
     .join('\n');
 }
 
+// True when an AI search failed because the visitor asked too many questions too
+// quickly (AI Logic's per-visitor rate limit), rather than for any other reason.
+// Both that and running out of prepaid Gemini credits come back as HTTP 429; the
+// credits one is our problem, not the visitor's, so it isn't treated as "slow down."
+// The rate-limit error's exact wording was never observed (the limit didn't trip in
+// testing — see docs/PRODUCT.md Requirement #21's History), hence matching on
+// "429 but not credits" rather than on its text.
+export function isRateLimitError(err) {
+  return err?.customErrorData?.status === 429 && !/prepayment|credits/i.test(err?.message ?? '');
+}
+
 // Turns the model's JSON reply into dataset positions: ones that don't name a real
 // resource are dropped rather than rendered, duplicates keep their first (best)
 // rank, and the list is capped. Returns null when the reply isn't the expected

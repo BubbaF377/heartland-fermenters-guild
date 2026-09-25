@@ -8,6 +8,7 @@ import {
   RESOURCE_TYPES,
   areaLabel,
   filterResources,
+  isRateLimitError,
   matchIdsFromResponse,
   resourcesForPrompt,
 } from './resources.js';
@@ -151,6 +152,24 @@ describe('resourcesForPrompt', () => {
 
   it('never includes URLs', () => {
     expect(resourcesForPrompt(resources)).not.toMatch(/https?:\/\//);
+  });
+});
+
+describe('isRateLimitError', () => {
+  const aiError = (status, message) => Object.assign(new Error(message), { customErrorData: { status } });
+
+  it('is true for a 429 that is not about credits', () => {
+    expect(isRateLimitError(aiError(429, '[429 ] Quota exceeded for quota metric'))).toBe(true);
+  });
+
+  it('is false when the prepaid credits ran out', () => {
+    expect(isRateLimitError(aiError(429, '[429 ] Your prepayment credits are depleted.'))).toBe(false);
+  });
+
+  it('is false for other failures', () => {
+    expect(isRateLimitError(aiError(403, '[403 ] deactivated'))).toBe(false);
+    expect(isRateLimitError(new Error('Unexpected AI response'))).toBe(false);
+    expect(isRateLimitError(undefined)).toBe(false);
   });
 });
 
