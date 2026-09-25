@@ -252,17 +252,38 @@ test.describe('Resources page', () => {
     await expect(page.locator('#ask-status')).toContainText(/wait a minute/i);
   });
 
-  test('running out of prepaid credits shows the general failure, not "slow down"', async ({ page }) => {
-    await page.route(AI_ENDPOINT, (route) =>
-      route.fulfill({
-        status: 429,
-        contentType: 'application/json',
-        body: '{"error":{"code":429,"message":"Your prepayment credits are depleted.","status":"RESOURCE_EXHAUSTED"}}',
-      }),
-    );
-    await page.fill('#ask-input', 'kombucha');
-    await page.click('#ask-button');
-    await expect(page.locator('#ask-status')).toHaveText(/isn't working right now/);
+  for (const [what, status, message] of [
+    ['running out of prepaid credits', 429, 'Your prepayment credits are depleted.'],
+    ['reaching the monthly spend cap', 429, 'Project has exceeded its monthly spend cap.'],
+    ['a payment error', 402, 'Payment Required'],
+  ]) {
+    test(`${what} pauses the AI search with a notice, leaving the list usable`, async ({ page }) => {
+      await page.route(AI_ENDPOINT, (route) =>
+        route.fulfill({
+          status,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: status, message, status: 'RESOURCE_EXHAUSTED' } }),
+        }),
+      );
+      await page.fill('#ask-input', 'kombucha');
+      await page.click('#ask-button');
+
+      await expect(page.locator('#ai-paused')).toBeVisible();
+      await expect(page.locator('#ai-paused')).toContainText('paused for now');
+      await expect(page.locator('#ask-input')).toBeDisabled();
+      await expect(page.locator('#ask-button')).toBeDisabled();
+      await expect(page.locator('#ask-status')).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Clear question' })).toBeHidden();
+
+      // Everything else on the page still works.
+      await page.fill('#keyword-input', 'kombucha');
+      await expect(cards(page)).not.toHaveCount(0);
+    });
+  }
+
+  test('the paused notice is hidden until needed', async ({ page }) => {
+    await expect(page.locator('#ai-paused')).toBeHidden();
+    await expect(page.locator('#ask-input')).toBeEnabled();
   });
 
   test('a reply in the wrong shape is treated as a failure', async ({ page }) => {

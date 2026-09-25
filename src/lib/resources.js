@@ -117,15 +117,25 @@ export function resourcesForPrompt(resources) {
     .join('\n');
 }
 
-// True when an AI search failed because the visitor asked too many questions too
-// quickly (AI Logic's per-visitor rate limit), rather than for any other reason.
-// Both that and running out of prepaid Gemini credits come back as HTTP 429; the
-// credits one is our problem, not the visitor's, so it isn't treated as "slow down."
-// The rate-limit error's exact wording was never observed (the limit didn't trip in
-// testing — see docs/PRODUCT.md Requirement #21's History), hence matching on
-// "429 but not credits" rather than on its text.
-export function isRateLimitError(err) {
-  return err?.customErrorData?.status === 429 && !/prepayment|credits/i.test(err?.message ?? '');
+// Why an AI search failed, as far as the visitor needs to know:
+//   'paused' — the project's money ran out: the AI Studio monthly spend cap was
+//              reached, or the prepaid Gemini credits ran out. Nothing the visitor
+//              does will fix it until next month or a top-up, so the page says so
+//              and stops offering the Ask box.
+//   'busy'   — any other 429: too many questions too quickly (AI Logic's per-visitor
+//              rate limit). Waiting a minute helps.
+//   'failed' — anything else.
+// Only the credits error was ever observed (a 429 saying "Your prepayment credits
+// are depleted", though Google's docs say 402). The spend cap's and the rate limit's
+// exact errors never were (see docs/PRODUCT.md Requirement #21), so 'paused' matches
+// any money-related wording or a 402, rather than one exact message.
+const MONEY_WORDS = /spend|billing|budget|prepay|credit|payment/i;
+
+export function aiFailureKind(err) {
+  const status = err?.customErrorData?.status;
+  if (status === 402 || MONEY_WORDS.test(err?.message ?? '')) return 'paused';
+  if (status === 429) return 'busy';
+  return 'failed';
 }
 
 // Turns the model's JSON reply into dataset positions: ones that don't name a real

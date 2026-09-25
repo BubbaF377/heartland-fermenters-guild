@@ -44,6 +44,10 @@ const count = (tag) => tagCounts[tag] ?? 0;
         <button type="submit" id="ask-button">Ask</button>
       </div>
       <p id="ask-status" class="ask-status" role="status" aria-live="polite"></p>
+      <p id="ai-paused" class="ai-paused" role="status" hidden>
+        <strong>The plain-English search is paused for now</strong> &mdash; it has reached its usage limit. You
+        can still search and filter the list below.
+      </p>
     </form>
 
     <div class="resources-layout">
@@ -175,7 +179,7 @@ const count = (tag) => tagCounts[tag] ?? 0;
 
   <script>
     import resources from '../../data/fermentation-resources.json';
-    import { filterResources, isRateLimitError } from '../../lib/resources.js';
+    import { aiFailureKind, filterResources } from '../../lib/resources.js';
 
     const byId = (id) => document.getElementById(id);
     const listEl = byId('resource-list');
@@ -297,6 +301,17 @@ const count = (tag) => tagCounts[tag] ?? 0;
 
     const AI_FAILED =
       "Sorry — the plain-English search isn't working right now. Try searching the list or using the filters instead.";
+    // Set once the AI search reports it's out of budget (see aiFailureKind): the Ask
+    // box stays off for the rest of the visit rather than failing on every try.
+    let aiPaused = false;
+
+    function pauseAiSearch() {
+      aiPaused = true;
+      askStatus.hidden = true;
+      byId('ai-paused').hidden = false;
+      askInput.disabled = true;
+    }
+
     const AI_RATE_LIMITED =
       "You've asked several questions in a short time. Please wait a minute and try again — or search and filter the list in the meantime.";
 
@@ -322,9 +337,11 @@ const count = (tag) => tagCounts[tag] ?? 0;
         askStatus.textContent = '';
         render();
       } catch (err) {
-        askStatus.textContent = isRateLimitError(err) ? AI_RATE_LIMITED : AI_FAILED;
+        const kind = aiFailureKind(err);
+        if (kind === 'paused') pauseAiSearch();
+        else askStatus.textContent = kind === 'busy' ? AI_RATE_LIMITED : AI_FAILED;
       } finally {
-        askButton.disabled = false;
+        askButton.disabled = aiPaused;
       }
     });
 
@@ -405,8 +422,16 @@ const count = (tag) => tagCounts[tag] ?? 0;
     color: var(--ink);
   }
 
-  .clearable input:placeholder-shown + .clear-input {
+  .clearable input:placeholder-shown + .clear-input,
+  .clearable input:disabled + .clear-input {
     display: none;
+  }
+
+  input:disabled {
+    background: var(--cream-light);
+    color: var(--brown);
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 
   /* Browsers' own clear button on search boxes would double up with ours. */
@@ -483,6 +508,20 @@ const count = (tag) => tagCounts[tag] ?? 0;
     font-size: 0.95rem;
     font-style: italic;
     color: var(--brown);
+  }
+
+  .ai-paused {
+    margin: 0.5rem 0 0.25rem;
+    padding: 0.6rem 0.9rem;
+    border-left: 4px solid var(--wine);
+    border-radius: 0 6px 6px 0;
+    background: var(--cream-light);
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .ai-paused[hidden] {
+    display: none;
   }
 
   /* Two columns: filter rail + results */

@@ -8,7 +8,7 @@ import {
   RESOURCE_TYPES,
   areaLabel,
   filterResources,
-  isRateLimitError,
+  aiFailureKind,
   matchIdsFromResponse,
   resourcesForPrompt,
 } from './resources.js';
@@ -155,21 +155,28 @@ describe('resourcesForPrompt', () => {
   });
 });
 
-describe('isRateLimitError', () => {
+describe('aiFailureKind', () => {
   const aiError = (status, message) => Object.assign(new Error(message), { customErrorData: { status } });
 
-  it('is true for a 429 that is not about credits', () => {
-    expect(isRateLimitError(aiError(429, '[429 ] Quota exceeded for quota metric'))).toBe(true);
+  it("is 'paused' when the prepaid credits ran out (the error actually seen)", () => {
+    expect(aiFailureKind(aiError(429, '[429 ] Your prepayment credits are depleted.'))).toBe('paused');
   });
 
-  it('is false when the prepaid credits ran out', () => {
-    expect(isRateLimitError(aiError(429, '[429 ] Your prepayment credits are depleted.'))).toBe(false);
+  it("is 'paused' for a spend cap or any payment error, whatever the wording", () => {
+    expect(aiFailureKind(aiError(429, '[429 ] Project has exceeded its monthly spend cap'))).toBe('paused');
+    expect(aiFailureKind(aiError(429, '[429 ] Spending limit reached for billing account'))).toBe('paused');
+    expect(aiFailureKind(aiError(402, '[402 ] Payment Required'))).toBe('paused');
   });
 
-  it('is false for other failures', () => {
-    expect(isRateLimitError(aiError(403, '[403 ] deactivated'))).toBe(false);
-    expect(isRateLimitError(new Error('Unexpected AI response'))).toBe(false);
-    expect(isRateLimitError(undefined)).toBe(false);
+  it("is 'busy' for any other 429", () => {
+    expect(aiFailureKind(aiError(429, "[429 ] Quota exceeded for quota metric 'Generate content requests'"))).toBe('busy');
+  });
+
+  it("is 'failed' for everything else", () => {
+    expect(aiFailureKind(aiError(403, '[403 ] deactivated'))).toBe('failed');
+    expect(aiFailureKind(aiError(500, '[500 ] boom'))).toBe('failed');
+    expect(aiFailureKind(new Error('Unexpected AI response'))).toBe('failed');
+    expect(aiFailureKind(undefined)).toBe('failed');
   });
 });
 
