@@ -103,7 +103,7 @@ approval. One-time setup:
    register it.
 6. **Copy the web config into the code.** Under **Project settings → General → Your
    apps**, add a Web app. Copy its config values into `PRODUCTION_CONFIG` in
-   `src/lib/firebase.js` (already done for the `heartland-fermenters-guild` project).
+   `src/lib/firebase-app.js` (already done for the `heartland-fermenters-guild` project).
    These values only identify the project and are safe to commit. Access control comes from the rules below, so nothing needs to go into
    `.env` or GitHub Actions secrets.
 7. **Deploy the rules and index**: run `npx firebase login`, then
@@ -129,19 +129,52 @@ active member logs in by email (a one-time login link, no password to set) and s
 recipe, which lands as `pending` — invisible on the public site until an admin
 approves it from `/admin/`.
 
+## Resources AI search (Firebase AI Logic) setup
+
+`/resources/` works with no setup: the list, keyword search, and filters are built
+from `src/data/fermentation-resources.json` at build time and run entirely in the
+browser. Only its **Ask in plain English** box calls a service, Gemini through
+[Firebase AI Logic](https://firebase.google.com/docs/ai-logic). AI Logic holds the
+Gemini API key on Google's side, so nothing secret goes in the code. Until these steps
+are done, Ask shows its "isn't working right now" message and the rest of the page is
+unaffected. One-time setup, on the same Blaze project:
+
+1. **Turn on AI Logic** with the **Gemini Developer API** provider: **Build → AI
+   Logic → Get started**. The code uses the model in `AI_MODEL`
+   (`src/lib/resource-ai.js`). Google's pricing page says free-tier content
+   is used to improve its products; confirm the project is billed on the paid tier
+   (Blaze) so visitors' questions aren't.
+2. **Set the rate limit**: in AI Logic's settings, lower the per-user request limit to
+   something conservative. See docs/PRODUCT.md, Open questions, for the numbers.
+3. **Register App Check with reCAPTCHA Enterprise**: **Build → App Check → Apps →**
+   the web app → **reCAPTCHA Enterprise**, with `heartlandfermentersguild.org` as the
+   domain. Paste the site key into `RECAPTCHA_ENTERPRISE_SITE_KEY` in
+   `src/lib/resource-ai.js`, commit, and release.
+4. **Enforce App Check on AI Logic only**: **App Check → APIs → Firebase AI Logic →
+   Enforce**, after the release from step 3 is live (enforcing first breaks Ask for
+   everyone still on the old build). Leave Firestore and Storage unenforced: the
+   recipes, admin, and submit pages don't initialize App Check.
+5. **Check the budget alert** from step 2 of the Firebase setup above covers the whole
+   project (so Gemini spend is included), not only specific services.
+
 ## Project structure
 
 ```
 src/
   layouts/Layout.astro     shared <head>, nav, footer, fonts, global styles
   lib/constants.js         admin email, recipe categories, time-stage suggestions, slugify/list/YouTube-ID helpers (no Firebase import)
-  lib/firebase.js          Firebase app + web config, emulator switch, photo/slug-safe-create helpers (client-side only)
+  lib/firebase-app.js      Firebase app + web config, emulator switch (no Firestore/Auth/Storage)
+  lib/firebase.js          Firestore/Auth/Storage clients, photo/slug-safe-create helpers (client-side only)
+  lib/resources.js         Resources page filtering, Area panel groups, AI prompt/reply helpers (no Firebase import)
+  lib/resource-ai.js       Resources "Ask in plain English" call via Firebase AI Logic + App Check (loaded on first Ask)
+  data/fermentation-resources.json  the curated resources list (schemas in data/schemas/)
   lib/recipe-form.js       shared recipe-form logic (stage editor, field reading) used by admin and /submit/
   pages/index.astro        the landing page
   pages/recipes/index.astro  recipe list (published only, fetched from Firestore client-side)
   pages/recipes/view.astro   single-recipe template (?slug=... = the Firestore document ID)
   pages/admin/index.astro  password login; pending-recipe review, recipes, and members management
   pages/submit/index.astro  member email-link login + recipe submission (lands as pending)
+  pages/resources/index.astro  resources directory: Ask box, keyword search + filter rail, cards
   pages/404.astro          not-found page
 public/
   assets/                 logo, header banner, favicons

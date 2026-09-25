@@ -43,7 +43,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         <img src="/assets/logo.png" alt="" width="28" height="28" />
         Heartland Fermenters Guild
       </a>
-      <a class="site-nav-link" href="/recipes/">Recipes</a>
+      <div class="site-nav-links">
+        <a class="site-nav-link" href="/recipes/">Recipes</a>
+        <a class="site-nav-link" href="/resources/">Resources</a>
+      </div>
     </nav>
 
     <slot />
@@ -145,6 +148,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
   .site-nav-brand img {
     border-radius: 50%;
+  }
+
+  .site-nav-links {
+    display: flex;
+    gap: 1.25rem;
   }
 
   .site-nav-link {

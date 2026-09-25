@@ -14,7 +14,7 @@ import { Timestamp, collection, doc, getDoc, getDocs, setDoc } from 'firebase/fi
 import { getMetadata, ref, uploadBytes } from 'firebase/storage';
 import { ADMIN_EMAIL, RECIPE_PHOTOS_PATH } from '../../src/lib/constants.js';
 
-// Must match EMULATOR_PROJECT_ID in src/lib/firebase.js and the --project flag in
+// Must match EMULATOR_PROJECT_ID in src/lib/firebase-app.js and the --project flag in
 // package.json's test scripts.
 export const PROJECT_ID = 'demo-heartland-fermenters-guild';
 export const ADMIN_PASSWORD = 'test-admin-password';

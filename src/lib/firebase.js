@@ -1,12 +1,6 @@
-// Shared Firebase app + the Firestore/Auth/Storage helpers used by the recipes,
-// admin, and submit pages' client-side scripts only (never imported from Astro
-// frontmatter — see constants.js for why).
-//
-// The web config below is safe to expose to the browser by design — it only
-// identifies the project. Real protection comes from firestore.rules and
-// storage.rules, not from keeping any of these values secret. See README.md for
-// where to copy them from in the Firebase console.
-import { initializeApp } from 'firebase/app';
+// The Firestore/Auth/Storage helpers used by the recipes, admin, and submit pages'
+// client-side scripts only (never imported from Astro frontmatter — see
+// constants.js for why). The app itself and its config live in firebase-app.js.
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import {
   connectFirestoreEmulator,
@@ -17,34 +11,9 @@ import {
 } from 'firebase/firestore';
 import { connectStorageEmulator, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import { RECIPE_PHOTOS_PATH } from './constants.js';
+import { app, USE_EMULATORS } from './firebase-app.js';
 
-// From Firebase console → Project settings → General → Your apps → Web app.
-const PRODUCTION_CONFIG = {
-  apiKey: 'AIzaSyB8XORONI_ntUCXLcDgnDrRi2iQSLTi2qA',
-  authDomain: 'heartland-fermenters-guild.firebaseapp.com',
-  projectId: 'heartland-fermenters-guild',
-  storageBucket: 'heartland-fermenters-guild.firebasestorage.app',
-  messagingSenderId: '751191420385',
-  appId: '1:751191420385:web:3a092bed544b41399db6a0',
-  measurementId: 'G-RHVKZWQL66',
-};
-
-// Set at build time (Playwright's webServer, or `npm run dev:emulators`) to point
-// every page at the Firebase Local Emulator Suite instead of the real project. A
-// `demo-` project ID tells the emulators there's no real project behind it at all.
-const USE_EMULATORS = import.meta.env.PUBLIC_FIREBASE_EMULATORS === 'true';
-export const EMULATOR_PROJECT_ID = 'demo-heartland-fermenters-guild';
-
-const app = initializeApp(
-  USE_EMULATORS
-    ? {
-        apiKey: 'demo-api-key',
-        authDomain: `${EMULATOR_PROJECT_ID}.firebaseapp.com`,
-        projectId: EMULATOR_PROJECT_ID,
-        storageBucket: `${EMULATOR_PROJECT_ID}.appspot.com`,
-      }
-    : PRODUCTION_CONFIG,
-);
+export { EMULATOR_PROJECT_ID } from './firebase-app.js';
 
 export const db = getFirestore(app);
 export const auth = getAuth(app);

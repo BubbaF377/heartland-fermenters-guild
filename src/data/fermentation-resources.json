@@ -9,7 +9,8 @@
       "Vegetables",
       "Cultured Dairy",
       "Sourdough",
-      "Vinegar"
+      "Vinegar",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -30,7 +31,8 @@
       "Cider",
       "Koji",
       "Miso",
-      "Tempeh"
+      "Tempeh",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -48,7 +50,8 @@
       "Wild & Foraged Fermentation",
       "Traditional & Indigenous Fermentation",
       "Vegetables",
-      "Fruit"
+      "Fruit",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -67,7 +70,8 @@
       "Microbiology",
       "Cheese",
       "Sourdough",
-      "Kimchi"
+      "Kimchi",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper"
@@ -83,7 +87,9 @@
     "area": [
       "General Fermentation",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "US and Canadian",
+      "European"
     ],
     "resourceType": [
       "Go Deeper"
@@ -98,7 +104,8 @@
     "website": "https://nchfp.uga.edu/how/ferment/",
     "area": [
       "Vegetables",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -117,7 +124,8 @@
       "Vegetables",
       "Kombucha",
       "Cultured Dairy",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -135,7 +143,8 @@
       "Sourdough",
       "Bread",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "European"
     ],
     "resourceType": [
       "Go Deeper"
@@ -151,7 +160,8 @@
     "area": [
       "Cheese",
       "Cultured Dairy",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -171,7 +181,8 @@
       "Cultured Dairy",
       "Fermentation Science",
       "Microbiology",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -187,7 +198,8 @@
     "website": "https://bamforth.faculty.ucdavis.edu/",
     "area": [
       "Beer",
-      "Fermentation Science"
+      "Fermentation Science",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper"
@@ -202,7 +214,8 @@
     "website": "https://howtobrew.com/",
     "area": [
       "Beer",
-      "Fermentation Science"
+      "Fermentation Science",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -220,7 +233,8 @@
     "area": [
       "Beer",
       "Mead",
-      "Cider"
+      "Cider",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -257,7 +271,8 @@
     "area": [
       "Wine",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -275,7 +290,8 @@
       "Wine",
       "Fermentation Science",
       "Microbiology",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -293,7 +309,8 @@
       "Wine",
       "Fermentation Science",
       "Microbiology",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -308,7 +325,8 @@
     "description": "Influential modern meadmaker, educator, competition co-founder, and author of a foundational practical reference on meadmaking.",
     "website": "https://www.schrammsmead.com/the-team/",
     "area": [
-      "Mead"
+      "Mead",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -325,7 +343,8 @@
     "area": [
       "Cider",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "European"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -341,7 +360,8 @@
     "description": "Longtime kombucha educator and industry consultant offering extensive practical material for home and commercial kombucha brewing.",
     "website": "https://www.kombuchakamp.com/",
     "area": [
-      "Kombucha"
+      "Kombucha",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -360,7 +380,8 @@
       "Miso",
       "Soy Fermentation",
       "Fermented Meats",
-      "Vegetables"
+      "Vegetables",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -536,7 +557,8 @@
       "African Fermented Foods",
       "Traditional & Indigenous Fermentation",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "European"
     ],
     "resourceType": [
       "Go Deeper"
@@ -761,7 +783,8 @@
       "Vegetables",
       "Cultured Dairy",
       "Koji",
-      "Miso"
+      "Miso",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -780,7 +803,8 @@
       "Fruit",
       "Food Safety",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -799,7 +823,8 @@
       "Beer",
       "Wild & Sour Beer",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -818,7 +843,8 @@
       "Beer",
       "Fermentation Science",
       "Microbiology",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -837,7 +863,8 @@
       "Beer",
       "Fermentation Science",
       "Microbiology",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -930,7 +957,8 @@
       "Cultured Dairy",
       "Fermentation Science",
       "Microbiology",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -949,7 +977,8 @@
       "General Fermentation",
       "Traditional & Indigenous Fermentation",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper"
@@ -989,7 +1018,8 @@
       "Kombucha",
       "Cultured Dairy",
       "Yogurt",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1005,7 +1035,8 @@
     "website": "https://www.youtube.com/results?search_query=Smithsonian+fermentation+food+history",
     "area": [
       "Traditional & Indigenous Fermentation",
-      "Fermentation Science"
+      "Fermentation Science",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -1024,7 +1055,8 @@
       "Kimchi",
       "Kombucha",
       "Vinegar",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1044,7 +1076,8 @@
       "Kimchi",
       "Cultured Dairy",
       "Kombucha",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1061,7 +1094,8 @@
     "website": "https://www.extension.k-state.edu/foodsafety/",
     "area": [
       "General Fermentation",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Safety & Troubleshooting",
@@ -1077,7 +1111,8 @@
     "website": "https://extension.missouri.edu/media/wysiwyg/Extensiondata/Pro/FoodSafety/Docs/FSfactsheet_FoodFermentation_Sept2015.pdf",
     "area": [
       "Vegetables",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1096,7 +1131,8 @@
       "Vegetables",
       "Cultured Dairy",
       "Kombucha",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1114,7 +1150,8 @@
     "area": [
       "General Fermentation",
       "Vegetables",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1132,7 +1169,8 @@
     "area": [
       "General Fermentation",
       "Vegetables",
-      "Food Safety"
+      "Food Safety",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
