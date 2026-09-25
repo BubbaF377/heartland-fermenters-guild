@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heartlandfermentersguild.org/schemas/fermentation-resources.schema.json",
+  "title": "Heartland Fermenters Guild Fermentation Resources",
+  "description": "The complete curated fermentation-resource dataset.",
+  "type": "array",
+  "items": {"$ref": "fermentation-resource.schema.json"}
+}

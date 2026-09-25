@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heartlandfermentersguild.org/schemas/fermentation-resource.schema.json",
+  "title": "Heartland Fermenters Guild Fermentation Resource",
+  "description": "A curated, English-accessible educational resource related to fermentation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description",
+    "website",
+    "area",
+    "resourceType",
+    "mediaType"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the expert, organization, project, or resource."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A concise explanation of the resource and why it is useful."
+    },
+    "website": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://",
+      "description": "Primary English-language URL for the resource."
+    },
+    "area": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Controlled subject tags covered by the resource.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "General Fermentation",
+          "Traditional & Indigenous Fermentation",
+          "Asian Fermented Foods",
+          "African Fermented Foods",
+          "Latin American Fermented Foods",
+          "Middle Eastern Fermented Foods",
+          "Mexican Fermented Foods",
+          "Turkish Fermented Foods",
+          "Vegetables",
+          "Kimchi",
+          "Fruit",
+          "Sourdough",
+          "Bread",
+          "Cereals & Grains",
+          "Maize",
+          "Rice Fermentation",
+          "Cassava",
+          "Legumes",
+          "Cheese",
+          "Cultured Dairy",
+          "Yogurt",
+          "Kefir",
+          "Beer",
+          "Wild & Sour Beer",
+          "Wine",
+          "Mead",
+          "Cider",
+          "Kombucha",
+          "Vinegar",
+          "Koji",
+          "Soy Fermentation",
+          "Miso",
+          "Tempeh",
+          "Natto",
+          "Sake",
+          "Shochu",
+          "Pulque",
+          "Chicha",
+          "Cocoa",
+          "Coffee",
+          "Fermented Meats",
+          "Wild & Foraged Fermentation",
+          "Fermentation Science",
+          "Microbiology",
+          "Food Safety"
+        ]
+      }
+    },
+    "resourceType": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Controlled tags describing how the resource serves Guild members.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Learn to Ferment",
+          "Go Deeper",
+          "Safety & Troubleshooting",
+          "Organizations & Communities"
+        ]
+      }
+    },
+    "mediaType": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Format through which the resource is primarily delivered.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Website",
+          "YouTube Channel",
+          "YouTube Playlist",
+          "Video Collection",
+          "Podcast"
+        ]
+      }
+    }
+  }
+}

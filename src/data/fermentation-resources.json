@@ -1,0 +1,1146 @@
+[
+  {
+    "name": "Sandor Ellix Katz",
+    "description": "Author and educator whose work explores traditional fermentation techniques, history, culture, and microbial processes across a wide range of foods and beverages.",
+    "website": "https://www.wildfermentation.com/",
+    "area": [
+      "General Fermentation",
+      "Traditional & Indigenous Fermentation",
+      "Vegetables",
+      "Cultured Dairy",
+      "Sourdough",
+      "Vinegar"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Kirsten and Christopher Shockey / FermentWorks",
+    "description": "Practical authors and educators covering fermented vegetables, vinegar, cider, koji, miso, tempeh, and other home-scale fermentation traditions.",
+    "website": "https://ferment.works/",
+    "area": [
+      "General Fermentation",
+      "Vegetables",
+      "Vinegar",
+      "Cider",
+      "Koji",
+      "Miso",
+      "Tempeh"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Pascal Baudar / Wild Food Lab",
+    "description": "Educator and author specializing in wild foods, indigenous microbes, terroir, and experimental fermentation using foraged ingredients.",
+    "website": "https://www.wildfoodlab.com/",
+    "area": [
+      "Wild & Foraged Fermentation",
+      "Traditional & Indigenous Fermentation",
+      "Vegetables",
+      "Fruit"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Wolfe Lab at Tufts University",
+    "description": "Benjamin Wolfe's microbial-ecology laboratory studies the communities that form fermented foods including cheese, sourdough, and kimchi.",
+    "website": "https://sites.tufts.edu/wolfelab/",
+    "area": [
+      "Fermentation Science",
+      "Microbiology",
+      "Cheese",
+      "Sourdough",
+      "Kimchi"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "MicrobialFoods.org",
+    "description": "Science-focused project explaining fermented-food microbes, research, producers, and the microbial ecology behind fermentation.",
+    "website": "https://microbialfoods.org/",
+    "area": [
+      "General Fermentation",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "National Center for Home Food Preservation",
+    "description": "USDA-supported source of current, research-based home food preservation recommendations, including tested fermentation guidance.",
+    "website": "https://nchfp.uga.edu/how/ferment/",
+    "area": [
+      "Vegetables",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "NC State Extension Fermentation Resources",
+    "description": "Research-based home fermentation, food-safety, and troubleshooting guidance from a university extension program.",
+    "website": "https://foodsafety.ces.ncsu.edu/home-food-preservation-2/fermentation/",
+    "area": [
+      "General Fermentation",
+      "Vegetables",
+      "Kombucha",
+      "Cultured Dairy",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Puratos Sourdough Library",
+    "description": "A scientific and cultural collection preserving and analyzing sourdough cultures from around the world, with an accessible virtual library.",
+    "website": "https://sourdoughlibrary.puratos.com/en/virtual-sourdough-library",
+    "area": [
+      "Sourdough",
+      "Bread",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "American Cheese Society",
+    "description": "Professional organization offering education, resources, standards, and community for artisan cheesemakers and cheese professionals.",
+    "website": "https://www.cheesesociety.org/",
+    "area": [
+      "Cheese",
+      "Cultured Dairy",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "American Cheese Society Body of Knowledge",
+    "description": "Technical framework covering milk microbiology, chemistry, cheesemaking, ripening, sensory evaluation, safety, and operations.",
+    "website": "https://www.cheesesociety.org/resources/cheese-education/body-of-knowledge",
+    "area": [
+      "Cheese",
+      "Cultured Dairy",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Charlie Bamforth / Brewing & Beer",
+    "description": "Academic brewing scientist and educator whose work explains brewing chemistry, process control, quality, flavor, and beer stability.",
+    "website": "https://bamforth.faculty.ucdavis.edu/",
+    "area": [
+      "Beer",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "John Palmer / How to Brew",
+    "description": "Technically rigorous and approachable brewing reference covering ingredients, process, water chemistry, yeast, recipe design, and troubleshooting.",
+    "website": "https://howtobrew.com/",
+    "area": [
+      "Beer",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "American Homebrewers Association",
+    "description": "Membership organization with a substantial educational library for homebrewing beer, mead, and cider and an active practitioner community.",
+    "website": "https://www.homebrewersassociation.org/how-to-brew/",
+    "area": [
+      "Beer",
+      "Mead",
+      "Cider"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Milk The Funk Wiki",
+    "description": "Evidence-driven community knowledge base for Brettanomyces, lactic-acid bacteria, mixed cultures, spontaneous fermentation, and alternative brewing microbes.",
+    "website": "https://www.milkthefunk.com/wiki/Main_Page",
+    "area": [
+      "Beer",
+      "Wild & Sour Beer",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "UC Davis Viticulture and Enology",
+    "description": "Major academic center for grape growing and wine science, with research and industry resources on fermentation, chemistry, sensory science, and production.",
+    "website": "https://wine.ucdavis.edu/",
+    "area": [
+      "Wine",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "UC Davis Wine Fermentation Management Guide",
+    "description": "Technical guidance on wine microorganisms, yeast nutrition, temperature, pH, oxygen, sanitation, and sluggish or stuck fermentations.",
+    "website": "https://wine.ucdavis.edu/industry-info/enology/fermentation-management-guides/wine-fermentation",
+    "area": [
+      "Wine",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Cornell Enology Extension",
+    "description": "Research and extension material on wine fermentation, acidity, sanitation, yeast, malolactic fermentation, and cool-climate winemaking.",
+    "website": "https://cals.cornell.edu/cornell-agritech/our-expertise/craft-beverage-production/enology",
+    "area": [
+      "Wine",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Ken Schramm / Schramm's Mead",
+    "description": "Influential modern meadmaker, educator, competition co-founder, and author of a foundational practical reference on meadmaking.",
+    "website": "https://www.schrammsmead.com/the-team/",
+    "area": [
+      "Mead"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Andrew Lea / Wittenham Hill Cider Portal",
+    "description": "Technical cider resource from a fermentation scientist covering cider chemistry, microbiology, apple processing, production, and troubleshooting.",
+    "website": "http://www.cider.org.uk/",
+    "area": [
+      "Cider",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Hannah Crum / Kombucha Kamp",
+    "description": "Longtime kombucha educator and industry consultant offering extensive practical material for home and commercial kombucha brewing.",
+    "website": "https://www.kombuchakamp.com/",
+    "area": [
+      "Kombucha"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Jeremy Umansky and Rich Shih / Koji Alchemy",
+    "description": "Practical English-language authority on culinary koji and its application to amino sauces, miso, charcuterie, vegetables, and other foods.",
+    "website": "https://larderdb.com/koji-alchemy",
+    "area": [
+      "Koji",
+      "Miso",
+      "Soy Fermentation",
+      "Fermented Meats",
+      "Vegetables"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "World Institute of Kimchi",
+    "description": "South Korean government research institute devoted to kimchi fermentation, microbial resources, safety, health, production, storage, and culture.",
+    "website": "https://www.wikim.re.kr/eng/",
+    "area": [
+      "Kimchi",
+      "Vegetables",
+      "Asian Fermented Foods",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "National Research Institute of Brewing (Japan)",
+    "description": "Japan's national alcoholic-beverage research institute and an authoritative English-language source on sake, koji, yeast, shochu, and brewing science.",
+    "website": "https://www.nrib.go.jp/English/",
+    "area": [
+      "Sake",
+      "Shochu",
+      "Koji",
+      "Rice Fermentation",
+      "Asian Fermented Foods",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "NRIB: What Is Koji?",
+    "description": "Accessible scientific introduction to yellow, black, and white koji molds and their roles in sake, shochu, miso, soy sauce, and vinegar.",
+    "website": "https://www.nrib.go.jp/English/sake/esakefaq02.html",
+    "area": [
+      "Koji",
+      "Sake",
+      "Shochu",
+      "Miso",
+      "Soy Fermentation",
+      "Vinegar",
+      "Asian Fermented Foods",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Jyoti Prakash Tamang / Ethno-microbiology of Ethnic Indian Fermented Foods",
+    "description": "Scholarly work documenting the microbiology and indigenous knowledge of fermented vegetables, soybeans, cereals, dairy, meats, and beverages across India and the Himalayas.",
+    "website": "https://enviromicro-journals.onlinelibrary.wiley.com/doi/10.1111/jam.15382",
+    "area": [
+      "Asian Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "General Fermentation",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Buddhiman Tamang / Sikkim University",
+    "description": "Food microbiologist specializing in lactic-acid bacteria, functional foods, and fermentation and biopreservation of traditional Himalayan vegetable products.",
+    "website": "https://cc.cus.ac.in/en/faculty-details/dr-buddhiman-tamang",
+    "area": [
+      "Asian Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Vegetables",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Oluwafemi Adebo / University of Johannesburg",
+    "description": "Food scientist researching indigenous African foods, fermentation, metabolomics, starter cultures, and improvement of traditional food processes.",
+    "website": "https://www.uj.ac.za/members/prof-oluwafemi-adebo/",
+    "area": [
+      "African Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cereals & Grains",
+      "Legumes",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Mary Obodai / CSIR College of Science and Technology",
+    "description": "Ghanaian food microbiologist with decades of research experience, including specialization in the microbiota of African fermented foods.",
+    "website": "https://www.ccst.edu.gh/index.php/prof-mrs-mary-obodai/",
+    "area": [
+      "African Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "African Fermented Food Microbiome Project",
+    "description": "Metagenomic research characterizing fermented foods from Burkina Faso, Ghana, Kenya, and Nigeria and comparing their microbial communities globally.",
+    "website": "https://pure.ug.edu.gh/en/publications/characterizing-microbiomes-of-african-fermented-foods-in-a-global/",
+    "area": [
+      "African Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Sijmen Schoustra / Wageningen University",
+    "description": "Microbial ecologist studying traditional African fermented-food ecosystems and their connections to nutrition, food security, and indigenous knowledge.",
+    "website": "https://www.wur.nl/en/persons/sijmen-schoustra.htm",
+    "area": [
+      "African Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Hacettepe University FoodOmics Laboratory",
+    "description": "English-language research site for a laboratory studying traditional fermented-food microbiota through microbiology, sequencing, metagenomics, and foodomics.",
+    "website": "https://foodomicslab.hacettepe.edu.tr/en",
+    "area": [
+      "Turkish Fermented Foods",
+      "Yogurt",
+      "Cheese",
+      "Cultured Dairy",
+      "Sourdough",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Traditional Fermented Foods in Anatolia",
+    "description": "English open-access overview of Anatolian yogurt, ayran, kefir, kurut, cheese, tarhana, boza, pickles, şalgam, vinegar, wine, and sucuk.",
+    "website": "https://www.food.actapol.net/volume22/issue2/abstract-7.html",
+    "area": [
+      "Turkish Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cultured Dairy",
+      "Yogurt",
+      "Kefir",
+      "Cheese",
+      "Vegetables",
+      "Cereals & Grains",
+      "Fermented Meats"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Traditional Fermented Foods and Beverages in Iraq",
+    "description": "Open-access English scholarly resource documenting preparation of Iraqi basturma, smoked liban, Aushari cheese, turshi, sour khobz, and traditional beverages.",
+    "website": "https://link.springer.com/article/10.1186/s42779-022-00133-8",
+    "area": [
+      "Middle Eastern Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cultured Dairy",
+      "Cheese",
+      "Vegetables",
+      "Sourdough",
+      "Fermented Meats"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Traditional Fermented Milk Products of the Eastern Mediterranean",
+    "description": "Scientific review of traditional fermented milks, their production processes, microbial populations, sensory characteristics, safety, and cultural significance.",
+    "website": "https://www.sciencedirect.com/science/article/pii/S0958694623001875",
+    "area": [
+      "Middle Eastern Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cultured Dairy",
+      "Yogurt",
+      "Cheese",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Persian Kashk Zard Fermentation Study",
+    "description": "Open-access investigation of Iran's traditional fermented yogurt-and-wheat product kashk zard, including its two-stage process and microbial community.",
+    "website": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7693697/",
+    "area": [
+      "Middle Eastern Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cultured Dairy",
+      "Cereals & Grains",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "FAO: Cereal Fermentations in Latin America",
+    "description": "English reference covering fermented maize foods and beverages across Latin America, including chicha, atole agrio, cachiri, pozol, and related traditions.",
+    "website": "https://www.fao.org/4/x2184e/x2184e10.htm",
+    "area": [
+      "Latin American Fermented Foods",
+      "Mexican Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cereals & Grains",
+      "Maize",
+      "Chicha",
+      "Pulque"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Rosane Freitas Schwan / Federal University of Lavras",
+    "description": "Brazilian fermentation microbiologist whose group has studied cocoa, coffee, cassava, sugarcane, defined starter cultures, and tropical fermentations for decades.",
+    "website": "https://sigaa.ufla.br/sigaa/public/docente/portal.jsf?siape=31864",
+    "area": [
+      "Latin American Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cocoa",
+      "Coffee",
+      "Cassava",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Indigenous Latin American Fermented Foods",
+    "description": "English scientific overview of indigenous fermentation involving cereals, tubers, fruits, and vegetables, including spontaneous communities and starter-culture research.",
+    "website": "https://agris.fao.org/search/en/providers/125313/records/691da8f849e41686f7925600",
+    "area": [
+      "Latin American Fermented Foods",
+      "Traditional & Indigenous Fermentation",
+      "Cereals & Grains",
+      "Cassava",
+      "Fruit",
+      "Vegetables",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "FAO: Fermented Fruits and Vegetables — A Global Perspective",
+    "description": "Broad English practical and cultural reference covering indigenous fruit and vegetable fermentation across Africa, Asia, and Latin America.",
+    "website": "https://www.fao.org/4/x0560e/x0560e00.htm",
+    "area": [
+      "Traditional & Indigenous Fermentation",
+      "African Fermented Foods",
+      "Asian Fermented Foods",
+      "Latin American Fermented Foods",
+      "Vegetables",
+      "Fruit"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Ethnic Fermented Foods of the World",
+    "description": "Modern open-access global overview of traditional fermentation technologies and foods, organized geographically and by fermentation mechanism.",
+    "website": "https://link.springer.com/article/10.1186/s42779-024-00254-2",
+    "area": [
+      "General Fermentation",
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Sandor Katz / Sandorkraut YouTube Channel",
+    "description": "Sandor Katz's channel features demonstrations, lectures, interviews, travel, and discussions of fermentation as technique, preservation practice, culture, and social history.",
+    "website": "https://www.youtube.com/user/sandorkraut",
+    "area": [
+      "General Fermentation",
+      "Traditional & Indigenous Fermentation",
+      "Vegetables",
+      "Cultured Dairy",
+      "Koji",
+      "Miso"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "YouTube Channel"
+    ]
+  },
+  {
+    "name": "UC Food Safety / EATLAC Science of Fermentation",
+    "description": "University-led video collection covering fruit and vegetable fermentation science, food safety, health claims, practical production, and troubleshooting.",
+    "website": "https://ucfoodsafety.ucdavis.edu/training/eatlac-webinar-series-science-fermentation",
+    "area": [
+      "Vegetables",
+      "Fruit",
+      "Food Safety",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "Escarpment Labs YouTube Channel",
+    "description": "Technical brewing-microbiology webinars covering yeast health, pitch rates, fermentation performance, contamination, mixed cultures, kveik, Brettanomyces, flavor compounds, and troubleshooting.",
+    "website": "https://www.youtube.com/channel/UCEyCSmOUfkp_QPH1PClAxVQ",
+    "area": [
+      "Beer",
+      "Wild & Sour Beer",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "YouTube Channel"
+    ]
+  },
+  {
+    "name": "Master Brewers Association Video Resources",
+    "description": "Professional brewing education covering science, technology, history, quality control, ingredients, fermentation, brewery operations, and troubleshooting.",
+    "website": "https://www.masterbrewerspodcast.com/",
+    "area": [
+      "Beer",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Podcast"
+    ]
+  },
+  {
+    "name": "Brewers Association Video Archive",
+    "description": "Professional brewing presentations and laboratory demonstrations, including standardized methods for yeast counting, pH, apparent extract, aseptic sampling, and spoilage-organism detection.",
+    "website": "https://www.brewersassociation.org/video-archive/",
+    "area": [
+      "Beer",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "Australian Wine Research Institute Webinar Archive",
+    "description": "Technical wine-science webinars on yeast, malolactic fermentation, stuck fermentation, Brettanomyces, reductive aromas, extraction, sanitation, smoke taint, and sensory science.",
+    "website": "https://www.youtube.com/playlist?list=PL7Z5GkvVSSxyp23DzkILEvecL2bg-t5cn",
+    "area": [
+      "Wine",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "YouTube Playlist"
+    ]
+  },
+  {
+    "name": "The Sourdough Journey",
+    "description": "Experiment-driven sourdough instruction comparing temperature, inoculation, percentage rise, starter condition, timing, shaping, and crumb structure through controlled bakes.",
+    "website": "https://www.youtube.com/@thesourdoughjourney",
+    "area": [
+      "Sourdough",
+      "Bread",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "YouTube Channel"
+    ]
+  },
+  {
+    "name": "The Bread Code",
+    "description": "Engineering-oriented explanations of sourdough history, enzymes, gluten, wild yeast, lactic-acid bacteria, fermentation variables, diagnostics, and adaptable bread technique.",
+    "website": "https://www.youtube.com/@the_bread_code",
+    "area": [
+      "Sourdough",
+      "Bread",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "YouTube Channel"
+    ]
+  },
+  {
+    "name": "ChainBaker",
+    "description": "Systematic bread demonstrations showing how fermentation time, temperature, inoculation, hydration, salt, kneading, flour, preferments, and process order affect dough.",
+    "website": "https://www.youtube.com/@ChainBaker",
+    "area": [
+      "Bread",
+      "Sourdough",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "YouTube Channel"
+    ]
+  },
+  {
+    "name": "Center for Dairy Research — University of Wisconsin–Madison Videos",
+    "description": "University dairy-science videos on cheesemaking, cheese chemistry, defects, processing, cultures, food safety, and commercial dairy production.",
+    "website": "https://www.youtube.com/results?search_query=University+of+Wisconsin+Center+for+Dairy+Research",
+    "area": [
+      "Cheese",
+      "Cultured Dairy",
+      "Fermentation Science",
+      "Microbiology",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "Harvard Science & Cooking Fermentation Lectures",
+    "description": "University public lectures pairing researchers with expert practitioners to explore the scientific principles underlying fermentation and culinary technique.",
+    "website": "https://www.youtube.com/results?search_query=Harvard+Science+Cooking+fermentation",
+    "area": [
+      "General Fermentation",
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science",
+      "Microbiology"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "KojiCon Video Presentations",
+    "description": "Presentations from craftspeople, researchers, brewers, historians, and culinary professionals combining koji heritage, contemporary technique, and fermentation science.",
+    "website": "https://www.youtube.com/results?search_query=KojiCon+koji+fermentation",
+    "area": [
+      "Koji",
+      "Miso",
+      "Soy Fermentation",
+      "Sake",
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "UC Master Food Preserver Fermentation Videos",
+    "description": "Curated research-based extension videos from multiple universities covering vegetable fermentation, kombucha, yogurt, and home-fermentation safety.",
+    "website": "https://ucanr.edu/statewide-program/uc-master-food-preserver-program/uc-master-food-preserver-videos-ferment",
+    "area": [
+      "Vegetables",
+      "Fruit",
+      "Kombucha",
+      "Cultured Dairy",
+      "Yogurt",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "Smithsonian Food History and Indigenous Foodways Videos",
+    "description": "Museum lectures and demonstrations exploring Indigenous food systems, preservation, food sovereignty, culinary history, and the cultural setting of traditional food practices.",
+    "website": "https://www.youtube.com/results?search_query=Smithsonian+fermentation+food+history",
+    "area": [
+      "Traditional & Indigenous Fermentation",
+      "Fermentation Science"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Video Collection"
+    ]
+  },
+  {
+    "name": "K-State Rapid Response Center — Pickling and Fermentation",
+    "description": "Research-based hub covering brined and fermented pickles, sauerkraut, kimchi, kombucha, fermentation vessels, troubleshooting, and tested preservation methods.",
+    "website": "https://www.rrc.k-state.edu/preservation/pickling.html",
+    "area": [
+      "Vegetables",
+      "Kimchi",
+      "Kombucha",
+      "Vinegar",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "K-State Extension — Taking a New Look at Fermented Foods",
+    "description": "Accessible extension introduction to fermented foods, microorganisms, health considerations, food safety, vegetable-fermentation methods, sauerkraut, and kimchi.",
+    "website": "https://bookstore.ksre.k-state.edu/download/taking-a-new-look-at-fermented-foods-fact-sheet_MF3491",
+    "area": [
+      "General Fermentation",
+      "Vegetables",
+      "Kimchi",
+      "Cultured Dairy",
+      "Kombucha",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "K-State Extension Food Safety",
+    "description": "Statewide program connecting consumers and food businesses with research-based preservation guidance, specialists, instructional resources, and workshops.",
+    "website": "https://www.extension.k-state.edu/foodsafety/",
+    "area": [
+      "General Fermentation",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "MU Extension — Safely Fermenting Food at Home",
+    "description": "Concise research-based safety guidance on salt concentration, suitable containers, temperature, sanitation, storage, and avoiding unsafe substitutions during vegetable fermentation.",
+    "website": "https://extension.missouri.edu/media/wysiwyg/Extensiondata/Pro/FoodSafety/Docs/FSfactsheet_FoodFermentation_Sept2015.pdf",
+    "area": [
+      "Vegetables",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "MU Extension Food Preservation",
+    "description": "Statewide Missouri program providing research-based publications, workshops, online instruction, tested recipes, newsletters, and access to preservation specialists.",
+    "website": "https://extension.missouri.edu/programs/food-preservation",
+    "area": [
+      "General Fermentation",
+      "Vegetables",
+      "Cultured Dairy",
+      "Kombucha",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "K-State Marais des Cygnes District Food Preservation",
+    "description": "Regional Miami and Linn County program offering preservation classes throughout the year and by request, tested resources, local specialists, and pressure-canner gauge testing.",
+    "website": "https://www.maraisdescygnes.k-state.edu/program-areas/foods-and-nutrition/food-preservation/",
+    "area": [
+      "General Fermentation",
+      "Vegetables",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "K-State Johnson County Extension Food Preservation",
+    "description": "Regional food-preservation program connecting Kansas City-area residents with research-based instruction, food-safety guidance, specialists, and trained Master Food Volunteers.",
+    "website": "https://www.johnson.k-state.edu/programs/health-food-safety/food-preservation/",
+    "area": [
+      "General Fermentation",
+      "Vegetables",
+      "Food Safety"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Safety & Troubleshooting",
+      "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  }
+]
