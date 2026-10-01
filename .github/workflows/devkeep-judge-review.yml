@@ -16,7 +16,7 @@ on:
       review-tier:
         description: Model tier (fast, balanced, capable, max)
         required: false
-        default: capable
+        default: balanced
 
 jobs:
   review:
