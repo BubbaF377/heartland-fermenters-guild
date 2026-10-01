@@ -13,6 +13,24 @@ Work the way you normally would — talk through a bug, a feature, a design choi
 
 **Before every commit, check this specifically — don't defer it or assume an earlier pass already covered it.** If the commit changes behavior, adds or supersedes a requirement, resolves an open question, or fixes a real bug, and `docs/PRODUCT.md` doesn't already reflect it, update that file and include the update in the same commit. A commit that changes what this project does without the doc reflecting it is exactly how this file quietly goes stale.
 
+## Write in whatever language your team works in — except two markers
+
+The prose in `docs/PRODUCT.md` can be in any language. If your team discusses work in Portuguese, the product doc will end up in Portuguese, and it should: it is your team's record, and Devkeep generates your test plan and user manual **in the language it finds there**.
+
+**Two tokens are structure, not prose, and must stay exactly as written:**
+
+```
+## Requirements
+**History.**
+```
+
+They are markers Devkeep parses, in the same way the HTML comment at the top of a generated file is a marker. Translating them is the one edit that breaks things quietly:
+
+- **`## Requisitos`, `## Anforderungen`, `## 要件`** — Devkeep finds no requirements at all. No test plan, no user manual, no drift detection; the project reads as one that has not written any requirements yet.
+- **`**Histórico.**`** — worse, because it does not announce itself. That marker is what separates a requirement's *rule* from its *history*. Without it, your history counts as part of the rule, so every dated note you add changes the requirement's hash and triggers a regeneration — a paid Claude run, caused by writing prose that was never meant to cost anything.
+
+Everything else — the requirement text, the headings around it, your dated notes — is yours to write in your own language.
+
 ## What a requirement looks like, specifically
 
 This one is worth being literal about, because getting it wrong is silent. A requirement is a **numbered item under the `## Requirements` heading**:
@@ -31,7 +49,7 @@ Numbered, one per distinct capability, describing what the product does for the 
 **So check, rather than judge.** After adding requirement N, run this and expect `1`:
 
 ```sh
-awk '/^## Requirements/{inside=1; next} inside && /^## /{exit} inside' docs/PRODUCT.md | grep -c '^N.'
+awk '/^## Requirements/{inside=1; next} inside && /^## /{exit} inside' docs/PRODUCT.md | grep -c '^N\.'
 ```
 
 `0` means it landed outside the section, whatever the file looks like. This takes a second and is the only way to tell — there is no visible difference between a requirement Devkeep reads and one it cannot. **Do it before you commit**, in the same pass as writing the requirement.
