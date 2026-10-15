@@ -1,0 +1,178 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import localResources from '../../data/local-resources.json';
+import { checkedLabel, groupByCategory } from '../../lib/local-resources.js';
+
+const groups = groupByCategory(localResources);
+const suggestHref =
+  'mailto:makers@heartlandfermentersguild.org?subject=' + encodeURIComponent('Local resources suggestion');
+---
+
+<Layout
+  title="Local Resources — Heartland Fermenters Guild"
+  description="Homebrew and fermentation supply shops, clubs, classes, and local wineries and cideries around Kansas City, Cass County, and Miami County."
+>
+  <main class="local-page">
+    <p class="breadcrumb"><a href="/resources/">&larr; All resources</a></p>
+    <h1>Local Resources</h1>
+    <p class="intro">
+      Shops, clubs, classes, and makers around the Kansas City metro, Cass County, and Miami County &mdash; places to
+      buy supplies, learn, and meet other fermenters.
+    </p>
+    <p class="disclaimer">This listing is provided for reference, not as an endorsement.</p>
+
+    <nav class="jump-links" aria-label="Sections">
+      {groups.map((g) => <a href={`#${g.category.toLowerCase().replace(/\s+/g, '-')}`}>{g.category}</a>)}
+    </nav>
+
+    {
+      groups.map((g) => (
+        <section class="local-section" id={g.category.toLowerCase().replace(/\s+/g, '-')}>
+          <h2>{g.category}</h2>
+          <ul class="local-list">
+            {g.entries.map((r) => (
+              <li class="local-card">
+                <h3>
+                  <a href={r.website} target="_blank" rel="noopener noreferrer">
+                    {r.name}
+                  </a>
+                </h3>
+                <p class="town">{r.town}</p>
+                <p class="local-description">{r.description}</p>
+                <p class="checked">Last checked {checkedLabel(r.lastChecked)}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <p class="suggest">
+      Know a spot we're missing, or one that's closed? <a href={suggestHref}>Let us know</a>.
+    </p>
+  </main>
+</Layout>
+
+<style>
+  .local-page {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .breadcrumb {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+  }
+
+  .intro {
+    max-width: 680px;
+    color: var(--brown);
+    margin: 0.75rem 0 0;
+  }
+
+  .disclaimer {
+    margin: 0.75rem 0 1.5rem;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--brown);
+  }
+
+  .jump-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 2rem;
+  }
+
+  .jump-links a {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.8rem;
+    border: 1px solid rgba(44, 30, 18, 0.3);
+    border-radius: 999px;
+    background: var(--cream-light);
+    text-decoration: none;
+  }
+
+  .jump-links a:hover,
+  .jump-links a:focus-visible {
+    background: var(--cream);
+  }
+
+  .local-section {
+    margin-bottom: 2.25rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .local-section h2 {
+    font-size: 1.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .local-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+    gap: 1rem;
+  }
+
+  .local-card {
+    background: var(--cream);
+    border: 1px solid rgba(44, 30, 18, 0.15);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+
+  .local-card h3 {
+    font-size: 1.25rem;
+    margin: 0 0 0.15rem;
+  }
+
+  .local-card h3 a {
+    text-decoration: none;
+  }
+
+  .local-card h3 a:hover,
+  .local-card h3 a:focus-visible {
+    text-decoration: underline;
+  }
+
+  .town {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--brown-deep);
+  }
+
+  .local-description {
+    margin: 0 0 0.6rem;
+    color: var(--brown);
+  }
+
+  .checked {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--brown);
+    opacity: 0.85;
+  }
+
+  .suggest {
+    margin-top: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(44, 30, 18, 0.15);
+    color: var(--brown);
+  }
+
+  @media (max-width: 800px) {
+    .local-page {
+      padding: 1.75rem 1rem 3rem;
+    }
+  }
+</style>

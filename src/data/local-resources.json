@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Bacchus & Barleycorn",
+    "category": "Supply Shops",
+    "town": "Shawnee, KS",
+    "description": "Homebrew supply shop serving the Kansas City area since 1968, stocking ingredients and equipment for beer, wine, mead, cider, cheesemaking, and kombucha.",
+    "website": "https://bacchus-and-barleycorn.myshopify.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "Grains & Taps Home Brew Supply",
+    "category": "Supply Shops",
+    "town": "Lee's Summit, MO",
+    "description": "Homebrew supply shop selling beer and wine ingredient kits, grain, malt extract, hops, yeast, and brewing and bottling equipment.",
+    "website": "http://grainsandtaps.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "Kansas City Bier Meisters",
+    "category": "Clubs",
+    "town": "Kansas City metro",
+    "description": "Homebrew club founded in 1983, with members who also make mead and cider. Meets the third Friday of each month; guests are welcome.",
+    "website": "https://kcbiermeisters.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "Johnson County Brewing Society",
+    "category": "Clubs",
+    "town": "Overland Park, KS",
+    "description": "Homebrew club open to brewers of all experience levels and anyone curious about homebrewing. Meets the fourth Thursday of most months.",
+    "website": "http://jocobrewingsociety.wordpress.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "ZZ Hops Home Brewing Club",
+    "category": "Clubs",
+    "town": "Lee's Summit, MO",
+    "description": "Homebrew club for all levels, meeting the third Monday of each month around Lee's Summit, with hands-on brewing sessions and brewery field trips.",
+    "website": "https://www.zzhops.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "KC Sourdough Co.",
+    "category": "Classes",
+    "town": "Kansas City area",
+    "description": "Hands-on sourdough baking classes held at local venues, plus private classes for groups of four or more.",
+    "website": "https://kansascitysourdough.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "Somerset Ridge Vineyard & Winery",
+    "category": "Local Makers",
+    "town": "Paola, KS",
+    "description": "Family-owned farm winery making wine from Kansas-grown grapes, plus hard cider.",
+    "website": "https://somersetridge.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "NightHawk Vineyard & Winery",
+    "category": "Local Makers",
+    "town": "Paola, KS",
+    "description": "Boutique Miami County winery with a tasting room open on weekends.",
+    "website": "https://www.nighthawkwines.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "Fossil Springs Elderberry Farm & Winery",
+    "category": "Local Makers",
+    "town": "Paola, KS",
+    "description": "Elderberry farm and winery making fruit wines from only the fruit named on the label, with a tasting room.",
+    "website": "https://fossilspringswinery.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "Louisburg Cider Mill",
+    "category": "Local Makers",
+    "town": "Louisburg, KS",
+    "description": "Cider mill and country store making hard cider and perry from Kansas-grown apples, with a tasting room.",
+    "website": "https://www.louisburgcidermill.com/",
+    "lastChecked": "2026-10-15"
+  },
+  {
+    "name": "The Peculiar Winery",
+    "category": "Local Makers",
+    "town": "Peculiar, MO",
+    "description": "Family-owned winery making more than twenty grape and fruit wines, fermented and bottled on its 15-acre property.",
+    "website": "https://www.peculiarwinery.com/",
+    "lastChecked": "2026-10-15"
+  }
+]

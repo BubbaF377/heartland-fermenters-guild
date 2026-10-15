@@ -253,7 +253,8 @@
       "Beer",
       "Wild & Sour Beer",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "US and Canadian"
     ],
     "resourceType": [
       "Go Deeper",
@@ -901,7 +902,8 @@
     "area": [
       "Sourdough",
       "Bread",
-      "Fermentation Science"
+      "Fermentation Science",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -920,7 +922,8 @@
       "Sourdough",
       "Bread",
       "Fermentation Science",
-      "Microbiology"
+      "Microbiology",
+      "European"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -938,7 +941,8 @@
     "area": [
       "Bread",
       "Sourdough",
-      "Fermentation Science"
+      "Fermentation Science",
+      "European"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -997,7 +1001,8 @@
       "Soy Fermentation",
       "Sake",
       "Traditional & Indigenous Fermentation",
-      "Fermentation Science"
+      "Fermentation Science",
+      "US and Canadian"
     ],
     "resourceType": [
       "Learn to Ferment",
@@ -1176,6 +1181,165 @@
       "Learn to Ferment",
       "Safety & Troubleshooting",
       "Organizations & Communities"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Maurizio Leo / The Perfect Loaf",
+    "description": "James Beard Award-winning author of The Perfect Loaf, whose site teaches sourdough technique in depth: starter care, mixing, bulk fermentation, shaping, proofing, and troubleshooting common starter problems.",
+    "website": "https://www.theperfectloaf.com/",
+    "area": [
+      "Sourdough",
+      "Bread",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Michael Tonsmeire / The Mad Fermentationist",
+    "description": "Homebrewing blog by the author of American Sour Beers, covering mixed fermentation, barrel aging, wild yeast and bacteria, and years of documented sour and wild beer experiments.",
+    "website": "https://www.themadfermentationist.com/",
+    "area": [
+      "Beer",
+      "Wild & Sour Beer",
+      "Microbiology",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Stan Hieronymus / Appellation Beer",
+    "description": "Beer writer and author of For the Love of Hops, Brew Like a Monk, and Brewing With Wheat, writing about hops, ingredients, brewing traditions, and the sense of place in beer.",
+    "website": "https://appellationbeer.com/blog",
+    "area": [
+      "Beer",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Daniel Pambianchi / Techniques in Home Winemaking",
+    "description": "Author of Techniques in Home Winemaking and Modern Home Winemaking, with winemaking tools, a troubleshooting guide, a yeast strain search, webinars, and technical papers for home and small-winery winemakers.",
+    "website": "https://www.techniquesinhomewinemaking.com/",
+    "area": [
+      "Wine",
+      "Fermentation Science",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "William Shurtleff and Akiko Aoyagi / SoyInfo Center",
+    "description": "Research center founded by the authors of The Book of Miso and The Book of Tempeh, offering free digital books, bibliographies, and a large historical database on soyfoods and their fermentation traditions.",
+    "website": "https://www.soyinfocenter.com/",
+    "area": [
+      "Soy Fermentation",
+      "Miso",
+      "Tempeh",
+      "Natto",
+      "Koji",
+      "Traditional & Indigenous Fermentation",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Stanley Marianski / Meats and Sausages",
+    "description": "Site by the author of The Art of Making Fermented Sausages and The Practical Guide to Making Salami, covering fermented sausages, curing, nitrates, and the safety practices that keep cured meats safe.",
+    "website": "https://www.meatsandsausages.com/",
+    "area": [
+      "Fermented Meats",
+      "Food Safety",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper",
+      "Safety & Troubleshooting"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Vanessa Kimbell / The Sourdough School",
+    "description": "Sourdough author and educator whose school teaches sourdough technique through courses and workshops, with guides on ingredients and hydration and a focus on the science of bread, fermentation, and gut health.",
+    "website": "https://www.sourdough.co.uk/",
+    "area": [
+      "Sourdough",
+      "Bread",
+      "Fermentation Science",
+      "European"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "Linda Ziedrich / A Gardener's Table",
+    "description": "Blog by the author of The Joy of Pickling, with hands-on writing about brined and fermented pickles, vegetables, and fruit from a home gardener and preserver.",
+    "website": "https://agardenerstable.com/",
+    "area": [
+      "Vegetables",
+      "Fruit",
+      "US and Canadian"
+    ],
+    "resourceType": [
+      "Learn to Ferment"
+    ],
+    "mediaType": [
+      "Website"
+    ]
+  },
+  {
+    "name": "John Gauntner / Sake World",
+    "description": "Sake educator and author of Sake Confidential, explaining how sake is made, including koji, rice, water, and yeast, along with sake styles, tasting, and professional courses.",
+    "website": "https://www.sake-world.com/",
+    "area": [
+      "Sake",
+      "Koji",
+      "Rice Fermentation",
+      "Asian Fermented Foods"
+    ],
+    "resourceType": [
+      "Learn to Ferment",
+      "Go Deeper"
     ],
     "mediaType": [
       "Website"
